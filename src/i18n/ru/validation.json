@@ -1,0 +1,13 @@
+{
+  "slug_must_be_a_string": "Слаг должен быть строкой",
+  "slug_should_not_be_empty": "Слаг не должен быть пустым",
+  "translations_must_be_an_array": "Переводы должны быть в виде массива",
+  "invalid_translation_item": "Каждый перевод должен быть валидным",
+  "sub_categories_must_be_an_array": "Подкатегории должны быть в виде массива",
+  "invalid_sub_category_item": "Каждая подкатегория должна быть валидной",
+  "language_must_be_valid_enum": "Язык должен быть одним из допустимых значений",
+  "title_must_be_a_string": "Заголовок должен быть строкой",
+  "title_should_not_be_empty": "Заголовок не может быть пустым",
+  "category_slug_exists": "A category with this slug already exists",
+  "sub_category_slug_exists": "A sub-category with slug {slug} already exists"
+}

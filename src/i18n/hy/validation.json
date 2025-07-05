@@ -1,0 +1,13 @@
+{
+  "slug_must_be_a_string": "Slug-ը պետք է լինի տեքստ",
+  "slug_should_not_be_empty": "Slug-ը չի կարող դատարկ լինել",
+  "translations_must_be_an_array": "Թարգմանությունները պետք է լինեն զանգված",
+  "invalid_translation_item": "Յուրաքանչյուր թարգմանությունը պետք է վավեր լինի",
+  "sub_categories_must_be_an_array": "Ենթակարգերը պետք է լինեն զանգված",
+  "invalid_sub_category_item": "Յուրաքանչյուր ենթակարգ պետք է վավեր լինի",
+  "language_must_be_valid_enum": "Լեզուն պետք է լինի թույլատրելի արժեքներից մեկը",
+  "title_must_be_a_string": "Վերնագիրը պետք է լինի տեքստ",
+  "title_should_not_be_empty": "Վերնագիրը չի կարող լինել դատարկ",
+  "category_slug_exists": "A category with this slug already exists",
+  "sub_category_slug_exists": "A sub-category with slug {slug} already exists"
+}

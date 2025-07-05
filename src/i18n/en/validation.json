@@ -1,0 +1,13 @@
+{
+  "slug_must_be_a_string": "Slug must be a string",
+  "slug_should_not_be_empty": "Slug should not be empty",
+  "translations_must_be_an_array": "Translations must be an array",
+  "invalid_translation_item": "Each translation must be valid",
+  "sub_categories_must_be_an_array": "Sub-categories must be an array",
+  "invalid_sub_category_item": "Each sub-category must be valid",
+  "language_must_be_valid_enum": "Language must be one of the allowed values",
+  "title_must_be_a_string": "Title must be a string",
+  "title_should_not_be_empty": "Title cannot be empty",
+  "category_slug_exists": "A category with this slug already exists",
+  "sub_category_slug_exists": "A sub-category with slug {slug} already exists"
+}
