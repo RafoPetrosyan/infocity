@@ -1,12 +1,15 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  BeforeCreate,
+  BeforeUpdate,
+} from 'sequelize-typescript';
+import * as bcrypt from 'bcryptjs';
 
 @Table({ tableName: 'users' })
 export class User extends Model<User> {
-  static hashPassword(plain: string): string {
-    const crypto = require('crypto');
-    return crypto.createHash('md5').update(plain).digest('hex');
-  }
-
   @Column({ type: DataType.STRING, allowNull: false })
   first_name: string;
 
@@ -16,21 +19,7 @@ export class User extends Model<User> {
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
   email: string;
 
-  // @Column({ type: DataType.STRING })
-  // phone: string;
-
-  @Column({
-    type: DataType.STRING,
-    set(this: User, value: string) {
-      if (value) {
-        this.setDataValue('password', User.hashPassword(value));
-      }
-    },
-    get(this: User) {
-      // hide password from being returned in queries
-      return undefined;
-    },
-  })
+  @Column({ type: DataType.STRING })
   password: string;
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
@@ -50,4 +39,32 @@ export class User extends Model<User> {
     defaultValue: 'user',
   })
   role: 'user' | 'admin' | 'super-admin' | 'business';
+
+  @BeforeCreate
+  @BeforeUpdate
+  static async hashPasswordHook(instance: User) {
+    if (instance.changed('password')) {
+      instance.password = await bcrypt.hash(instance.password, 10);
+    }
+  }
+
+  static async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
+  }
+
+  static async comparePasswords(plain: string, hash: string): Promise<boolean> {
+    return await bcrypt.compare(plain, hash);
+  }
+
+  toJSON() {
+    const values = { ...this.get() };
+    // @ts-ignore
+    delete values.password;
+
+    if (values.avatar) {
+      values.avatar = `${process.env.DOMAIN_URL}/${values.avatar}`;
+    }
+
+    return values;
+  }
 }

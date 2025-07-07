@@ -13,7 +13,10 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "migration:generate": "npx sequelize-cli migration:generate",
-    "migration:run": "npx sequelize-cli db:migrate"
+    "migration:run": "npx sequelize-cli db:migrate",
+    "seed:generate": "npx sequelize-cli seed:generate",
+    "seed:all": "npx sequelize-cli db:seed:all",
+    "seed:run": "npx sequelize-cli db:seed --seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -21,6 +24,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/sequelize": "^11.0.0",
+    "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^17.0.1",

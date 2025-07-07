@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import * as process from 'node:process';
 import { ConfigModule } from '@nestjs/config';
 import { CategoriesModule } from './categories/categories.module';
+import { ProvincesModule } from './provinces/provinces.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'node:path';
 
@@ -37,6 +38,7 @@ import * as path from 'node:path';
     }),
     UsersModule,
     CategoriesModule,
+    ProvincesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
