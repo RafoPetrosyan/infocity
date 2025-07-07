@@ -13,6 +13,7 @@ module.exports = {
       email: { type: Sequelize.STRING, unique: true, allowNull: false },
       password: { type: Sequelize.STRING },
       avatar: { type: Sequelize.STRING },
+      phone_number: { type: Sequelize.STRING },
       verified: { type: Sequelize.BOOLEAN, defaultValue: false },
       login_type: {
         type: Sequelize.ENUM('email', 'google', 'facebook'),

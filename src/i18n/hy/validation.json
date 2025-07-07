@@ -9,5 +9,8 @@
   "title_must_be_a_string": "Վերնագիրը պետք է լինի տեքստ",
   "title_should_not_be_empty": "Վերնագիրը չի կարող լինել դատարկ",
   "category_slug_exists": "A category with this slug already exists",
-  "sub_category_slug_exists": "A sub-category with slug {slug} already exists"
+  "sub_category_slug_exists": "A sub-category with slug {slug} already exists",
+  "invalid_email_format": "Էլ. հասցեն սխալ է մուտքագրված",
+  "password_is_required": "Գաղտնաբառը պարտադիր է",
+  "min_password": "Գաղտնաբառը պետք է լինի առնվազն 6 նիշ"
 }

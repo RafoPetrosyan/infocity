@@ -28,6 +28,9 @@ export class User extends Model<User> {
   @Column({ type: DataType.STRING })
   avatar: string;
 
+  @Column({ type: DataType.STRING })
+  phone_number: string;
+
   @Column({
     type: DataType.ENUM('email', 'google', 'facebook'),
     defaultValue: 'email',
