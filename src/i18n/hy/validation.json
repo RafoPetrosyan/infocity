@@ -12,5 +12,7 @@
   "sub_category_slug_exists": "A sub-category with slug {slug} already exists",
   "invalid_email_format": "Էլ. հասցեն սխալ է մուտքագրված",
   "password_is_required": "Գաղտնաբառը պարտադիր է",
-  "min_password": "Գաղտնաբառը պետք է լինի առնվազն 6 նիշ"
+  "min_password": "Գաղտնաբառը պետք է լինի առնվազն 6 նիշ",
+  "token_must_be_a_string": "Token must be a string",
+  "token_should_not_be_empty": "Token should not be empty"
 }

@@ -15,6 +15,10 @@ export class UsersService {
     return await this.userModel.findAll();
   }
 
+  async getUserById(id: number) {
+    return await this.userModel.findByPk(id);
+  }
+
   async signIn(email: string, password: string) {
     const user = await this.userModel.findOne({
       where: { email },

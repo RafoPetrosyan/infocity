@@ -12,5 +12,7 @@
   "sub_category_slug_exists": "A sub-category with slug {slug} already exists",
   "invalid_email_format": "Invalid email format",
   "password_is_required": "Password is required",
-  "min_password": "Password must be at least 6 characters"
+  "min_password": "Password must be at least 6 characters",
+  "token_must_be_a_string": "Token must be a string",
+  "token_should_not_be_empty": "Token should not be empty"
 }
