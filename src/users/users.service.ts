@@ -57,7 +57,7 @@ export class UsersService {
     const payload = { sub: userData.id, role: userData.role };
 
     const access_token = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: '0.5m',
     });
 
     const refresh_token = this.jwtService.sign(payload, {
@@ -82,7 +82,7 @@ export class UsersService {
       const payload = { sub: userData.id, role: userData.role };
 
       const newAccessToken = this.jwtService.sign(payload, {
-        expiresIn: '15m',
+        expiresIn: '0.5m',
       });
 
       const newRefreshToken = this.jwtService.sign(payload, {
@@ -92,6 +92,7 @@ export class UsersService {
       return {
         access_token: newAccessToken,
         refresh_token: newRefreshToken,
+        user,
       };
     } catch (err) {
       throw new UnauthorizedException('Invalid refresh token');
