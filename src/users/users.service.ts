@@ -57,11 +57,11 @@ export class UsersService {
     const payload = { sub: userData.id, role: userData.role };
 
     const access_token = this.jwtService.sign(payload, {
-      expiresIn: '0.5m',
+      expiresIn: '15m',
     });
 
     const refresh_token = this.jwtService.sign(payload, {
-      expiresIn: '7d',
+      expiresIn: '30d',
     });
 
     return {
@@ -82,11 +82,11 @@ export class UsersService {
       const payload = { sub: userData.id, role: userData.role };
 
       const newAccessToken = this.jwtService.sign(payload, {
-        expiresIn: '0.5m',
+        expiresIn: '15m',
       });
 
       const newRefreshToken = this.jwtService.sign(payload, {
-        expiresIn: '7d',
+        expiresIn: '30d',
       });
 
       return {
