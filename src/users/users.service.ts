@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
+import { Op, Sequelize } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { JwtService } from '@nestjs/jwt';
 import { User } from './user.model';
@@ -15,8 +16,49 @@ export class UsersService {
     private userModel: typeof User,
   ) {}
 
-  async getAll() {
-    return await this.userModel.findAll();
+  async getAll(query: { page?: number; limit?: number; search?: string }) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const whereCondition = query.search
+      ? {
+          [Op.or]: [
+            { email: { [Op.iLike]: `%${query.search}%` } },
+            { phone_number: { [Op.iLike]: `%${query.search}%` } },
+            { first_name: { [Op.iLike]: `%${query.search}%` } },
+            { last_name: { [Op.iLike]: `%${query.search}%` } },
+            Sequelize.where(
+              Sequelize.fn(
+                'concat',
+                Sequelize.col('first_name'),
+                ' ',
+                Sequelize.col('last_name'),
+              ),
+              {
+                [Op.iLike]: `%${query.search}%`,
+              },
+            ),
+          ],
+        }
+      : {};
+
+    const { rows: users, count: total } = await this.userModel.findAndCountAll({
+      where: whereCondition,
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+    });
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async getUserById(id: number) {
