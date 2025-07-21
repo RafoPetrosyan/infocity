@@ -14,6 +14,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
 import { GetUsersDto } from './dto/get-users.dto';
+import { SignUpDto } from './dto/sign-up.dto';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -41,5 +42,10 @@ export class UsersController {
   @Post('refresh-token')
   async refresh(@Body() body: RefreshTokenDto) {
     return await this.usersService.refreshToken(body.refresh_token);
+  }
+
+  @Post('sign-up')
+  async signUp(@Body() body: SignUpDto) {
+    return await this.usersService.signUp(body);
   }
 }

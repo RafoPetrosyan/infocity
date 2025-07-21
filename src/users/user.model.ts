@@ -9,39 +9,39 @@ import {
 import * as bcrypt from 'bcryptjs';
 
 @Table({ tableName: 'users' })
-export class User extends Model<User> {
+export class User extends Model {
   @Column({ type: DataType.STRING, allowNull: false })
-  first_name: string;
+  declare first_name: string;
 
   @Column({ type: DataType.STRING, allowNull: false })
-  last_name: string;
+  declare last_name: string;
 
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
-  email: string;
+  declare email: string;
 
   @Column({ type: DataType.STRING })
-  password: string;
+  declare password: string;
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
-  verified: boolean;
+  declare verified: boolean;
 
   @Column({ type: DataType.STRING })
-  avatar: string;
+  declare avatar: string;
 
   @Column({ type: DataType.STRING })
-  phone_number: string;
+  declare phone_number: string;
 
   @Column({
     type: DataType.ENUM('email', 'google', 'facebook'),
     defaultValue: 'email',
   })
-  login_type: 'email' | 'google' | 'facebook';
+  declare login_type: 'email' | 'google' | 'facebook';
 
   @Column({
     type: DataType.ENUM('user', 'admin', 'super-admin', 'business'),
     defaultValue: 'user',
   })
-  role: 'user' | 'admin' | 'super-admin' | 'business';
+  declare role: 'user' | 'admin' | 'super-admin' | 'business';
 
   @BeforeCreate
   @BeforeUpdate

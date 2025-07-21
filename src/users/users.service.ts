@@ -7,6 +7,7 @@ import { Op, Sequelize } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { JwtService } from '@nestjs/jwt';
 import { User } from './user.model';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class UsersService {
@@ -139,5 +140,41 @@ export class UsersService {
     } catch (err) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async signUp(body: SignUpDto) {
+    const existingUser = await this.userModel.findOne({
+      where: { email: body.email },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already in use');
+    }
+
+    const hashedPassword = await User.hashPassword(body.password);
+
+    const newUser = await this.userModel.create({
+      first_name: body.first_name,
+      last_name: body.last_name,
+      email: body.email,
+      password: hashedPassword,
+    });
+
+    const payload = { sub: newUser.id, role: newUser.role };
+
+    const newAccessToken = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+    });
+
+    const newRefreshToken = this.jwtService.sign(payload, {
+      expiresIn: '30d',
+    });
+
+    return {
+      message: 'User registered successfully',
+      user: newUser,
+      newAccessToken,
+      newRefreshToken,
+    };
   }
 }

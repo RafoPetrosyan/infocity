@@ -14,5 +14,7 @@
   "password_is_required": "Password is required",
   "min_password": "Password must be at least 6 characters",
   "token_must_be_a_string": "Token must be a string",
-  "token_should_not_be_empty": "Token should not be empty"
+  "token_should_not_be_empty": "Token should not be empty",
+  "first_name_is_required": "Անունը պարտադիր է",
+  "last_name_name_is_required": "Ազգանունը պարտադիր է"
 }
