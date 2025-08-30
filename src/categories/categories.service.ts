@@ -1,11 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { CreateCategoryDto } from './dto/create-category.dto';
+import {
+  CategoryTranslationDto,
+  CreateCategoryDto,
+} from './dto/create-category.dto';
 import { Category } from './models/category.model';
 import { CategoryTranslation } from './models/category-translation.model';
-import { SubCategory } from './models/sub-category.model';
-import { SubCategoryTranslation } from './models/sub-category-translation.model';
-import { col, Sequelize } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class CategoriesService {
@@ -16,101 +22,147 @@ export class CategoriesService {
     @InjectModel(CategoryTranslation)
     private categoryTranslationModel: typeof CategoryTranslation,
 
-    @InjectModel(SubCategory)
-    private subCategoryModel: typeof SubCategory,
-
-    @InjectModel(SubCategoryTranslation)
-    private subCategoryTranslationModel: typeof SubCategoryTranslation,
+    private sequelize: Sequelize,
   ) {}
 
   async getAll(lang: string) {
-    const categories = await this.categoryModel.findAll({
+    return await this.categoryModel.findAll({
       include: [
         {
           model: this.categoryTranslationModel,
           as: 'translation',
-          attributes: ['title'],
           where: { language: lang },
           required: true,
+          attributes: ['name'],
         },
-        // {
-        //   model: this.subCategoryModel,
-        //   as: 'sub_categories',
-        //   separate: true,
-        //   attributes: [
-        //     'id',
-        //     'slug',
-        //     'category_id',
-        //     [Sequelize.col('translations.title'), 'title'],
-        //   ],
-        //   include: [
-        //     {
-        //       model: this.subCategoryTranslationModel,
-        //       as: 'translations',
-        //       attributes: [],
-        //       where: { language: lang },
-        //       required: true,
-        //       subQuery: false,
-        //       duplicating: false,
-        //     },
-        //   ],
-        // },
       ],
-      // attributes: ['id', 'slug', [col('translations.title'), 'title']],
+      attributes: ['id', 'slug', 'image'],
+      order: [['order', 'ASC']],
     });
-
-    return categories;
   }
 
-  async create(dto: CreateCategoryDto) {
-    const categoryExist = await this.categoryModel.findOne({
+  async getAllAdmin() {
+    return await this.categoryModel.findAll({
+      include: [
+        {
+          model: this.categoryTranslationModel,
+          as: 'translations',
+          attributes: ['name', 'language', 'id'],
+        },
+      ],
+      order: [['order', 'ASC']],
+    });
+  }
+
+  async create(
+    dto: CreateCategoryDto,
+    translations: CategoryTranslationDto[],
+    image?: string,
+    pathname?: string,
+  ) {
+    const existSlug = await this.categoryModel.findOne({
       where: { slug: dto.slug },
     });
 
-    if (categoryExist) {
-      throw new ConflictException('validation.category_slug_exists');
-    }
-
-    if (dto.sub_categories) {
-      for (const sub of dto.sub_categories) {
-        const subCategoryExist = await this.subCategoryModel.findOne({
-          where: { slug: sub.slug },
-        });
-
-        if (subCategoryExist) {
-          throw new ConflictException({
-            key: 'validation.sub_category_slug_exists',
-            args: { slug: dto.slug },
-          });
-        }
-      }
+    if (existSlug) {
+      if (pathname) await unlink(pathname);
+      throw new BadRequestException({
+        message: `Category with slug ${dto.slug} already exists`,
+      });
     }
 
     const category = await this.categoryModel.create({
       slug: dto.slug,
+      image: image || null,
     });
 
-    for (const t of dto.translations) {
-      await this.categoryTranslationModel.create({
-        ...t,
-        category_id: category.id,
-      });
+    const translationsData = translations.map((t) => ({
+      category_id: category.id,
+      language: t.language,
+      name: t.name,
+    }));
+    await this.categoryTranslationModel.bulkCreate(translationsData);
+
+    return { message: 'Category created successfully.' };
+  }
+
+  async update(
+    id: number,
+    dto: CreateCategoryDto,
+    translations: CategoryTranslationDto[],
+    image?: string,
+    pathname?: string,
+  ) {
+    const category = await this.categoryModel.findByPk(id, {
+      include: [{ model: this.categoryTranslationModel, as: 'translations' }],
+    });
+
+    if (!category) {
+      if (pathname) await unlink(pathname);
+      throw new NotFoundException(`Category with id ${id} not found`);
     }
 
-    for (const sub of dto.sub_categories) {
-      const subCategory = await this.subCategoryModel.create({
-        slug: sub.slug,
-        category_id: category.id,
+    if (image && category.dataValues.image) {
+      await unlink(`uploads/categories/${category.dataValues.image}`);
+    }
+
+    await category.update({
+      slug: dto.slug,
+      image: image || category.image,
+    });
+
+    for (const t of translations) {
+      const existing = await this.categoryTranslationModel.findOne({
+        where: { category_id: id, language: t.language },
       });
 
-      for (const subT of sub.translations) {
-        await this.subCategoryTranslationModel.create({
-          ...subT,
-          sub_category_id: subCategory.id,
+      if (existing) {
+        await existing.update({ name: t.name });
+      } else {
+        await this.categoryTranslationModel.create({
+          category_id: id,
+          language: t.language,
+          name: t.name,
         });
       }
     }
 
-    return { success: true, id: category.id };
+    return { message: 'Category updated successfully.' };
+  }
+
+  async updateOrdering(items: { id: number; order: number }[]) {
+    const transaction = await this.sequelize.transaction();
+
+    try {
+      await Promise.all(
+        items.map((item) =>
+          this.categoryModel.update(
+            { order: item.order },
+            { where: { id: item.id }, transaction },
+          ),
+        ),
+      );
+
+      await transaction.commit();
+      return { message: 'Category reordered successfully.' };
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  }
+
+  async delete(id: number) {
+    const category = await this.categoryModel.findByPk(id);
+
+    if (!category) {
+      throw new NotFoundException(`Category with id ${id} not found`);
+    }
+
+    if (category.dataValues.image) {
+      await unlink(`uploads/categories/${category.dataValues.image}`);
+    }
+
+    await category.destroy();
+    return { message: 'Category deleted successfully' };
   }
 }

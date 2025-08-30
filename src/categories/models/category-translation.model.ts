@@ -10,7 +10,7 @@ import {
 import { Category } from './category.model';
 import { LanguageEnum } from '../../../types';
 
-@Table({ tableName: 'category_translations' })
+@Table({ tableName: 'category_translations', timestamps: false })
 export class CategoryTranslation extends Model {
   @ForeignKey(() => Category)
   @Column({ type: DataType.INTEGER })
@@ -27,5 +27,5 @@ export class CategoryTranslation extends Model {
   language: LanguageEnum;
 
   @Column({ type: DataType.STRING })
-  title: string;
+  name: string;
 }

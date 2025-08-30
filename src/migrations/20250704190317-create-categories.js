@@ -15,6 +15,12 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
+      image: {
+        type: Sequelize.STRING,
+      },
+      order: {
+        type: Sequelize.INTEGER,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

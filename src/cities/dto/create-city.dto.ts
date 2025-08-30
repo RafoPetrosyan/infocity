@@ -8,3 +8,10 @@ export class CreateCityDto {
   @IsNotEmpty()
   translations: { language: string; name: string }[];
 }
+
+// @IsOptional()
+// @IsArray({ message: 'validation.sub_categories_must_be_an_array' })
+// @ValidateNested({
+//   each: true,
+//   message: 'validation.invalid_sub_category_item',
+// })

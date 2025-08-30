@@ -7,19 +7,28 @@ import {
   HasOne,
 } from 'sequelize-typescript';
 import { CategoryTranslation } from './category-translation.model';
-import { SubCategory } from './sub-category.model';
+import { DOMAIN_URL } from '../../../constants';
 
 @Table({ tableName: 'categories' })
 export class Category extends Model {
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
   slug: string;
 
+  @Column({
+    type: DataType.STRING,
+    get() {
+      const rawValue = this.getDataValue('image');
+      return rawValue ? `${DOMAIN_URL}/uploads/categories/${rawValue}` : null;
+    },
+  })
+  image: string;
+
+  @Column({ type: DataType.INTEGER })
+  declare order: number;
+
   @HasMany(() => CategoryTranslation)
   translations: CategoryTranslation[];
 
   @HasOne(() => CategoryTranslation)
   translation: CategoryTranslation;
-
-  @HasMany(() => SubCategory)
-  sub_categories: SubCategory[];
 }

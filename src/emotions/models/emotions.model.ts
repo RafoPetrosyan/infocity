@@ -24,7 +24,7 @@ export class EmotionsModel extends Model {
   declare color: string;
 
   @Column({ type: DataType.INTEGER })
-  declare order: string;
+  declare order: number;
 
   @HasMany(() => EmotionTranslation)
   declare translations: EmotionTranslation[];
