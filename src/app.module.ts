@@ -6,9 +6,11 @@ import { UsersModule } from './users/users.module';
 import * as process from 'node:process';
 import { ConfigModule } from '@nestjs/config';
 import { CategoriesModule } from './categories/categories.module';
-import { ProvincesModule } from './provinces/provinces.module';
+import { CitiesModule } from './cities/cities.module';
+import { EmotionsModule } from './emotions/emotions.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'node:path';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,9 +38,11 @@ import * as path from 'node:path';
       autoLoadModels: true,
       synchronize: process.env.NODE_ENV === 'development',
     }),
+    AuthModule,
     UsersModule,
     CategoriesModule,
-    ProvincesModule,
+    CitiesModule,
+    EmotionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

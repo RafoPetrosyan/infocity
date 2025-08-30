@@ -77,7 +77,7 @@ export class UsersService {
         'last_name',
         'role',
         'avatar',
-        'verified',
+        'email_verified',
         'phone_number',
       ],
     });
@@ -100,12 +100,14 @@ export class UsersService {
     const payload = { sub: userData.id, role: userData.role };
 
     const access_token = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: '1d',
     });
 
     const refresh_token = this.jwtService.sign(payload, {
-      expiresIn: '30d',
+      expiresIn: '7d',
     });
+
+    await user.update({ refresh_token });
 
     return {
       user: userData,
@@ -125,11 +127,11 @@ export class UsersService {
       const payload = { sub: userData.id, role: userData.role };
 
       const newAccessToken = this.jwtService.sign(payload, {
-        expiresIn: '15m',
+        expiresIn: '1d',
       });
 
       const newRefreshToken = this.jwtService.sign(payload, {
-        expiresIn: '30d',
+        expiresIn: '15d',
       });
 
       return {
@@ -163,11 +165,11 @@ export class UsersService {
     const payload = { sub: newUser.id, role: newUser.role };
 
     const newAccessToken = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: '1d',
     });
 
     const newRefreshToken = this.jwtService.sign(payload, {
-      expiresIn: '30d',
+      expiresIn: '15d',
     });
 
     return {

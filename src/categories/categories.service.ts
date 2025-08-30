@@ -28,35 +28,35 @@ export class CategoriesService {
       include: [
         {
           model: this.categoryTranslationModel,
-          as: 'translations',
-          attributes: [],
+          as: 'translation',
+          attributes: ['title'],
           where: { language: lang },
           required: true,
         },
-        {
-          model: this.subCategoryModel,
-          as: 'sub_categories',
-          separate: true,
-          attributes: [
-            'id',
-            'slug',
-            'category_id',
-            [Sequelize.col('translations.title'), 'title'],
-          ],
-          include: [
-            {
-              model: this.subCategoryTranslationModel,
-              as: 'translations',
-              attributes: [],
-              where: { language: lang },
-              required: true,
-              subQuery: false,
-              duplicating: false,
-            },
-          ],
-        },
+        // {
+        //   model: this.subCategoryModel,
+        //   as: 'sub_categories',
+        //   separate: true,
+        //   attributes: [
+        //     'id',
+        //     'slug',
+        //     'category_id',
+        //     [Sequelize.col('translations.title'), 'title'],
+        //   ],
+        //   include: [
+        //     {
+        //       model: this.subCategoryTranslationModel,
+        //       as: 'translations',
+        //       attributes: [],
+        //       where: { language: lang },
+        //       required: true,
+        //       subQuery: false,
+        //       duplicating: false,
+        //     },
+        //   ],
+        // },
       ],
-      attributes: ['id', 'slug', [col('translations.title'), 'title']],
+      // attributes: ['id', 'slug', [col('translations.title'), 'title']],
     });
 
     return categories;

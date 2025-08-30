@@ -1,4 +1,11 @@
-import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  HasMany,
+  HasOne,
+} from 'sequelize-typescript';
 import { CategoryTranslation } from './category-translation.model';
 import { SubCategory } from './sub-category.model';
 
@@ -9,6 +16,9 @@ export class Category extends Model {
 
   @HasMany(() => CategoryTranslation)
   translations: CategoryTranslation[];
+
+  @HasOne(() => CategoryTranslation)
+  translation: CategoryTranslation;
 
   @HasMany(() => SubCategory)
   sub_categories: SubCategory[];

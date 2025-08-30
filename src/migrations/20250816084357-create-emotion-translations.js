@@ -1,17 +1,18 @@
 'use strict';
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('city_translations', {
+    await queryInterface.createTable('emotion_translations', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      city_id: {
+      emotion_id: {
         type: Sequelize.INTEGER,
-        references: { model: 'cities', key: 'id' },
+        references: { model: 'emotions', key: 'id' },
         onDelete: 'CASCADE',
         allowNull: false,
       },
@@ -26,10 +27,10 @@ module.exports = {
     });
 
     // Add index for faster queries on language
-    await queryInterface.addIndex('city_translations', ['language']);
+    await queryInterface.addIndex('emotion_translations', ['language']);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('city_translations');
+    await queryInterface.dropTable('emotion_translations');
   },
 };

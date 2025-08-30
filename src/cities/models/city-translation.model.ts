@@ -10,11 +10,11 @@ import {
 import { CityModel } from './city.model';
 import { LanguageEnum } from '../../../types';
 
-@Table({ tableName: 'city_translations' })
+@Table({ tableName: 'city_translations', timestamps: false })
 export class CityTranslation extends Model {
   @ForeignKey(() => CityModel)
   @Column({ type: DataType.INTEGER })
-  city_id: number;
+  declare city_id: number;
 
   @BelongsTo(() => CityModel)
   city: CityModel;
@@ -24,8 +24,8 @@ export class CityTranslation extends Model {
     type: DataType.ENUM(...Object.values(LanguageEnum)),
     allowNull: false,
   })
-  language: LanguageEnum;
+  declare language: LanguageEnum;
 
   @Column({ type: DataType.STRING })
-  name: string;
+  declare name: string;
 }

@@ -10,11 +10,11 @@ import {
 import { UsersService } from './users.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { RolesGuard } from './roles.guard';
-import { Roles } from './roles.decorator';
 import { GetUsersDto } from './dto/get-users.dto';
 import { SignUpDto } from './dto/sign-up.dto';
+import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

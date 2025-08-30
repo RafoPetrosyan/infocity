@@ -5,8 +5,11 @@ import {
   DataType,
   BeforeCreate,
   BeforeUpdate,
+  ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
 import * as bcrypt from 'bcryptjs';
+import { CityModel } from '../cities/models/city.model';
 
 @Table({ tableName: 'users' })
 export class User extends Model {
@@ -23,25 +26,55 @@ export class User extends Model {
   declare password: string;
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
-  declare verified: boolean;
+  declare phone_verified: boolean;
+
+  @Column({ type: DataType.BOOLEAN, defaultValue: false })
+  declare email_verified: boolean;
 
   @Column({ type: DataType.STRING })
   declare avatar: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING(30) })
   declare phone_number: string;
 
   @Column({
-    type: DataType.ENUM('email', 'google', 'facebook'),
+    type: DataType.ENUM('email', 'google', 'facebook', 'apple', 'phone'),
     defaultValue: 'email',
   })
-  declare login_type: 'email' | 'google' | 'facebook';
+  declare login_type: 'email' | 'google' | 'facebook' | 'apple' | 'phone';
 
   @Column({
-    type: DataType.ENUM('user', 'admin', 'super-admin', 'business'),
+    type: DataType.ENUM('user', 'admin', 'super-admin'),
     defaultValue: 'user',
   })
-  declare role: 'user' | 'admin' | 'super-admin' | 'business';
+  declare role: 'user' | 'admin' | 'super-admin';
+
+  @Column({
+    type: DataType.ENUM('hy', 'en', 'ru'),
+  })
+  declare locale: 'hy' | 'en' | 'ru' | null;
+
+  @Column({ type: DataType.STRING })
+  declare refresh_token: string;
+
+  @Column({ type: DataType.STRING })
+  declare fcm_token: string;
+
+  @Column({ type: DataType.DECIMAL(10, 8) })
+  declare latitude: number;
+
+  @Column({ type: DataType.DECIMAL(11, 8) })
+  declare longitude: number;
+
+  @Column({ type: DataType.GEOMETRY('POINT') })
+  declare location: { type: 'Point'; coordinates: [number, number] };
+
+  @ForeignKey(() => CityModel)
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  declare city_id: number;
+
+  @BelongsTo(() => CityModel)
+  declare city: CityModel;
 
   @BeforeCreate
   @BeforeUpdate
@@ -63,6 +96,7 @@ export class User extends Model {
     const values = { ...this.get() };
     // @ts-ignore
     delete values.password;
+    delete values.refresh_token;
 
     if (values.avatar) {
       values.avatar = `${process.env.DOMAIN_URL}/${values.avatar}`;

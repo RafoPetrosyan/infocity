@@ -1,5 +1,6 @@
 'use strict';
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('cities', {
@@ -9,16 +10,13 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
-      province_id: {
-        type: Sequelize.INTEGER,
-        references: { model: 'provinces', key: 'id' },
-        onDelete: 'CASCADE',
-        allowNull: false,
-      },
       slug: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
+      },
+      order: {
+        type: Sequelize.INTEGER,
       },
     });
   },
