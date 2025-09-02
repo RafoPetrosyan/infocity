@@ -8,9 +8,10 @@ import { ConfigModule } from '@nestjs/config';
 import { CategoriesModule } from './categories/categories.module';
 import { CitiesModule } from './cities/cities.module';
 import { EmotionsModule } from './emotions/emotions.module';
+import { MobileModule } from './mobile/mobile.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
-import * as path from 'node:path';
 import { AuthModule } from './auth/auth.module';
+import * as path from 'node:path';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AuthModule } from './auth/auth.module';
     CategoriesModule,
     CitiesModule,
     EmotionsModule,
+    MobileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

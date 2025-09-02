@@ -19,6 +19,7 @@
     "seed:run": "npx sequelize-cli db:seed --seed"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.1.5",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.5",
@@ -32,12 +33,15 @@
     "dotenv": "^17.2.1",
     "multer": "^2.0.2",
     "nestjs-i18n": "^10.5.1",
+    "nodemailer": "^7.0.6",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "sequelize": "^6.37.7",
-    "sequelize-typescript": "^2.1.6"
+    "sequelize-typescript": "^2.1.6",
+    "sharp": "^0.34.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.10",

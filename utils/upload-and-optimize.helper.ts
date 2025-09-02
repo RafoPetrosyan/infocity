@@ -1,11 +1,12 @@
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { BadRequestException } from '@nestjs/common';
+import * as sharp from 'sharp';
 import { v4 as uuid } from 'uuid';
 
-export function UploadFile(field: string, folder: string) {
+export function UploadAndOptimizeImage(field: string, folder: string) {
   return FileInterceptor(field, {
     storage: diskStorage({
       destination: (req, file, cb) => {
@@ -16,7 +17,19 @@ export function UploadFile(field: string, folder: string) {
       },
       filename: (req, file, cb) => {
         const uniqueSuffix = `${Date.now()}-${uuid()}`;
-        cb(null, uniqueSuffix + extname(file.originalname));
+        const fileName = uniqueSuffix + extname(file.originalname);
+
+        cb(null, fileName);
+
+        const fullPath = join(folder, fileName);
+
+        setImmediate(async () => {
+          try {
+            await sharp(fullPath).jpeg({ quality: 70 }).toFile(fullPath);
+          } catch (error) {
+            console.error('Image optimization failed:', error);
+          }
+        });
       },
     }),
     fileFilter: (req, file, cb) => {
@@ -27,7 +40,7 @@ export function UploadFile(field: string, folder: string) {
       }
     },
     limits: {
-      fileSize: 5 * 1024 * 1024, // optional: 5MB max
+      fileSize: 5 * 1024 * 1024,
     },
   });
 }

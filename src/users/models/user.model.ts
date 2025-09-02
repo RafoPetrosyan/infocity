@@ -9,7 +9,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import * as bcrypt from 'bcryptjs';
-import { CityModel } from '../cities/models/city.model';
+import { CityModel } from '../../cities/models/city.model';
 
 @Table({ tableName: 'users' })
 export class User extends Model {
@@ -89,6 +89,8 @@ export class User extends Model {
   }
 
   static async comparePasswords(plain: string, hash: string): Promise<boolean> {
+    console.log(plain, hash);
+    console.log(JSON.stringify(plain));
     return await bcrypt.compare(plain, hash);
   }
 

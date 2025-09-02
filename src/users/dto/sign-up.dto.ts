@@ -1,4 +1,17 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  IsOptional,
+  IsString,
+  IsEnum,
+} from 'class-validator';
+
+export enum SupportedLocales {
+  EN = 'en',
+  HY = 'hy',
+  RU = 'ru',
+}
 
 export class SignUpDto {
   @IsEmail({}, { message: 'validation.invalid_email_format' })
@@ -13,4 +26,12 @@ export class SignUpDto {
 
   @IsNotEmpty({ message: 'validation.last_name_is_required' })
   last_name: string;
+
+  @IsOptional()
+  @IsString()
+  fcm_token: string;
+
+  @IsOptional()
+  @IsEnum(SupportedLocales)
+  locale: SupportedLocales;
 }
