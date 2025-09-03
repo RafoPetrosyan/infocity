@@ -6,10 +6,16 @@ import { User } from './models/user.model';
 import { Verification } from './models/verification.model';
 import { CustomMailerModule } from '../mail/mailer.module';
 import { UserEmotions } from './models/user-emotions.model';
+import { EmotionsModel } from '../emotions/models/emotions.model';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User, Verification, UserEmotions]),
+    SequelizeModule.forFeature([
+      User,
+      Verification,
+      UserEmotions,
+      EmotionsModel,
+    ]),
     CustomMailerModule,
   ],
   providers: [UsersService],

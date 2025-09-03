@@ -1,37 +1,44 @@
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
 import { BadRequestException } from '@nestjs/common';
 import * as sharp from 'sharp';
 import { v4 as uuid } from 'uuid';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { join, extname } from 'path';
 
 export function UploadAndOptimizeImage(field: string, folder: string) {
   return FileInterceptor(field, {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
+    storage: {
+      _handleFile(req, file, cb) {
         if (!existsSync(folder)) {
           mkdirSync(folder, { recursive: true });
         }
-        cb(null, folder);
-      },
-      filename: (req, file, cb) => {
+
         const uniqueSuffix = `${Date.now()}-${uuid()}`;
         const fileName = uniqueSuffix + extname(file.originalname);
-
-        cb(null, fileName);
-
         const fullPath = join(folder, fileName);
 
-        setImmediate(async () => {
+        const chunks: Buffer[] = [];
+        file.stream.on('data', (chunk) => chunks.push(chunk));
+        file.stream.on('end', async () => {
           try {
-            await sharp(fullPath).jpeg({ quality: 70 }).toFile(fullPath);
-          } catch (error) {
-            console.error('Image optimization failed:', error);
+            const buffer = Buffer.concat(chunks);
+
+            const optimized = await sharp(buffer)
+              .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+              .jpeg({ quality: 70 })
+              .toBuffer();
+
+            writeFileSync(fullPath, optimized);
+            cb(null, { path: fullPath, filename: fileName });
+          } catch (err) {
+            cb(err, null);
           }
         });
       },
-    }),
+      _removeFile(req, file, cb) {
+        cb(null);
+      },
+    },
     fileFilter: (req, file, cb) => {
       if (file.mimetype.startsWith('image/')) {
         cb(null, true);
@@ -40,7 +47,7 @@ export function UploadAndOptimizeImage(field: string, folder: string) {
       }
     },
     limits: {
-      fileSize: 5 * 1024 * 1024,
+      fileSize: 5 * 1024 * 1024, // 5MB
     },
   });
 }

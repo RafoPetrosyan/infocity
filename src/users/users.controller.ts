@@ -5,7 +5,9 @@ import {
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { SignInDto } from './dto/sign-in.dto';
@@ -22,6 +24,9 @@ import { ResendDto } from './dto/resend.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UploadFile } from '../../utils/upload.helper';
+import { UploadAndOptimizeImage } from '../../utils/upload-and-optimize.helper';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -89,9 +94,26 @@ export class UsersController {
 
   @Post('/change-password')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('super-admin', 'admin', 'user')
+  @Roles('user')
   changePassword(@Req() req: any, @Body() body: ChangePasswordDto) {
     const userId = req.user.sub;
     return this.usersService.changePassword(userId, body);
+  }
+
+  @Post('/update-profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  updateProfile(@Req() req: any, @Body() body: UpdateProfileDto) {
+    const userId = req.user.sub;
+    return this.usersService.updateProfile(userId, body);
+  }
+
+  @Post('/update-profile-image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  @UseInterceptors(UploadAndOptimizeImage('image', './uploads/avatars'))
+  updateAvatar(@Req() req: any, @UploadedFile() image: Express.Multer.File) {
+    const userId = req.user.sub;
+    return this.usersService.updateAvatar(userId, image?.filename, image?.path);
   }
 }

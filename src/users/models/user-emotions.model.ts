@@ -14,6 +14,7 @@ export class UserEmotions extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    primaryKey: true,
   })
   declare user_id: number;
 
@@ -21,6 +22,7 @@ export class UserEmotions extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    primaryKey: true,
   })
   declare emotion_id: number;
 }

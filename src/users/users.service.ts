@@ -16,6 +16,9 @@ import { ResendDto } from './dto/resend.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { EmotionsModel } from '../emotions/models/emotions.model';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +29,9 @@ export class UsersService {
 
     @InjectModel(Verification)
     private verificationModel: typeof Verification,
+
+    @InjectModel(EmotionsModel)
+    private emotionsModel: typeof EmotionsModel,
 
     private readonly mailService: MailService,
   ) {}
@@ -76,6 +82,45 @@ export class UsersService {
   }
 
   async getUserById(id: number) {
+    const user = await this.userModel.findByPk(id, {
+      attributes: [
+        'id',
+        'email',
+        'first_name',
+        'last_name',
+        'avatar',
+        'phone_number',
+        'locale',
+        'city_id',
+        'email_verified',
+        'role',
+      ],
+      include: [
+        {
+          model: this.emotionsModel,
+          attributes: ['id'],
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    if (!user) return null;
+
+    // Convert Sequelize model → plain object
+    const plainUser = user.get({ plain: true });
+
+    const emotion_ids = plainUser.emotions.map((e) => e.id);
+
+    // remove `emotions` field
+    delete plainUser.emotions;
+
+    return {
+      ...plainUser,
+      emotion_ids,
+    };
+  }
+
+  async getUserEntityById(id: number) {
     return await this.userModel.findByPk(id, {
       attributes: [
         'id',
@@ -87,6 +132,7 @@ export class UsersService {
         'locale',
         'city_id',
         'email_verified',
+        'role',
       ],
     });
   }
@@ -161,19 +207,7 @@ export class UsersService {
 
     await user.update({ refresh_token });
 
-    const userResponse = await this.userModel.findByPk(payload.sub, {
-      attributes: [
-        'id',
-        'email',
-        'first_name',
-        'last_name',
-        'avatar',
-        'phone_number',
-        'locale',
-        'city_id',
-        'email_verified',
-      ],
-    });
+    const userResponse = await this.getUserById(payload.sub);
 
     return {
       user: userResponse,
@@ -202,19 +236,7 @@ export class UsersService {
 
       await user.update({ refresh_token: newRefreshToken });
 
-      const userResponse = await this.userModel.findByPk(user.id, {
-        attributes: [
-          'id',
-          'email',
-          'first_name',
-          'last_name',
-          'avatar',
-          'phone_number',
-          'locale',
-          'city_id',
-          'email_verified',
-        ],
-      });
+      const userResponse = await this.getUserById(user.id);
 
       return {
         access_token: newAccessToken,
@@ -333,9 +355,11 @@ export class UsersService {
       },
     });
 
+    const response = await this.getUserById(user.id);
+
     return {
       message: 'Email verified successfully',
-      user,
+      user: response,
       access_token: accessToken,
       refresh_token: refreshToken,
     };
@@ -429,19 +453,7 @@ export class UsersService {
     const { code, token } = body;
 
     const payload = this.jwtService.verify(token);
-    const user = await this.userModel.findByPk(payload.sub, {
-      attributes: [
-        'id',
-        'email',
-        'first_name',
-        'last_name',
-        'avatar',
-        'phone_number',
-        'locale',
-        'city_id',
-        'email_verified',
-      ],
-    });
+    const user = await this.getUserById(payload.sub);
 
     if (!user) throw new BadRequestException({ message: 'User not found' });
 
@@ -468,19 +480,7 @@ export class UsersService {
     const { token, password } = body;
 
     const payload = this.jwtService.verify(token);
-    const user = await this.userModel.findByPk(payload.sub, {
-      attributes: [
-        'id',
-        'email',
-        'first_name',
-        'last_name',
-        'avatar',
-        'phone_number',
-        'locale',
-        'city_id',
-        'email_verified',
-      ],
-    });
+    const user = await this.getUserEntityById(payload.sub);
 
     if (!user) throw new BadRequestException({ message: 'User not found' });
 
@@ -499,9 +499,11 @@ export class UsersService {
       password,
     });
 
+    const response = await this.getUserById(user.id);
+
     return {
       message: 'Password reset successfully',
-      user,
+      user: response,
       access_token: accessToken,
       refresh_token: refreshToken,
     };
@@ -531,6 +533,65 @@ export class UsersService {
 
     return {
       message: 'Password changed successfully',
+    };
+  }
+
+  async updateProfile(userId: number, body: UpdateProfileDto) {
+    const user = await this.getUserEntityById(userId);
+
+    if (!user) throw new BadRequestException({ message: 'User not found' });
+
+    const updateInfo: any = {
+      first_name: body.first_name ?? user.first_name,
+      last_name: body.last_name ?? user.last_name,
+      phone_number: body.phone_number ?? user.phone_number,
+      fcm_token: body.fcm_token ?? user.fcm_token,
+      locale: body.locale ?? user.locale,
+      latitude: body.latitude ?? user.latitude,
+      longitude: body.longitude ?? user.longitude,
+      city_id: body.city_id ?? user.city_id,
+    };
+
+    if (body.latitude && body.longitude) {
+      updateInfo.location = {
+        type: 'Point',
+        coordinates: [body.longitude, body.latitude],
+      };
+    }
+    await user.update(updateInfo);
+
+    if (body.emotion_ids && body.emotion_ids.length > 0) {
+      const uniqueEmotionIds = Array.from(new Set(body.emotion_ids));
+      await user.$set('emotions', uniqueEmotionIds);
+    }
+
+    const response = await this.getUserById(userId);
+    return {
+      message: 'Profile updated successfully',
+      user: response,
+    };
+  }
+
+  async updateAvatar(userId: number, image?: string, pathname?: string) {
+    if (!image) {
+      throw new BadRequestException('Image is required');
+    }
+
+    const user = await this.getUserEntityById(userId);
+    if (!user) {
+      if (pathname) await unlink(pathname);
+      throw new BadRequestException({ message: 'User not found' });
+    }
+
+    if (user.dataValues.avatar && !user.dataValues.avatar.startsWith('http')) {
+      await unlink(`uploads/avatars/${user.dataValues.avatar}`);
+    }
+
+    await user.update({ avatar: image });
+    const response = await this.getUserById(userId);
+    return {
+      message: 'Avatar updated successfully',
+      user: response,
     };
   }
 }

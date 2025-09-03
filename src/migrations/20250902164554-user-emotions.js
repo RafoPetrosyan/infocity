@@ -13,6 +13,7 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
+        primaryKey: true,
       },
       emotion_id: {
         type: Sequelize.INTEGER,
@@ -23,13 +24,14 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
+        primaryKey: true,
       },
     });
 
     await queryInterface.addConstraint('user_emotions', {
       fields: ['user_id', 'emotion_id'],
-      type: 'primary key',
-      name: 'pk_user_emotions',
+      type: 'unique',
+      name: 'uq_user_emotions',
     });
   },
 

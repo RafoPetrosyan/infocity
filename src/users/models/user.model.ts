@@ -7,9 +7,13 @@ import {
   BeforeUpdate,
   ForeignKey,
   BelongsTo,
+  BelongsToMany,
 } from 'sequelize-typescript';
 import * as bcrypt from 'bcryptjs';
 import { CityModel } from '../../cities/models/city.model';
+import { EmotionsModel } from '../../emotions/models/emotions.model';
+import { UserEmotions } from './user-emotions.model';
+import { DOMAIN_URL } from '../../../constants';
 
 @Table({ tableName: 'users' })
 export class User extends Model {
@@ -31,7 +35,18 @@ export class User extends Model {
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
   declare email_verified: boolean;
 
-  @Column({ type: DataType.STRING })
+  @Column({
+    type: DataType.STRING,
+    get() {
+      const rawValue = this.getDataValue('avatar');
+
+      if (rawValue && !rawValue.startsWith('http')) {
+        return `${DOMAIN_URL}/uploads/avatars/${rawValue}`;
+      }
+
+      return rawValue;
+    },
+  })
   declare avatar: string;
 
   @Column({ type: DataType.STRING(30) })
@@ -76,6 +91,9 @@ export class User extends Model {
   @BelongsTo(() => CityModel)
   declare city: CityModel;
 
+  @BelongsToMany(() => EmotionsModel, () => UserEmotions)
+  declare emotions: EmotionsModel[];
+
   @BeforeCreate
   @BeforeUpdate
   static async hashPasswordHook(instance: User) {
@@ -100,9 +118,9 @@ export class User extends Model {
     delete values.password;
     delete values.refresh_token;
 
-    if (values.avatar) {
-      values.avatar = `${process.env.DOMAIN_URL}/${values.avatar}`;
-    }
+    // if (values.avatar) {
+    //   values.avatar = `${DOMAIN_URL}/uploads/categories/${values.avatar}`;
+    // }
 
     return values;
   }
