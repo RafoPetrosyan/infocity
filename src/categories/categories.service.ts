@@ -12,6 +12,7 @@ import { Category } from './models/category.model';
 import { CategoryTranslation } from './models/category-translation.model';
 import { Sequelize } from 'sequelize-typescript';
 import { unlink } from 'fs/promises';
+import { Place } from '../places/models/places.model';
 
 @Injectable()
 export class CategoriesService {
@@ -21,6 +22,9 @@ export class CategoriesService {
 
     @InjectModel(CategoryTranslation)
     private categoryTranslationModel: typeof CategoryTranslation,
+
+    @InjectModel(Place)
+    private placeModel: typeof Place,
 
     private sequelize: Sequelize,
   ) {}
@@ -35,8 +39,22 @@ export class CategoriesService {
           required: true,
           attributes: ['name'],
         },
+        {
+          model: this.placeModel,
+          as: 'places',
+          attributes: [],
+        },
       ],
-      attributes: ['id', 'slug', 'image'],
+      attributes: [
+        'id',
+        'slug',
+        'image',
+        [
+          this.sequelize.fn('COUNT', this.sequelize.col('places.id')),
+          'places_count',
+        ],
+      ],
+      group: ['Category.id', 'translation.id'],
       order: [['order', 'ASC']],
     });
   }

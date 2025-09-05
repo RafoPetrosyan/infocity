@@ -118,10 +118,6 @@ export class User extends Model {
     delete values.password;
     delete values.refresh_token;
 
-    // if (values.avatar) {
-    //   values.avatar = `${DOMAIN_URL}/uploads/categories/${values.avatar}`;
-    // }
-
     return values;
   }
 }

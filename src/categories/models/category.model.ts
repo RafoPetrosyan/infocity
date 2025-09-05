@@ -8,6 +8,7 @@ import {
 } from 'sequelize-typescript';
 import { CategoryTranslation } from './category-translation.model';
 import { DOMAIN_URL } from '../../../constants';
+import { Place } from '../../places/models/places.model';
 
 @Table({ tableName: 'categories' })
 export class Category extends Model {
@@ -31,4 +32,7 @@ export class Category extends Model {
 
   @HasOne(() => CategoryTranslation)
   translation: CategoryTranslation;
+
+  @HasMany(() => Place)
+  places: Place[];
 }

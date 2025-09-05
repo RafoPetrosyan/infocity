@@ -24,9 +24,9 @@ import { ResendDto } from './dto/resend.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UploadFile } from '../../utils/upload.helper';
 import { UploadAndOptimizeImage } from '../../utils/upload-and-optimize.helper';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

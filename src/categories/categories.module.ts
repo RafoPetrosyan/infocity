@@ -4,9 +4,10 @@ import { CategoriesController } from './categories.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Category } from './models/category.model';
 import { CategoryTranslation } from './models/category-translation.model';
+import { Place } from '../places/models/places.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Category, CategoryTranslation])],
+  imports: [SequelizeModule.forFeature([Category, CategoryTranslation, Place])],
   providers: [CategoriesService],
   controllers: [CategoriesController],
 })

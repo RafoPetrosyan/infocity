@@ -11,6 +11,7 @@ import { EmotionsModule } from './emotions/emotions.module';
 import { MobileModule } from './mobile/mobile.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { AuthModule } from './auth/auth.module';
+import { PlacesModule } from './places/places.module';
 import * as path from 'node:path';
 
 @Module({
@@ -45,6 +46,7 @@ import * as path from 'node:path';
     CitiesModule,
     EmotionsModule,
     MobileModule,
+    PlacesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
