@@ -18,15 +18,16 @@ module.exports = {
       logo: {
         type: Sequelize.STRING,
       },
-      cover_image: {
+      image: {
         type: Sequelize.STRING,
       },
-      cover_image_original: {
+      image_original: {
         type: Sequelize.STRING,
       },
       latitude: { type: Sequelize.DECIMAL(10, 8) },
       longitude: { type: Sequelize.DECIMAL(11, 8) },
       location: { type: Sequelize.GEOMETRY('POINT') },
+      social_links: { type: Sequelize.JSONB },
       city_id: {
         type: Sequelize.INTEGER,
         allowNull: true,

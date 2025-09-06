@@ -5,6 +5,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
+import { ValidationError } from 'class-validator';
 
 @Catch(HttpException)
 export class I18nValidationExceptionFilter implements ExceptionFilter {
@@ -41,6 +42,10 @@ export class I18nValidationExceptionFilter implements ExceptionFilter {
       }
     }
 
+    if (Array.isArray(message)) {
+      message = await this.flattenErrors(message, lang);
+    }
+
     // If it's a validation error (array of ValidationError objects)
     if (Array.isArray(message) && message[0]?.constraints) {
       const fieldErrors: Record<string, string> = {};
@@ -62,5 +67,36 @@ export class I18nValidationExceptionFilter implements ExceptionFilter {
       message,
       error: responseBody?.error || exception.name,
     });
+  }
+
+  private async flattenErrors(
+    errors: ValidationError[],
+    lang: string,
+    parentPath = '',
+  ): Promise<Record<string, string>> {
+    let result: Record<string, string> = {};
+
+    for (const error of errors) {
+      const fieldPath = parentPath
+        ? `${parentPath}.${error.property}`
+        : error.property;
+
+      if (error.constraints) {
+        const firstKey = Object.keys(error.constraints)[0];
+        const translationKey = error.constraints[firstKey];
+        result[fieldPath] = await this.i18n.t(translationKey, { lang });
+      }
+
+      if (error.children && error.children.length > 0) {
+        const childErrors = await this.flattenErrors(
+          error.children,
+          lang,
+          fieldPath,
+        );
+        result = { ...result, ...childErrors };
+      }
+    }
+
+    return result;
   }
 }

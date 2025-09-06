@@ -5,7 +5,7 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -24,7 +24,7 @@ import { ResendDto } from './dto/resend.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UploadAndOptimizeImage } from '../../utils/upload-and-optimize.helper';
+import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('users')
@@ -111,9 +111,21 @@ export class UsersController {
   @Post('/update-profile-image')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
-  @UseInterceptors(UploadAndOptimizeImage('image', './uploads/avatars'))
-  updateAvatar(@Req() req: any, @UploadedFile() image: Express.Multer.File) {
+  @UseInterceptors(
+    UploadAndOptimizeImages([{ name: 'image', maxCount: 1 }], {
+      folder: './uploads/avatars',
+    }),
+  )
+  updateAvatar(
+    @Req() req: any,
+    @UploadedFiles()
+    files: {
+      image?: Express.Multer.File[];
+    },
+  ) {
     const userId = req.user.sub;
+    const image = files?.image?.[0];
+
     return this.usersService.updateAvatar(userId, image?.filename, image?.path);
   }
 }

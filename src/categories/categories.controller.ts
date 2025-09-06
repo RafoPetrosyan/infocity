@@ -43,7 +43,7 @@ export class CategoriesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  @UseInterceptors(UploadFile('image', './uploads/categories'))
+  @UseInterceptors(UploadFile('image', './uploads/categories', false))
   async create(
     @Body() dto: CreateCategoryDto,
     @UploadedFile() image: Express.Multer.File,
@@ -68,7 +68,7 @@ export class CategoriesController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  @UseInterceptors(UploadFile('image', './uploads/categories'))
+  @UseInterceptors(UploadFile('image', './uploads/categories', false))
   async update(
     @Param('id') id: number,
     @Body() dto: CreateCategoryDto,

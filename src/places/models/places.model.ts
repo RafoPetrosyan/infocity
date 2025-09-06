@@ -12,6 +12,8 @@ import { PlaceTranslation } from './places-translation.model';
 import { DOMAIN_URL } from '../../../constants';
 import { CityModel } from '../../cities/models/city.model';
 import { Category } from '../../categories/models/category.model';
+import { PlaceImages } from './places-images.model';
+import { PlaceWorkingTimes } from './places-working-times.model';
 
 @Table({ tableName: 'places' })
 export class Place extends Model {
@@ -34,7 +36,7 @@ export class Place extends Model {
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
-  cover_image: string;
+  image: string;
 
   @Column({
     type: DataType.STRING,
@@ -43,7 +45,7 @@ export class Place extends Model {
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
-  cover_image_original: string;
+  image_original: string;
 
   @Column({ type: DataType.DECIMAL(10, 8) })
   declare latitude: number;
@@ -53,6 +55,9 @@ export class Place extends Model {
 
   @Column({ type: DataType.GEOMETRY('POINT') })
   declare location: { type: 'Point'; coordinates: [number, number] };
+
+  @Column({ type: DataType.JSONB, allowNull: true })
+  social_links: { type: string; url: string }[];
 
   @ForeignKey(() => CityModel)
   @Column({ type: DataType.INTEGER, allowNull: true })
@@ -79,4 +84,10 @@ export class Place extends Model {
 
   @HasOne(() => PlaceTranslation)
   translation: PlaceTranslation;
+
+  @HasMany(() => PlaceImages)
+  gallery: PlaceImages[];
+
+  @HasMany(() => PlaceWorkingTimes)
+  working_times: PlaceWorkingTimes[];
 }

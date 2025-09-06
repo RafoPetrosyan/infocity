@@ -1,12 +1,26 @@
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { BadRequestException } from '@nestjs/common';
 import * as sharp from 'sharp';
 import { v4 as uuid } from 'uuid';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, extname } from 'path';
 
-export function UploadAndOptimizeImage(field: string, folder: string) {
-  return FileInterceptor(field, {
+interface UploadOptions {
+  folder: string;
+  withThumb?: boolean;
+  thumbSize?: number;
+}
+
+/**
+ * Custom interceptor to upload and optimize multiple image fields
+ */
+export function UploadAndOptimizeImages(
+  fields: { name: string; maxCount?: number }[],
+  options: UploadOptions,
+) {
+  const { folder, withThumb = false, thumbSize = 400 } = options;
+
+  return FileFieldsInterceptor(fields, {
     storage: {
       _handleFile(req, file, cb) {
         if (!existsSync(folder)) {
@@ -14,8 +28,12 @@ export function UploadAndOptimizeImage(field: string, folder: string) {
         }
 
         const uniqueSuffix = `${Date.now()}-${uuid()}`;
-        const fileName = uniqueSuffix + extname(file.originalname);
+        const ext = extname(file.originalname);
+        const fileName = uniqueSuffix + ext;
         const fullPath = join(folder, fileName);
+
+        const thumbName = withThumb ? uniqueSuffix + '-thumb' + ext : null;
+        const thumbPath = withThumb ? join(folder, thumbName!) : null;
 
         const chunks: Buffer[] = [];
         file.stream.on('data', (chunk) => chunks.push(chunk));
@@ -23,13 +41,34 @@ export function UploadAndOptimizeImage(field: string, folder: string) {
           try {
             const buffer = Buffer.concat(chunks);
 
-            const optimized = await sharp(buffer)
-              .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-              .jpeg({ quality: 70 })
+            // Optimize original
+            const optimizedOriginal = await sharp(buffer)
+              .jpeg({ quality: 85 })
               .toBuffer();
 
-            writeFileSync(fullPath, optimized);
-            cb(null, { path: fullPath, filename: fileName });
+            writeFileSync(fullPath, optimizedOriginal);
+
+            let fileObj: any = {
+              path: fullPath,
+              filename: fileName,
+            };
+
+            if (withThumb && thumbPath) {
+              const optimizedThumb = await sharp(buffer)
+                .resize(thumbSize, thumbSize, {
+                  fit: 'inside',
+                  withoutEnlargement: true,
+                })
+                .jpeg({ quality: 70 })
+                .toBuffer();
+
+              writeFileSync(thumbPath, optimizedThumb);
+
+              fileObj.thumbPath = thumbPath;
+              fileObj.thumbFilename = thumbName;
+            }
+
+            cb(null, fileObj);
           } catch (err) {
             cb(err, null);
           }

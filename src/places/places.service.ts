@@ -8,6 +8,10 @@ import { Place } from './models/places.model';
 import { PlaceTranslation } from './models/places-translation.model';
 import { Sequelize } from 'sequelize-typescript';
 import { unlink } from 'fs/promises';
+import { CreatePlaceDto, PlaceTranslationDto } from './dto/create-place.dto';
+import slugify from 'slugify';
+import { CityModel } from '../cities/models/city.model';
+import { Category } from '../categories/models/category.model';
 
 @Injectable()
 export class PlacesService {
@@ -17,6 +21,12 @@ export class PlacesService {
 
     @InjectModel(PlaceTranslation)
     private placeTranslationModel: typeof PlaceTranslation,
+
+    @InjectModel(CityModel)
+    private cityModel: typeof CityModel,
+
+    @InjectModel(Category)
+    private categoryModel: typeof Category,
 
     private sequelize: Sequelize,
   ) {}
@@ -50,41 +60,75 @@ export class PlacesService {
   //   });
   // }
   //
-  // async create(
-  //   dto: CreateCategoryDto,
-  //   translations: CategoryTranslationDto[],
-  //   image?: string,
-  //   pathname?: string,
-  // ) {
-  //   const existSlug = await this.categoryModel.findOne({
-  //     where: { slug: dto.slug },
-  //   });
-  //
-  //   if (existSlug) {
-  //     if (pathname) await unlink(pathname);
-  //     throw new BadRequestException({
-  //       message: `Category with slug ${dto.slug} already exists`,
-  //     });
-  //   }
-  //
-  //   const category = await this.categoryModel.create({
-  //     slug: dto.slug,
-  //     image: image || null,
-  //   });
-  //
-  //   const translationsData = translations.map((t) => ({
-  //     category_id: category.id,
-  //     language: t.language,
-  //     name: t.name,
-  //   }));
-  //   await this.categoryTranslationModel.bulkCreate(translationsData);
-  //
-  //   return { message: 'Category created successfully.' };
-  // }
-  //
+  async create(
+    dto: CreatePlaceDto,
+    image?: string,
+    imagePathname?: string,
+    logoImage?: string,
+    logoPathname?: string,
+  ) {
+    if (!image) {
+      throw new NotFoundException(`Cover image is required`);
+    }
+
+    const city = await this.cityModel.findByPk(dto.city_id, {
+      attributes: ['id'],
+    });
+    if (!city) {
+      throw new NotFoundException(`City does not exist`);
+    }
+
+    const category = await this.categoryModel.findByPk(dto.category_id, {
+      attributes: ['id'],
+    });
+    if (!category) {
+      throw new NotFoundException(`Category does not exist`);
+    }
+
+    let baseSlug = slugify(dto.en.name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (
+      await this.placeModel.findOne({ where: { slug }, attributes: ['id'] })
+    ) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    const placeData: any = {
+      slug,
+      image: image,
+      city_id: city.id,
+      category_id: category.id,
+      email: dto.email || null,
+      phone_number: dto.phone_number || null,
+      longitude: dto.longitude || null,
+      latitude: dto.latitude || null,
+    };
+
+    if (dto.latitude && dto.longitude) {
+      placeData.location = {
+        type: 'Point',
+        coordinates: [dto.longitude, dto.latitude],
+      };
+    }
+
+    await this.placeModel.create(placeData);
+
+    // const translationsData = translations.map((t) => ({
+    //   category_id: category.id,
+    //   language: t.language,
+    //   name: t.name,
+    // }));
+    // await this.placeTranslationModel.bulkCreate(translationsData);
+
+    return { message: 'Place created successfully.' };
+  }
+
   // async update(
   //   id: number,
-  //   dto: CreateCategoryDto,
+  //   dto: CreatePlaceDto,
   //   translations: CategoryTranslationDto[],
   //   image?: string,
   //   pathname?: string,

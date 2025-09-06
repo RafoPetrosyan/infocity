@@ -5,7 +5,11 @@ import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 
-export function UploadFile(field: string, folder: string) {
+export function UploadFile(
+  field: string,
+  folder: string,
+  isStrictPath: boolean = true,
+) {
   return FileInterceptor(field, {
     storage: diskStorage({
       destination: (req, file, cb) => {
@@ -15,7 +19,9 @@ export function UploadFile(field: string, folder: string) {
         cb(null, folder);
       },
       filename: (req, file, cb) => {
-        const uniqueSuffix = `${Date.now()}-${uuid()}`;
+        const uniqueSuffix = isStrictPath
+          ? `${Date.now()}-${uuid()}`
+          : `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
         cb(null, uniqueSuffix + extname(file.originalname));
       },
     }),
