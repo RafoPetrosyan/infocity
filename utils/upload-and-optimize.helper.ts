@@ -5,20 +5,22 @@ import { v4 as uuid } from 'uuid';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, extname } from 'path';
 
-interface UploadOptions {
-  folder: string;
+interface FieldOption {
+  name: string;
+  maxCount?: number;
   withThumb?: boolean;
   thumbSize?: number;
 }
 
-/**
- * Custom interceptor to upload and optimize multiple image fields
- */
+interface UploadOptions {
+  folder: string;
+}
+
 export function UploadAndOptimizeImages(
-  fields: { name: string; maxCount?: number }[],
+  fields: FieldOption[],
   options: UploadOptions,
 ) {
-  const { folder, withThumb = false, thumbSize = 400 } = options;
+  const { folder } = options;
 
   return FileFieldsInterceptor(fields, {
     storage: {
@@ -31,6 +33,11 @@ export function UploadAndOptimizeImages(
         const ext = extname(file.originalname);
         const fileName = uniqueSuffix + ext;
         const fullPath = join(folder, fileName);
+
+        // Find field-specific config
+        const fieldConfig = fields.find((f) => f.name === file.fieldname);
+        const withThumb = fieldConfig?.withThumb ?? false;
+        const thumbSize = fieldConfig?.thumbSize ?? 400;
 
         const thumbName = withThumb ? uniqueSuffix + '-thumb' + ext : null;
         const thumbPath = withThumb ? join(folder, thumbName!) : null;

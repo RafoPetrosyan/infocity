@@ -46,10 +46,10 @@ export class PlacesController {
   @UseInterceptors(
     UploadAndOptimizeImages(
       [
-        { name: 'image', maxCount: 1 },
-        { name: 'logo', maxCount: 1 },
+        { name: 'image', maxCount: 1, withThumb: true },
+        { name: 'logo', maxCount: 1, withThumb: false },
       ],
-      { folder: './uploads/places', withThumb: true },
+      { folder: './uploads/places' },
     ),
   )
   async create(
