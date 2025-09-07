@@ -60,18 +60,17 @@ export class PlacesController {
       logo?: Express.Multer.File[];
     },
   ) {
-    const cover = files?.image?.[0];
-    const logo = files?.logo?.[0];
+    const cover: any = files?.image?.[0];
+    const logo: any = files?.logo?.[0];
 
-    console.log(cover, 'cover');
-
-    return this.placesService.create(
-      body,
-      cover?.filename,
-      cover?.path,
-      logo?.filename,
-      logo?.path,
-    );
+    return this.placesService.create(body, {
+      coverOriginalName: cover?.filename,
+      coverOriginalPath: cover?.path,
+      coverThumbName: cover?.thumbFilename,
+      coverThumbPath: cover?.thumbPath,
+      logoFileName: logo?.filename,
+      logoFilePath: logo?.path,
+    });
   }
   //
   // @Put(':id')

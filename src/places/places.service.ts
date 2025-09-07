@@ -12,6 +12,7 @@ import { CreatePlaceDto, PlaceTranslationDto } from './dto/create-place.dto';
 import slugify from 'slugify';
 import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
+import { unlinkFiles } from '../../utils/unlink-files';
 
 @Injectable()
 export class PlacesService {
@@ -62,12 +63,17 @@ export class PlacesService {
   //
   async create(
     dto: CreatePlaceDto,
-    image?: string,
-    imagePathname?: string,
-    logoImage?: string,
-    logoPathname?: string,
+    files: {
+      coverOriginalName: string | undefined;
+      coverOriginalPath: string | undefined;
+      coverThumbName: string | undefined;
+      coverThumbPath: string | undefined;
+      logoFileName: string | undefined;
+      logoFilePath: string | undefined;
+    },
   ) {
-    if (!image) {
+    if (!files.coverOriginalName) {
+      if (files.logoFilePath) await unlink(files.logoFilePath);
       throw new NotFoundException(`Cover image is required`);
     }
 
@@ -75,6 +81,11 @@ export class PlacesService {
       attributes: ['id'],
     });
     if (!city) {
+      await unlinkFiles([
+        files.logoFilePath,
+        files.coverOriginalPath,
+        files.coverThumbPath,
+      ]);
       throw new NotFoundException(`City does not exist`);
     }
 
@@ -82,30 +93,34 @@ export class PlacesService {
       attributes: ['id'],
     });
     if (!category) {
+      await unlinkFiles([
+        files.logoFilePath,
+        files.coverOriginalPath,
+        files.coverThumbPath,
+      ]);
       throw new NotFoundException(`Category does not exist`);
     }
 
     let baseSlug = slugify(dto.en.name, { lower: true, strict: true });
-    let slug = baseSlug;
-    let counter = 1;
-
-    while (
-      await this.placeModel.findOne({ where: { slug }, attributes: ['id'] })
-    ) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
+    const existBaseSlug = await this.placeModel.findOne({
+      where: { slug: baseSlug },
+      attributes: ['id'],
+    });
 
     const placeData: any = {
-      slug,
-      image: image,
+      slug: existBaseSlug ? Date.now().toString() + '-' + baseSlug : baseSlug,
+      image: files.coverThumbName,
+      image_original: files.coverOriginalName,
       city_id: city.id,
       category_id: category.id,
       email: dto.email || null,
       phone_number: dto.phone_number || null,
       longitude: dto.longitude || null,
       latitude: dto.latitude || null,
+      social_links: dto.social_links || [],
     };
+
+    if (files.logoFileName) placeData.logo = files.logoFileName;
 
     if (dto.latitude && dto.longitude) {
       placeData.location = {
@@ -114,7 +129,36 @@ export class PlacesService {
       };
     }
 
-    await this.placeModel.create(placeData);
+    const place = await this.placeModel.create(placeData);
+    if (existBaseSlug) {
+      const finalSlug = `${baseSlug}-${place.id}`;
+      await place.update({ slug: finalSlug });
+    }
+
+    const languages = [
+      {
+        language: 'en',
+        name: dto.en.name,
+        description: dto.en.description || '',
+        about: dto.en.about || '',
+        place_id: place.id,
+      },
+      {
+        language: 'hy',
+        name: dto.hy.name,
+        description: dto.hy.description || '',
+        about: dto.hy.about || '',
+        place_id: place.id,
+      },
+      {
+        language: 'ru',
+        name: dto.ru.name,
+        description: dto.ru.description || '',
+        about: dto.ru.about || '',
+        place_id: place.id,
+      },
+    ];
+    await this.placeTranslationModel.bulkCreate(languages);
 
     // const translationsData = translations.map((t) => ({
     //   category_id: category.id,
@@ -123,7 +167,7 @@ export class PlacesService {
     // }));
     // await this.placeTranslationModel.bulkCreate(translationsData);
 
-    return { message: 'Place created successfully.' };
+    return { message: 'Place created successfully.', place };
   }
 
   // async update(
