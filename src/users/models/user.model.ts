@@ -8,12 +8,14 @@ import {
   ForeignKey,
   BelongsTo,
   BelongsToMany,
+  HasMany,
 } from 'sequelize-typescript';
 import * as bcrypt from 'bcryptjs';
 import { CityModel } from '../../cities/models/city.model';
 import { EmotionsModel } from '../../emotions/models/emotions.model';
 import { UserEmotions } from './user-emotions.model';
 import { DOMAIN_URL } from '../../../constants';
+import { Place } from '../../places/models/places.model';
 
 @Table({ tableName: 'users' })
 export class User extends Model {
@@ -90,6 +92,9 @@ export class User extends Model {
 
   @BelongsTo(() => CityModel)
   declare city: CityModel;
+
+  @HasMany(() => Place, { foreignKey: 'user_id', as: 'places' })
+  places: Place[];
 
   @BelongsToMany(() => EmotionsModel, () => UserEmotions)
   declare emotions: EmotionsModel[];

@@ -8,6 +8,7 @@ import { PlaceImages } from './models/places-images.model';
 import { PlaceWorkingTimes } from './models/places-working-times.model';
 import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
+import { User } from '../users/models/user.model';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { Category } from '../categories/models/category.model';
       PlaceWorkingTimes,
       CityModel,
       Category,
+      User,
     ]),
   ],
   providers: [PlacesService],

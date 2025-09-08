@@ -10,6 +10,8 @@ interface FieldOption {
   maxCount?: number;
   withThumb?: boolean;
   thumbSize?: number;
+  qualityValue?: number;
+  thumbQualityValue?: number;
 }
 
 interface UploadOptions {
@@ -38,6 +40,8 @@ export function UploadAndOptimizeImages(
         const fieldConfig = fields.find((f) => f.name === file.fieldname);
         const withThumb = fieldConfig?.withThumb ?? false;
         const thumbSize = fieldConfig?.thumbSize ?? 400;
+        const qualityValue = fieldConfig?.qualityValue ?? 85;
+        const thumbQualityValue = fieldConfig?.thumbQualityValue ?? 70;
 
         const thumbName = withThumb ? uniqueSuffix + '-thumb' + ext : null;
         const thumbPath = withThumb ? join(folder, thumbName!) : null;
@@ -50,7 +54,7 @@ export function UploadAndOptimizeImages(
 
             // Optimize original
             const optimizedOriginal = await sharp(buffer)
-              .jpeg({ quality: 85 })
+              .jpeg({ quality: qualityValue })
               .toBuffer();
 
             writeFileSync(fullPath, optimizedOriginal);
@@ -66,7 +70,7 @@ export function UploadAndOptimizeImages(
                   fit: 'inside',
                   withoutEnlargement: true,
                 })
-                .jpeg({ quality: 70 })
+                .jpeg({ quality: thumbQualityValue })
                 .toBuffer();
 
               writeFileSync(thumbPath, optimizedThumb);

@@ -26,8 +26,13 @@ module.exports = {
       },
     });
 
-    // Add index for faster queries on language
-    await queryInterface.addIndex('city_translations', ['language']);
+    await queryInterface.addIndex(
+      'city_translations',
+      ['city_id', 'language'],
+      {
+        unique: true,
+      },
+    );
   },
 
   async down(queryInterface) {

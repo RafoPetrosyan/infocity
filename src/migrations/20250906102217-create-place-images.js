@@ -27,9 +27,12 @@ module.exports = {
         type: Sequelize.STRING,
       },
     });
+
+    await queryInterface.addIndex('place_images', ['place_id']);
   },
 
   async down(queryInterface) {
+    await queryInterface.removeIndex('place_images', ['place_id']);
     await queryInterface.dropTable('place_images');
   },
 };

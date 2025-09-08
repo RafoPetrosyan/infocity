@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { ValidationError } from 'class-validator';
+import * as fs from 'fs';
 
 @Catch(HttpException)
 export class I18nValidationExceptionFilter implements ExceptionFilter {
@@ -15,6 +16,25 @@ export class I18nValidationExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
+
+    // 🔹 Cleanup uploaded files if they exist
+    const files = request.files;
+    if (files) {
+      Object.values(files)
+        .flat()
+        .forEach((file: any) => {
+          try {
+            if (file?.path && fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+            if (file?.thumbPath && fs.existsSync(file.thumbPath)) {
+              fs.unlinkSync(file.thumbPath);
+            }
+          } catch (err) {
+            console.error('File cleanup error:', err);
+          }
+        });
+    }
 
     const status = exception.getStatus();
     const responseBody: any = exception.getResponse();

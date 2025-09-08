@@ -10,8 +10,16 @@ import {
   Max,
   Min,
   ValidateNested,
+  IsEnum,
 } from 'class-validator';
 import { plainToInstance, Transform, Type } from 'class-transformer';
+
+enum Platforms {
+  FACEBOOK = 'facebook',
+  INSTAGRAM = 'instagram',
+  TIKTOK = 'tiktok',
+  WEBSITE = 'website',
+}
 
 export class PlaceTranslationDto {
   @IsString()
@@ -28,9 +36,9 @@ export class PlaceTranslationDto {
 }
 
 export class PlaceSocialLinksDto {
-  @IsString()
   @IsNotEmpty()
-  type: string;
+  @IsEnum(Platforms)
+  platform: Platforms;
 
   @IsUrl()
   @IsNotEmpty()

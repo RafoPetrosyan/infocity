@@ -43,9 +43,12 @@ module.exports = {
         defaultValue: [],
       },
     });
+
+    await queryInterface.addIndex('place_working_times', ['place_id']);
   },
 
   async down(queryInterface) {
+    await queryInterface.removeIndex('place_working_times', ['place_id']);
     await queryInterface.dropTable('place_working_times');
   },
 };

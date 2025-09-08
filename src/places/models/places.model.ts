@@ -14,6 +14,7 @@ import { CityModel } from '../../cities/models/city.model';
 import { Category } from '../../categories/models/category.model';
 import { PlaceImages } from './places-images.model';
 import { PlaceWorkingTimes } from './places-working-times.model';
+import { User } from '../../users/models/user.model';
 
 @Table({ tableName: 'places' })
 export class Place extends Model {
@@ -32,7 +33,7 @@ export class Place extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('cover_image');
+      const rawValue = this.getDataValue('image');
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
@@ -41,7 +42,7 @@ export class Place extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('cover_image');
+      const rawValue = this.getDataValue('image_original');
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
@@ -67,6 +68,10 @@ export class Place extends Model {
   @Column({ type: DataType.INTEGER, allowNull: true })
   declare category_id: number;
 
+  @ForeignKey(() => User)
+  @Column({ type: DataType.INTEGER, allowNull: false })
+  declare user_id: number;
+
   @Column({ type: DataType.STRING })
   declare email: string;
 
@@ -84,6 +89,9 @@ export class Place extends Model {
 
   @HasOne(() => PlaceTranslation)
   translation: PlaceTranslation;
+
+  @BelongsTo(() => User, { foreignKey: 'user_id', as: 'owner' })
+  owner: User;
 
   @HasMany(() => PlaceImages)
   gallery: PlaceImages[];

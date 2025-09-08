@@ -10,6 +10,8 @@ import {
   UseInterceptors,
   BadRequestException,
   UploadedFiles,
+  UseFilters,
+  Req,
 } from '@nestjs/common';
 import { PlacesService } from './places.service';
 import { CreatePlaceDto, PlaceTranslationDto } from './dto/create-place.dto';
@@ -23,6 +25,10 @@ import { UploadFile } from '../../utils/upload.helper';
 import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
 import { ParseJsonPipe } from '../../utils/custom-json-pipe';
 import { instanceToPlain } from 'class-transformer';
+import {
+  CreateWorkingTimeDto,
+  CreateWorkingTimesDto,
+} from './dto/create-working-times.dto';
 
 @Controller('places')
 export class PlacesController {
@@ -40,6 +46,7 @@ export class PlacesController {
   //   return this.categoriesService.getAllAdmin();
   // }
   //
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
@@ -47,12 +54,13 @@ export class PlacesController {
     UploadAndOptimizeImages(
       [
         { name: 'image', maxCount: 1, withThumb: true },
-        { name: 'logo', maxCount: 1, withThumb: false },
+        { name: 'logo', maxCount: 1, withThumb: false, qualityValue: 80 },
       ],
       { folder: './uploads/places' },
     ),
   )
   async create(
+    @Req() req: any,
     @Body() body: CreatePlaceDto,
     @UploadedFiles()
     files: {
@@ -60,10 +68,12 @@ export class PlacesController {
       logo?: Express.Multer.File[];
     },
   ) {
+    const userId = req.user.sub;
+
     const cover: any = files?.image?.[0];
     const logo: any = files?.logo?.[0];
 
-    return this.placesService.create(body, {
+    return this.placesService.create(userId, body, {
       coverOriginalName: cover?.filename,
       coverOriginalPath: cover?.path,
       coverThumbName: cover?.thumbFilename,
@@ -72,6 +82,20 @@ export class PlacesController {
       logoFilePath: logo?.path,
     });
   }
+
+  @Put(':id/working-times')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async createOrUpdateWorkingTimes(
+    @Req() req: any,
+    @Param('id') id: number,
+    @Body() body: CreateWorkingTimesDto,
+  ) {
+    const userId = req.user.sub;
+
+    return this.placesService.createOrUpdateWorkingTimes(userId, body, id);
+  }
+
   //
   // @Put(':id')
   // @UseGuards(JwtAuthGuard, RolesGuard)

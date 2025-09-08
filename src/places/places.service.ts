@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  NotAcceptableException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Place } from './models/places.model';
@@ -13,6 +14,11 @@ import slugify from 'slugify';
 import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
 import { unlinkFiles } from '../../utils/unlink-files';
+import {
+  CreateWorkingTimeDto,
+  CreateWorkingTimesDto,
+} from './dto/create-working-times.dto';
+import { PlaceWorkingTimes } from './models/places-working-times.model';
 
 @Injectable()
 export class PlacesService {
@@ -28,6 +34,9 @@ export class PlacesService {
 
     @InjectModel(Category)
     private categoryModel: typeof Category,
+
+    @InjectModel(PlaceWorkingTimes)
+    private workingTimes: typeof PlaceWorkingTimes,
 
     private sequelize: Sequelize,
   ) {}
@@ -61,7 +70,38 @@ export class PlacesService {
   //   });
   // }
   //
+
+  async getPlaceByIdAllData(id: number, user_id: number) {
+    const place = await this.placeModel.findByPk(id, {
+      attributes: [
+        'id',
+        'user_id',
+        'image',
+        'image_original',
+        'slug',
+        'email',
+        'phone_number',
+        'longitude',
+        'latitude',
+        'social_links',
+      ],
+      include: [
+        {
+          model: this.placeTranslationModel,
+          as: 'translations',
+          attributes: ['name', 'description', 'about', 'language'],
+        },
+      ],
+    });
+
+    if (place && place?.user_id !== user_id) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+    return place;
+  }
+
   async create(
+    userId: number,
     dto: CreatePlaceDto,
     files: {
       coverOriginalName: string | undefined;
@@ -118,6 +158,7 @@ export class PlacesService {
       longitude: dto.longitude || null,
       latitude: dto.latitude || null,
       social_links: dto.social_links || [],
+      user_id: userId,
     };
 
     if (files.logoFileName) placeData.logo = files.logoFileName;
@@ -160,14 +201,35 @@ export class PlacesService {
     ];
     await this.placeTranslationModel.bulkCreate(languages);
 
-    // const translationsData = translations.map((t) => ({
-    //   category_id: category.id,
-    //   language: t.language,
-    //   name: t.name,
-    // }));
-    // await this.placeTranslationModel.bulkCreate(translationsData);
+    const placeResponse = await this.getPlaceByIdAllData(place.id, userId);
+    return { message: 'Place created successfully.', place: placeResponse };
+  }
 
-    return { message: 'Place created successfully.', place };
+  async createOrUpdateWorkingTimes(
+    userId: number,
+    dto: CreateWorkingTimesDto,
+    id: number,
+  ) {
+    const place = await this.placeModel.findByPk(id, {
+      attributes: ['user_id'],
+    });
+    if (!place) {
+      throw new NotFoundException(`Place with id ${id} not found`);
+    }
+    if (place.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const dbTimes = await this.workingTimes.findAll({
+      where: {
+        place_id: id,
+      },
+    });
+    console.log(dbTimes, 'dbTimes');
+
+    console.log(dto);
+
+    return { message: 'Place created successfully.' };
   }
 
   // async update(

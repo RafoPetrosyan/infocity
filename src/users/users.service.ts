@@ -316,6 +316,7 @@ export class UsersService {
         'locale',
         'city_id',
         'email_verified',
+        'role',
       ],
     });
 
