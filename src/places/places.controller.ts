@@ -96,6 +96,29 @@ export class PlacesController {
     return this.placesService.createOrUpdateWorkingTimes(userId, body, id);
   }
 
+  @Post(':id/gallery')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  @UseInterceptors(
+    UploadAndOptimizeImages(
+      [{ name: 'images', maxCount: 10, withThumb: true }],
+      { folder: './uploads/places' },
+    ),
+  )
+  async uploadImages(
+    @Req() req: any,
+    @Param('id') id: number,
+    @UploadedFiles()
+    files: {
+      images?: Express.Multer.File[];
+    },
+  ) {
+    const userId = req.user.sub;
+    const images: any = files?.images;
+
+    return this.placesService.uploadImages(userId, id, images);
+  }
+
   //
   // @Put(':id')
   // @UseGuards(JwtAuthGuard, RolesGuard)

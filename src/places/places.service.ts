@@ -19,6 +19,8 @@ import {
   CreateWorkingTimesDto,
 } from './dto/create-working-times.dto';
 import { PlaceWorkingTimes } from './models/places-working-times.model';
+import _ from 'lodash';
+import { PlaceImages } from './models/places-images.model';
 
 @Injectable()
 export class PlacesService {
@@ -37,6 +39,9 @@ export class PlacesService {
 
     @InjectModel(PlaceWorkingTimes)
     private workingTimes: typeof PlaceWorkingTimes,
+
+    @InjectModel(PlaceImages)
+    private placeImages: typeof PlaceImages,
 
     private sequelize: Sequelize,
   ) {}
@@ -225,11 +230,55 @@ export class PlacesService {
         place_id: id,
       },
     });
-    console.log(dbTimes, 'dbTimes');
 
-    console.log(dto);
+    if (!dbTimes.length) {
+      const insertData: any = dto.working_times.map((e) => ({
+        place_id: id,
+        ...e,
+      }));
 
-    return { message: 'Place created successfully.' };
+      const workingTimes = await this.workingTimes.bulkCreate(insertData);
+      return {
+        message: 'Working times created successfully.',
+        data: workingTimes,
+      };
+    }
+
+    const insertData: any = dbTimes.map((e) => {
+      const dayData = dto.working_times.find(
+        (day) => day.weekday === e.dataValues.weekday,
+      );
+      return { ...e.dataValues, ...dayData };
+    });
+
+    const response = await this.workingTimes.bulkCreate(insertData, {
+      updateOnDuplicate: ['start_time', 'end_time', 'is_working_day', 'breaks'],
+    });
+
+    return {
+      message: 'Working times updated successfully.',
+      data: response,
+    };
+  }
+
+  async uploadImages(userId: number, id: number, images: any) {
+    const insertData = images.map((image: any) => {
+      return {
+        place_id: id,
+        original: image.filename,
+        thumbnail: image.thumbFilename,
+      };
+    });
+
+    await this.placeImages.bulkCreate(insertData);
+
+    const response = await this.placeImages.findAll({
+      where: {
+        place_id: id,
+      },
+      attributes: ['id', 'original', 'thumbnail'],
+    });
+    return { message: 'Images uploaded successfully.', data: response };
   }
 
   // async update(
