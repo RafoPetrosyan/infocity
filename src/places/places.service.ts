@@ -21,6 +21,7 @@ import {
 import { PlaceWorkingTimes } from './models/places-working-times.model';
 import _ from 'lodash';
 import { PlaceImages } from './models/places-images.model';
+import { UpdatePlaceDto } from './dto/update-place.dto';
 
 @Injectable()
 export class PlacesService {
@@ -210,6 +211,154 @@ export class PlacesService {
     return { message: 'Place created successfully.', place: placeResponse };
   }
 
+  async update(
+    userId: number,
+    dto: UpdatePlaceDto,
+    id: number,
+    files: {
+      coverOriginalName: string | undefined;
+      coverOriginalPath: string | undefined;
+      coverThumbName: string | undefined;
+      coverThumbPath: string | undefined;
+      logoFileName: string | undefined;
+      logoFilePath: string | undefined;
+    },
+  ) {
+    const place = await this.placeModel.findByPk(id, {
+      attributes: ['user_id', 'image_original', 'image', 'logo'],
+    });
+
+    if (!place) {
+      throw new NotFoundException(`Place with id ${id} not found`);
+    }
+
+    if (place.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const updateData: any = {};
+
+    if (dto.city_id) {
+      const city = await this.cityModel.findByPk(dto.city_id, {
+        attributes: ['id'],
+      });
+
+      if (!city) {
+        await unlinkFiles([
+          files.logoFilePath,
+          files.coverOriginalPath,
+          files.coverThumbPath,
+        ]);
+        throw new NotFoundException(`City does not exist`);
+      }
+      updateData.city_id = city.id;
+    }
+
+    if (dto.category_id) {
+      const category = await this.categoryModel.findByPk(dto.category_id, {
+        attributes: ['id'],
+      });
+      if (!category) {
+        await unlinkFiles([
+          files.logoFilePath,
+          files.coverOriginalPath,
+          files.coverThumbPath,
+        ]);
+        throw new NotFoundException(`Category does not exist`);
+      }
+
+      updateData.category_id = category.id;
+    }
+
+    if (dto.social_links) updateData.social_links = dto.social_links;
+    if (dto.longitude) updateData.longitude = dto.longitude;
+    if (dto.latitude) updateData.latitude = dto.latitude;
+    if (dto.phone_number) updateData.phone_number = dto.phone_number;
+    if (dto.email) updateData.email = dto.email;
+
+    if (files.logoFileName) {
+      updateData.logo = files.logoFileName;
+      if (place.dataValues.logo) {
+        await unlink(`uploads/places/${place.dataValues.logo}`);
+      }
+    }
+
+    if (files.coverThumbName) {
+      updateData.image = files.coverThumbName;
+      if (place.dataValues.image) {
+        await unlink(`uploads/places/${place.dataValues.image}`);
+      }
+    }
+    if (files.coverOriginalName) {
+      updateData.image_original = files.coverOriginalName;
+      if (place.dataValues.image_original) {
+        await unlink(`uploads/places/${place.dataValues.image_original}`);
+      }
+    }
+
+    if (dto.latitude && dto.longitude) {
+      updateData.location = {
+        type: 'Point',
+        coordinates: [dto.longitude, dto.latitude],
+      };
+    }
+    await this.placeModel.update(updateData, {
+      where: { id },
+    });
+
+    if (dto.en) {
+      const data = {
+        name: dto.en.name,
+        description: dto.en.description || '',
+        about: dto.en.about || '',
+      };
+      await this.placeTranslationModel.update(data, {
+        where: { place_id: id, language: 'en' },
+      });
+    }
+
+    if (dto.hy) {
+      const data = {
+        name: dto.hy.name,
+        description: dto.hy.description || '',
+        about: dto.hy.about || '',
+      };
+      await this.placeTranslationModel.update(data, {
+        where: { place_id: id, language: 'hy' },
+      });
+    }
+
+    if (dto.ru) {
+      const data = {
+        name: dto.ru.name,
+        description: dto.ru.description || '',
+        about: dto.ru.about || '',
+      };
+      await this.placeTranslationModel.update(data, {
+        where: { place_id: id, language: 'ru' },
+      });
+    }
+
+    const placeResponse = await this.getPlaceByIdAllData(id, userId);
+    return { message: 'Place updated successfully.', place: placeResponse };
+  }
+
+  async getWorkingTimes(id: number) {
+    return await this.workingTimes.findAll({
+      where: {
+        place_id: id,
+      },
+      attributes: [
+        'id',
+        'weekday',
+        'start_time',
+        'end_time',
+        'is_working_day',
+        'breaks',
+      ],
+    });
+  }
+
   async createOrUpdateWorkingTimes(
     userId: number,
     dto: CreateWorkingTimesDto,
@@ -261,7 +410,67 @@ export class PlacesService {
     };
   }
 
+  async updateWorkingTime(
+    userId: number,
+    dto: CreateWorkingTimeDto,
+    placeId: number,
+    timeId: number,
+  ) {
+    const place = await this.placeModel.findByPk(placeId, {
+      attributes: ['user_id'],
+    });
+    if (!place) {
+      throw new NotFoundException(`Place with id ${placeId} not found`);
+    }
+    if (place.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    await this.workingTimes.update(dto, {
+      where: {
+        id: timeId,
+      },
+    });
+
+    const data = await this.getWorkingTimes(placeId);
+
+    return {
+      message: 'Working times updated successfully.',
+      data,
+    };
+  }
+
   async uploadImages(userId: number, id: number, images: any) {
+    console.log(images, 'images');
+    const place = await this.placeModel.findByPk(id, {
+      attributes: ['user_id'],
+    });
+
+    const imagePaths = images.reduce((acc: any, item: any) => {
+      acc.push(item.path);
+      acc.push(item.thumbPath);
+      return acc;
+    }, []);
+
+    if (!place) {
+      await unlinkFiles(imagePaths);
+      throw new NotFoundException(`Place with id ${id} not found`);
+    }
+
+    if (place.user_id !== userId) {
+      await unlinkFiles(imagePaths);
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const existingCount = await this.placeImages.count({
+      where: { place_id: id },
+    });
+
+    if (existingCount + images.length > 15) {
+      await unlinkFiles(imagePaths);
+      throw new BadRequestException(`You can upload a maximum of 15 images.`);
+    }
+
     const insertData = images.map((image: any) => {
       return {
         place_id: id,
@@ -276,9 +485,62 @@ export class PlacesService {
       where: {
         place_id: id,
       },
-      attributes: ['id', 'original', 'thumbnail'],
+      attributes: ['id', 'original', 'thumbnail', 'type'],
     });
     return { message: 'Images uploaded successfully.', data: response };
+  }
+
+  async deleteImage(userId: number, place_id: number, image_id: number) {
+    const place = await this.placeModel.findByPk(place_id, {
+      attributes: ['user_id'],
+    });
+
+    if (!place) {
+      throw new NotFoundException(`Place with id ${place_id} not found`);
+    }
+
+    if (place.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const image = await this.placeImages.findOne({
+      where: {
+        id: image_id,
+        place_id,
+      },
+      attributes: ['original', 'thumbnail', 'id', 'place_id'],
+    });
+
+    if (!image) {
+      throw new NotFoundException(`Place with id ${image_id} not found`);
+    }
+    const imagePaths = [
+      `uploads/places/${image.dataValues.original}`,
+      `uploads/places/${image.dataValues.thumbnail}`,
+    ];
+    await unlinkFiles(imagePaths);
+    await image.destroy();
+
+    return { message: 'Success' };
+  }
+
+  async getImages(place_id: number) {
+    const place = await this.placeModel.findByPk(place_id, {
+      attributes: ['user_id'],
+    });
+
+    if (!place) {
+      throw new NotFoundException(`Place with id ${place_id} not found`);
+    }
+
+    const gallery = await this.placeImages.findAll({
+      where: {
+        place_id,
+      },
+      attributes: ['original', 'thumbnail', 'id', 'type'],
+    });
+
+    return { message: 'Gallery list', gallery };
   }
 
   // async update(

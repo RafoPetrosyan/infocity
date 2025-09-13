@@ -29,6 +29,7 @@ import {
   CreateWorkingTimeDto,
   CreateWorkingTimesDto,
 } from './dto/create-working-times.dto';
+import { UpdatePlaceDto } from './dto/update-place.dto';
 
 @Controller('places')
 export class PlacesController {
@@ -83,6 +84,43 @@ export class PlacesController {
     });
   }
 
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  @UseInterceptors(
+    UploadAndOptimizeImages(
+      [
+        { name: 'image', maxCount: 1, withThumb: true },
+        { name: 'logo', maxCount: 1, withThumb: false, qualityValue: 80 },
+      ],
+      { folder: './uploads/places' },
+    ),
+  )
+  async update(
+    @Req() req: any,
+    @Body() body: UpdatePlaceDto,
+    @Param('id') id: number,
+    @UploadedFiles()
+    files: {
+      image?: Express.Multer.File[];
+      logo?: Express.Multer.File[];
+    },
+  ) {
+    const userId = req.user.sub;
+
+    const cover: any = files?.image?.[0];
+    const logo: any = files?.logo?.[0];
+
+    return this.placesService.update(userId, body, id, {
+      coverOriginalName: cover?.filename,
+      coverOriginalPath: cover?.path,
+      coverThumbName: cover?.thumbFilename,
+      coverThumbPath: cover?.thumbPath,
+      logoFileName: logo?.filename,
+      logoFilePath: logo?.path,
+    });
+  }
+
   @Put(':id/working-times')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
@@ -96,12 +134,26 @@ export class PlacesController {
     return this.placesService.createOrUpdateWorkingTimes(userId, body, id);
   }
 
+  @Put(':id/working-times/:timeId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async updateWorkingTime(
+    @Req() req: any,
+    @Param('id') id: number,
+    @Param('timeId') timeId: number,
+    @Body() body: CreateWorkingTimeDto,
+  ) {
+    const userId = req.user.sub;
+
+    return this.placesService.updateWorkingTime(userId, body, id, timeId);
+  }
+
   @Post(':id/gallery')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
     UploadAndOptimizeImages(
-      [{ name: 'images', maxCount: 10, withThumb: true }],
+      [{ name: 'images', maxCount: 15, withThumb: true }],
       { folder: './uploads/places' },
     ),
   )
@@ -117,6 +169,24 @@ export class PlacesController {
     const images: any = files?.images;
 
     return this.placesService.uploadImages(userId, id, images);
+  }
+
+  @Delete(':id/gallery/:imageId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async deleteImage(
+    @Req() req: any,
+    @Param('id') id: number,
+    @Param('imageId') imageId: number,
+  ) {
+    const userId = req.user.sub;
+
+    return this.placesService.deleteImage(userId, id, imageId);
+  }
+
+  @Get(':id/gallery')
+  async getGallery(@Param('id') id: number) {
+    return this.placesService.getImages(id);
   }
 
   //
