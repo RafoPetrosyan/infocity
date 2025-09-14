@@ -19,7 +19,7 @@ import { User } from '../../users/models/user.model';
 @Table({ tableName: 'places' })
 export class Place extends Model {
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
-  slug: string;
+  declare slug: string;
 
   @Column({
     type: DataType.STRING,
@@ -28,7 +28,7 @@ export class Place extends Model {
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
-  logo: string;
+  declare logo: string;
 
   @Column({
     type: DataType.STRING,
@@ -37,7 +37,7 @@ export class Place extends Model {
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
-  image: string;
+  declare image: string;
 
   @Column({
     type: DataType.STRING,
@@ -46,7 +46,7 @@ export class Place extends Model {
       return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
     },
   })
-  image_original: string;
+  declare image_original: string;
 
   @Column({ type: DataType.DECIMAL(10, 8) })
   declare latitude: number;
@@ -58,7 +58,7 @@ export class Place extends Model {
   declare location: { type: 'Point'; coordinates: [number, number] };
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  social_links: { type: string; url: string }[];
+  declare social_links: { type: string; url: string }[];
 
   @ForeignKey(() => CityModel)
   @Column({ type: DataType.INTEGER, allowNull: true })
@@ -85,17 +85,17 @@ export class Place extends Model {
   declare category: Category;
 
   @HasMany(() => PlaceTranslation)
-  translations: PlaceTranslation[];
+  declare translations: PlaceTranslation[];
 
   @HasOne(() => PlaceTranslation)
-  translation: PlaceTranslation;
+  declare translation: PlaceTranslation;
 
   @BelongsTo(() => User, { foreignKey: 'user_id', as: 'owner' })
-  owner: User;
+  declare owner: User;
 
   @HasMany(() => PlaceImages)
-  gallery: PlaceImages[];
+  declare gallery: PlaceImages[];
 
   @HasMany(() => PlaceWorkingTimes)
-  working_times: PlaceWorkingTimes[];
+  declare working_times: PlaceWorkingTimes[];
 }

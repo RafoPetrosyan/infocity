@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UseFilters,
   Req,
+  Query,
 } from '@nestjs/common';
 import { PlacesService } from './places.service';
 import { CreatePlaceDto, PlaceTranslationDto } from './dto/create-place.dto';
@@ -30,23 +31,26 @@ import {
   CreateWorkingTimesDto,
 } from './dto/create-working-times.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
+import { QueryDto } from '../../types/query.dto';
+import { LanguageEnum } from '../../types';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 
 @Controller('places')
 export class PlacesController {
   constructor(private readonly placesService: PlacesService) {}
 
-  // @Get('/')
-  // getAll(@I18nLang() lang: string) {
-  //   return this.categoriesService.getAll(lang);
-  // }
-  //
-  // @Get('/admin')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('super-admin', 'admin')
-  // getAllForAdmin() {
-  //   return this.categoriesService.getAllAdmin();
-  // }
-  //
+  @Get('/attractions')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super-admin', 'admin')
+  getAll(@Query() params: QueryDto) {
+    return this.placesService.getAttractionsForAdmin(params);
+  }
+
+  @Get('/:id')
+  @UseGuards(OptionalJwtAuthGuard)
+  getById(@Param('id') id: number, @I18nLang() lang: LanguageEnum) {
+    return this.placesService.getById(id, lang);
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)

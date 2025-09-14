@@ -1,15 +1,14 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   NotAcceptableException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Place } from './models/places.model';
 import { PlaceTranslation } from './models/places-translation.model';
-import { Sequelize } from 'sequelize-typescript';
 import { unlink } from 'fs/promises';
-import { CreatePlaceDto, PlaceTranslationDto } from './dto/create-place.dto';
+import { CreatePlaceDto } from './dto/create-place.dto';
 import slugify from 'slugify';
 import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
@@ -19,9 +18,10 @@ import {
   CreateWorkingTimesDto,
 } from './dto/create-working-times.dto';
 import { PlaceWorkingTimes } from './models/places-working-times.model';
-import _ from 'lodash';
 import { PlaceImages } from './models/places-images.model';
 import { UpdatePlaceDto } from './dto/update-place.dto';
+import { Op } from 'sequelize';
+import { LanguageEnum } from '../../types';
 
 @Injectable()
 export class PlacesService {
@@ -43,39 +43,43 @@ export class PlacesService {
 
     @InjectModel(PlaceImages)
     private placeImages: typeof PlaceImages,
-
-    private sequelize: Sequelize,
   ) {}
 
-  // async getAll(lang: string) {
-  //   return await this.categoryModel.findAll({
-  //     include: [
-  //       {
-  //         model: this.categoryTranslationModel,
-  //         as: 'translation',
-  //         where: { language: lang },
-  //         required: true,
-  //         attributes: ['name'],
-  //       },
-  //     ],
-  //     attributes: ['id', 'slug', 'image'],
-  //     order: [['order', 'ASC']],
-  //   });
-  // }
-  //
-  // async getAllAdmin() {
-  //   return await this.categoryModel.findAll({
-  //     include: [
-  //       {
-  //         model: this.categoryTranslationModel,
-  //         as: 'translations',
-  //         attributes: ['name', 'language', 'id'],
-  //       },
-  //     ],
-  //     order: [['order', 'ASC']],
-  //   });
-  // }
-  //
+  async getById(id: number, lang: LanguageEnum) {
+    const place = await this.placeModel.findByPk(id, {
+      attributes: [
+        'id',
+        'image',
+        'image_original',
+        'slug',
+        'email',
+        'phone_number',
+        'longitude',
+        'latitude',
+        'social_links',
+        'logo',
+      ],
+      include: [
+        {
+          model: this.placeTranslationModel,
+          as: 'translation',
+          attributes: ['name', 'description', 'about'],
+          where: { language: lang },
+        },
+        {
+          model: this.workingTimes,
+          as: 'working_times',
+          attributes: { exclude: ['place_id'] },
+        },
+      ],
+    });
+
+    if (!place) {
+      throw new NotFoundException('Place not found');
+    }
+
+    return place;
+  }
 
   async getPlaceByIdAllData(id: number, user_id: number) {
     const place = await this.placeModel.findByPk(id, {
@@ -90,6 +94,7 @@ export class PlacesService {
         'longitude',
         'latitude',
         'social_links',
+        'logo',
       ],
       include: [
         {
@@ -104,6 +109,64 @@ export class PlacesService {
       throw new NotAcceptableException(`Only allowed to owner`);
     }
     return place;
+  }
+
+  async getAttractionsForAdmin(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const attractionCategory = await this.categoryModel.findOne({
+      where: { slug: 'attractions' },
+      attributes: ['id'],
+    });
+
+    if (!attractionCategory) {
+      return [];
+    }
+
+    const { rows, count: total } = await this.placeModel.findAndCountAll({
+      where: { category_id: attractionCategory.id },
+      attributes: ['id', 'image', 'slug', 'latitude', 'longitude'],
+      distinct: true,
+      include: [
+        {
+          model: this.placeTranslationModel,
+          as: 'translation',
+          attributes: ['name', 'description', 'about'],
+          where: { language: 'en' },
+        },
+        {
+          model: this.placeTranslationModel,
+          as: 'translations',
+          attributes: [],
+          required: true,
+          where: {
+            ...(query.search
+              ? {
+                  name: { [Op.iLike]: `%${query.search}%` },
+                }
+              : {}),
+          },
+        },
+      ],
+      limit,
+      offset,
+    });
+
+    return {
+      data: rows,
+      meta: {
+        total,
+        page,
+        limit,
+        pages_count: Math.ceil(total / limit),
+      },
+    };
   }
 
   async create(
@@ -542,84 +605,4 @@ export class PlacesService {
 
     return { message: 'Gallery list', gallery };
   }
-
-  // async update(
-  //   id: number,
-  //   dto: CreatePlaceDto,
-  //   translations: CategoryTranslationDto[],
-  //   image?: string,
-  //   pathname?: string,
-  // ) {
-  //   const category = await this.categoryModel.findByPk(id, {
-  //     include: [{ model: this.categoryTranslationModel, as: 'translations' }],
-  //   });
-  //
-  //   if (!category) {
-  //     if (pathname) await unlink(pathname);
-  //     throw new NotFoundException(`Category with id ${id} not found`);
-  //   }
-  //
-  //   if (image && category.dataValues.image) {
-  //     await unlink(`uploads/categories/${category.dataValues.image}`);
-  //   }
-  //
-  //   await category.update({
-  //     slug: dto.slug,
-  //     image: image || category.image,
-  //   });
-  //
-  //   for (const t of translations) {
-  //     const existing = await this.categoryTranslationModel.findOne({
-  //       where: { category_id: id, language: t.language },
-  //     });
-  //
-  //     if (existing) {
-  //       await existing.update({ name: t.name });
-  //     } else {
-  //       await this.categoryTranslationModel.create({
-  //         category_id: id,
-  //         language: t.language,
-  //         name: t.name,
-  //       });
-  //     }
-  //   }
-  //
-  //   return { message: 'Category updated successfully.' };
-  // }
-  //
-  // async updateOrdering(items: { id: number; order: number }[]) {
-  //   const transaction = await this.sequelize.transaction();
-  //
-  //   try {
-  //     await Promise.all(
-  //       items.map((item) =>
-  //         this.categoryModel.update(
-  //           { order: item.order },
-  //           { where: { id: item.id }, transaction },
-  //         ),
-  //       ),
-  //     );
-  //
-  //     await transaction.commit();
-  //     return { message: 'Category reordered successfully.' };
-  //   } catch (err) {
-  //     await transaction.rollback();
-  //     throw err;
-  //   }
-  // }
-  //
-  // async delete(id: number) {
-  //   const category = await this.categoryModel.findByPk(id);
-  //
-  //   if (!category) {
-  //     throw new NotFoundException(`Category with id ${id} not found`);
-  //   }
-  //
-  //   if (category.dataValues.image) {
-  //     await unlink(`uploads/categories/${category.dataValues.image}`);
-  //   }
-  //
-  //   await category.destroy();
-  //   return { message: 'Category deleted successfully' };
-  // }
 }

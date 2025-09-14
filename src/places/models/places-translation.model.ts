@@ -14,24 +14,24 @@ import { LanguageEnum } from '../../../types';
 export class PlaceTranslation extends Model {
   @ForeignKey(() => Place)
   @Column({ type: DataType.INTEGER })
-  place_id: number;
+  declare place_id: number;
 
   @BelongsTo(() => Place)
-  place: Place;
+  declare place: Place;
 
   @Index
   @Column({
     type: DataType.ENUM(...Object.values(LanguageEnum)),
     allowNull: false,
   })
-  language: LanguageEnum;
+  declare language: LanguageEnum;
 
   @Column({ type: DataType.STRING })
-  name: string;
+  declare name: string;
 
   @Column({ type: DataType.STRING })
-  description: string;
+  declare description: string;
 
   @Column({ type: DataType.TEXT })
-  about: string;
+  declare about: string;
 }
