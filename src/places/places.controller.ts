@@ -8,24 +8,17 @@ import {
   Param,
   Delete,
   UseInterceptors,
-  BadRequestException,
   UploadedFiles,
-  UseFilters,
   Req,
   Query,
 } from '@nestjs/common';
 import { PlacesService } from './places.service';
-import { CreatePlaceDto, PlaceTranslationDto } from './dto/create-place.dto';
+import { CreatePlaceDto } from './dto/create-place.dto';
 import { I18nLang } from 'nestjs-i18n';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { BulkUpdateOrderDto } from '../emotions/dto/update-order.dto';
-import { unlink } from 'fs/promises';
-import { UploadFile } from '../../utils/upload.helper';
 import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
-import { ParseJsonPipe } from '../../utils/custom-json-pipe';
-import { instanceToPlain } from 'class-transformer';
 import {
   CreateWorkingTimeDto,
   CreateWorkingTimesDto,
@@ -34,6 +27,7 @@ import { UpdatePlaceDto } from './dto/update-place.dto';
 import { QueryDto } from '../../types/query.dto';
 import { LanguageEnum } from '../../types';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
+import { CreateAttractionDto } from './dto/create-attraction.dto';
 
 @Controller('places')
 export class PlacesController {
@@ -48,8 +42,24 @@ export class PlacesController {
 
   @Get('/:id')
   @UseGuards(OptionalJwtAuthGuard)
-  getById(@Param('id') id: number, @I18nLang() lang: LanguageEnum) {
-    return this.placesService.getById(id, lang);
+  getById(
+    @Param('id') id: number,
+    @I18nLang() lang: LanguageEnum,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.sub;
+    return this.placesService.getById(id, lang, userId);
+  }
+
+  @Get('/:id/detail')
+  @UseGuards(OptionalJwtAuthGuard)
+  getByIdDetail(
+    @Param('id') id: number,
+    @I18nLang() lang: LanguageEnum,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.sub;
+    return this.placesService.getPlaceByIdAllData(id, userId, lang);
   }
 
   @Post()
@@ -88,9 +98,37 @@ export class PlacesController {
     });
   }
 
+  @Post('/attraction')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super-admin', 'admin')
+  @UseInterceptors(
+    UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
+      folder: './uploads/places',
+    }),
+  )
+  async createAttraction(
+    @Req() req: any,
+    @Body() body: CreateAttractionDto,
+    @UploadedFiles()
+    files: {
+      image?: Express.Multer.File[];
+    },
+  ) {
+    const userId = req.user.sub;
+
+    const cover: any = files?.image?.[0];
+
+    return this.placesService.createAttraction(userId, body, {
+      coverOriginalName: cover?.filename,
+      coverOriginalPath: cover?.path,
+      coverThumbName: cover?.thumbFilename,
+      coverThumbPath: cover?.thumbPath,
+    });
+  }
+
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
+  @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
     UploadAndOptimizeImages(
       [
@@ -127,7 +165,7 @@ export class PlacesController {
 
   @Put(':id/working-times')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
+  @Roles('user', 'super-admin', 'admin')
   async createOrUpdateWorkingTimes(
     @Req() req: any,
     @Param('id') id: number,
@@ -140,7 +178,7 @@ export class PlacesController {
 
   @Put(':id/working-times/:timeId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
+  @Roles('user', 'super-admin', 'admin')
   async updateWorkingTime(
     @Req() req: any,
     @Param('id') id: number,
@@ -154,7 +192,7 @@ export class PlacesController {
 
   @Post(':id/gallery')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
+  @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
     UploadAndOptimizeImages(
       [{ name: 'images', maxCount: 15, withThumb: true }],
@@ -170,14 +208,15 @@ export class PlacesController {
     },
   ) {
     const userId = req.user.sub;
+    const userRole = req.user.role;
     const images: any = files?.images;
 
-    return this.placesService.uploadImages(userId, id, images);
+    return this.placesService.uploadImages(userId, id, images, userRole);
   }
 
   @Delete(':id/gallery/:imageId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
+  @Roles('user', 'super-admin', 'admin')
   async deleteImage(
     @Req() req: any,
     @Param('id') id: number,
@@ -188,50 +227,17 @@ export class PlacesController {
     return this.placesService.deleteImage(userId, id, imageId);
   }
 
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user', 'super-admin', 'admin')
+  async delete(@Req() req: any, @Param('id') id: number) {
+    const userId = req.user.sub;
+
+    return this.placesService.delete(userId, id);
+  }
+
   @Get(':id/gallery')
   async getGallery(@Param('id') id: number) {
     return this.placesService.getImages(id);
   }
-
-  //
-  // @Put(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('super-admin', 'admin')
-  // @UseInterceptors(UploadFile('image', './uploads/categories'))
-  // async update(
-  //   @Param('id') id: number,
-  //   @Body() dto: CreatePlaceDto,
-  //   @UploadedFile() image: Express.Multer.File,
-  // ) {
-  //   let translations: CategoryTranslationDto[] = [];
-  //
-  //   try {
-  //     translations = JSON.parse(dto.translations);
-  //   } catch (e) {
-  //     if (image) await unlink(image.path);
-  //     throw new BadRequestException('Invalid translations format');
-  //   }
-  //
-  //   return this.categoriesService.update(
-  //     id,
-  //     dto,
-  //     translations,
-  //     image?.filename,
-  //     image?.path,
-  //   );
-  // }
-  //
-  // @Post('/order')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('super-admin', 'admin')
-  // async updateOrder(@Body() dto: BulkUpdateOrderDto) {
-  //   return this.categoriesService.updateOrdering(dto.items);
-  // }
-  //
-  // @Delete(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('super-admin', 'admin')
-  // async delete(@Param('id') id: number) {
-  //   return this.categoriesService.delete(id);
-  // }
 }

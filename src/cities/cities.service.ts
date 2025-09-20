@@ -25,10 +25,10 @@ export class CitiesService {
           as: 'translation',
           where: { language: lang },
           required: true,
-          attributes: ['name'],
+          attributes: [],
         },
       ],
-      attributes: ['id', 'slug'],
+      attributes: ['id', 'slug', [Sequelize.col('translation.name'), 'name']],
       order: [['order', 'ASC']],
     });
   }

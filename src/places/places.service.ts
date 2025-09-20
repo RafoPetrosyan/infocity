@@ -20,8 +20,10 @@ import {
 import { PlaceWorkingTimes } from './models/places-working-times.model';
 import { PlaceImages } from './models/places-images.model';
 import { UpdatePlaceDto } from './dto/update-place.dto';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import { LanguageEnum } from '../../types';
+import { CreateAttractionDto } from './dto/create-attraction.dto';
+import { CityTranslation } from '../cities/models/city-translation.model';
 
 @Injectable()
 export class PlacesService {
@@ -35,6 +37,9 @@ export class PlacesService {
     @InjectModel(CityModel)
     private cityModel: typeof CityModel,
 
+    @InjectModel(CityTranslation)
+    private cityTranslationsModel: typeof CityTranslation,
+
     @InjectModel(Category)
     private categoryModel: typeof Category,
 
@@ -45,7 +50,7 @@ export class PlacesService {
     private placeImages: typeof PlaceImages,
   ) {}
 
-  async getById(id: number, lang: LanguageEnum) {
+  async getById(id: number, lang: LanguageEnum, userId: number = 0) {
     const place = await this.placeModel.findByPk(id, {
       attributes: [
         'id',
@@ -58,18 +63,41 @@ export class PlacesService {
         'latitude',
         'social_links',
         'logo',
+        [Sequelize.col('city->translation.name'), 'city_name'],
+        [
+          Sequelize.literal(
+            `CASE WHEN "Place"."user_id" = '${userId}' THEN true ELSE false END`,
+          ),
+          'is_owner',
+        ],
+        [Sequelize.col('translation.name'), 'name'],
+        [Sequelize.col('translation.description'), 'description'],
+        [Sequelize.col('translation.about'), 'about'],
       ],
       include: [
         {
           model: this.placeTranslationModel,
           as: 'translation',
-          attributes: ['name', 'description', 'about'],
+          attributes: [],
           where: { language: lang },
         },
         {
           model: this.workingTimes,
           as: 'working_times',
           attributes: { exclude: ['place_id'] },
+        },
+        {
+          model: this.cityModel,
+          as: 'city',
+          attributes: [],
+          include: [
+            {
+              model: this.cityTranslationsModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+          ],
         },
       ],
     });
@@ -81,7 +109,11 @@ export class PlacesService {
     return place;
   }
 
-  async getPlaceByIdAllData(id: number, user_id: number) {
+  async getPlaceByIdAllData(
+    id: number,
+    user_id: number,
+    lang: LanguageEnum = LanguageEnum.EN,
+  ) {
     const place = await this.placeModel.findByPk(id, {
       attributes: [
         'id',
@@ -95,12 +127,28 @@ export class PlacesService {
         'latitude',
         'social_links',
         'logo',
+        'category_id',
+        'city_id',
+        [Sequelize.col('city->translation.name'), 'city_name'],
       ],
       include: [
         {
           model: this.placeTranslationModel,
           as: 'translations',
           attributes: ['name', 'description', 'about', 'language'],
+        },
+        {
+          model: this.cityModel,
+          as: 'city',
+          attributes: [],
+          include: [
+            {
+              model: this.cityTranslationsModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+          ],
         },
       ],
     });
@@ -177,8 +225,8 @@ export class PlacesService {
       coverOriginalPath: string | undefined;
       coverThumbName: string | undefined;
       coverThumbPath: string | undefined;
-      logoFileName: string | undefined;
-      logoFilePath: string | undefined;
+      logoFileName?: string | undefined;
+      logoFilePath?: string | undefined;
     },
   ) {
     if (!files.coverOriginalName) {
@@ -272,6 +320,33 @@ export class PlacesService {
 
     const placeResponse = await this.getPlaceByIdAllData(place.id, userId);
     return { message: 'Place created successfully.', place: placeResponse };
+  }
+
+  async createAttraction(
+    userId: number,
+    dto: CreateAttractionDto,
+    files: {
+      coverOriginalName: string | undefined;
+      coverOriginalPath: string | undefined;
+      coverThumbName: string | undefined;
+      coverThumbPath: string | undefined;
+    },
+  ) {
+    const attractionCategory = await this.categoryModel.findOne({
+      where: { slug: 'attractions' },
+      attributes: ['id'],
+    });
+
+    if (!attractionCategory) {
+      await unlinkFiles([files.coverOriginalPath, files.coverThumbPath]);
+      throw new NotFoundException(`Attraction category is not exist`);
+    }
+
+    return await this.create(
+      userId,
+      { ...dto, category_id: attractionCategory.id },
+      files,
+    );
   }
 
   async update(
@@ -503,8 +578,12 @@ export class PlacesService {
     };
   }
 
-  async uploadImages(userId: number, id: number, images: any) {
-    console.log(images, 'images');
+  async uploadImages(
+    userId: number,
+    id: number,
+    images: any,
+    userRole: string,
+  ) {
     const place = await this.placeModel.findByPk(id, {
       attributes: ['user_id'],
     });
@@ -520,7 +599,7 @@ export class PlacesService {
       throw new NotFoundException(`Place with id ${id} not found`);
     }
 
-    if (place.user_id !== userId) {
+    if (userRole === 'user' && place.user_id !== userId) {
       await unlinkFiles(imagePaths);
       throw new NotAcceptableException(`Only allowed to owner`);
     }
@@ -604,5 +683,50 @@ export class PlacesService {
     });
 
     return { message: 'Gallery list', gallery };
+  }
+
+  async delete(userId: number, place_id: number) {
+    const place = await this.placeModel.findByPk(place_id, {
+      attributes: ['user_id', 'logo', 'image', 'image_original', 'id'],
+    });
+
+    if (!place) {
+      throw new NotFoundException(`Place with id ${place_id} not found`);
+    }
+
+    if (place.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const images = await this.placeImages.findAll({
+      where: {
+        place_id,
+      },
+      attributes: ['original', 'thumbnail'],
+    });
+
+    const imagePaths: string[] = [];
+
+    if (place.dataValues.logo) {
+      imagePaths.push(`uploads/places/${place.dataValues.logo}`);
+    }
+    if (place.dataValues.image) {
+      imagePaths.push(`uploads/places/${place.dataValues.image}`);
+    }
+    if (place.dataValues.image_original) {
+      imagePaths.push(`uploads/places/${place.dataValues.image_original}`);
+    }
+
+    if (images && images.length > 0) {
+      images.forEach((image: any) => {
+        imagePaths.push(`uploads/places/${image.dataValues.original}`);
+        imagePaths.push(`uploads/places/${image.dataValues.thumbnail}`);
+      });
+    }
+
+    await unlinkFiles(imagePaths);
+    await place.destroy();
+
+    return { message: 'Success' };
   }
 }

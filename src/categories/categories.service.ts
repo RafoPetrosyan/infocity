@@ -37,7 +37,7 @@ export class CategoriesService {
           as: 'translation',
           where: { language: lang },
           required: true,
-          attributes: ['name'],
+          attributes: [],
         },
         {
           model: this.placeModel,
@@ -53,6 +53,7 @@ export class CategoriesService {
           this.sequelize.fn('COUNT', this.sequelize.col('places.id')),
           'places_count',
         ],
+        [Sequelize.col('translation.name'), 'name'],
       ],
       group: ['Category.id', 'translation.id'],
       order: [['order', 'ASC']],

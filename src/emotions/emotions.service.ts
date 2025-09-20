@@ -24,9 +24,10 @@ export class EmotionsService {
           model: this.emotionTranslationModel,
           as: 'lang',
           where: { language: lang },
-          attributes: ['name'],
+          attributes: [],
         },
       ],
+      attributes: ['id', 'icon', 'color', [Sequelize.col('lang.name'), 'name']],
       order: [['order', 'ASC']],
     });
   }
