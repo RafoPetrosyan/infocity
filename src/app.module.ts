@@ -39,6 +39,7 @@ import * as path from 'node:path';
       database: process.env.DB_NAME,
       autoLoadModels: true,
       synchronize: process.env.NODE_ENV === 'development',
+      logging: process.env.NODE_ENV === 'production' ? false : console.log,
     }),
     AuthModule,
     UsersModule,
