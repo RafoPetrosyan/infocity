@@ -150,4 +150,8 @@ export class UpdatePlaceDto {
   @IsOptional()
   @IsString()
   phone_number: string;
+
+  @IsOptional()
+  @IsString()
+  address: string;
 }

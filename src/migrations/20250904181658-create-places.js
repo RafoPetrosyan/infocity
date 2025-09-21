@@ -27,6 +27,7 @@ module.exports = {
       latitude: { type: Sequelize.DECIMAL(10, 8) },
       longitude: { type: Sequelize.DECIMAL(11, 8) },
       location: { type: Sequelize.GEOMETRY('POINT') },
+      address: { type: Sequelize.STRING },
       social_links: { type: Sequelize.JSONB },
       city_id: {
         type: Sequelize.INTEGER,

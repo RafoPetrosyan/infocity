@@ -139,4 +139,8 @@ export class CreateAttractionDto {
   @IsOptional()
   @IsString()
   phone_number: string;
+
+  @IsOptional()
+  @IsString()
+  address: string;
 }

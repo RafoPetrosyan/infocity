@@ -54,6 +54,9 @@ export class Place extends Model {
   @Column({ type: DataType.DECIMAL(11, 8) })
   declare longitude: number;
 
+  @Column({ type: DataType.STRING })
+  declare address: string;
+
   @Column({ type: DataType.GEOMETRY('POINT') })
   declare location: { type: 'Point'; coordinates: [number, number] };
 

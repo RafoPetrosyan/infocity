@@ -68,6 +68,7 @@ export class PlacesService {
         'latitude',
         'social_links',
         'logo',
+        'address',
         [Sequelize.col('city->translation.name'), 'city_name'],
         [
           Sequelize.literal(
@@ -134,6 +135,7 @@ export class PlacesService {
         'logo',
         'category_id',
         'city_id',
+        'address',
         [Sequelize.col('city->translation.name'), 'city_name'],
       ],
       include: [
@@ -335,6 +337,7 @@ export class PlacesService {
       city_id: city.id,
       category_id: category.id,
       email: dto.email || null,
+      address: dto.address || null,
       phone_number: dto.phone_number || null,
       longitude: dto.longitude || null,
       latitude: dto.latitude || null,
@@ -477,6 +480,7 @@ export class PlacesService {
     if (dto.latitude) updateData.latitude = dto.latitude;
     if (dto.phone_number) updateData.phone_number = dto.phone_number;
     if (dto.email) updateData.email = dto.email;
+    if (dto.address) updateData.address = dto.address;
 
     if (files.logoFileName) {
       updateData.logo = files.logoFileName;
