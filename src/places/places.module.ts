@@ -10,6 +10,7 @@ import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
 import { User } from '../users/models/user.model';
 import { CityTranslation } from '../cities/models/city-translation.model';
+import { CategoryTranslation } from '../categories/models/category-translation.model';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CityTranslation } from '../cities/models/city-translation.model';
       Category,
       User,
       CityTranslation,
+      CategoryTranslation,
     ]),
   ],
   providers: [PlacesService],

@@ -33,10 +33,16 @@ import { CreateAttractionDto } from './dto/create-attraction.dto';
 export class PlacesController {
   constructor(private readonly placesService: PlacesService) {}
 
+  @Get()
+  @UseGuards(OptionalJwtAuthGuard)
+  getAll(@Query() params: QueryDto, @I18nLang() lang: LanguageEnum) {
+    return this.placesService.getAll(params, lang);
+  }
+
   @Get('/attractions')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  getAll(@Query() params: QueryDto) {
+  getAllAttractions(@Query() params: QueryDto) {
     return this.placesService.getAttractionsForAdmin(params);
   }
 

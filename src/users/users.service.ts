@@ -139,7 +139,7 @@ export class UsersService {
 
   async signIn(email: string, password: string, lang: LanguageEnum) {
     const user = await this.userModel.findOne({
-      where: { email },
+      where: { email: email.trim() },
     });
 
     if (!user) {
@@ -250,7 +250,7 @@ export class UsersService {
 
   async signUp(body: SignUpDto, lang: LanguageEnum) {
     const existingUser = await this.userModel.findOne({
-      where: { email: body.email },
+      where: { email: body.email.trim() },
     });
 
     if (existingUser) {
@@ -262,8 +262,8 @@ export class UsersService {
     const newUser = await this.userModel.create({
       first_name: body.first_name,
       last_name: body.last_name,
-      email: body.email,
-      password: body.password,
+      email: body.email.trim(),
+      password: body.password.trim(),
       fcm_token: body.fcm_token || null,
     });
 

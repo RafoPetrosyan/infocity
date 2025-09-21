@@ -24,6 +24,8 @@ import { Op, Sequelize } from 'sequelize';
 import { LanguageEnum } from '../../types';
 import { CreateAttractionDto } from './dto/create-attraction.dto';
 import { CityTranslation } from '../cities/models/city-translation.model';
+import { CategoryTranslation } from '../categories/models/category-translation.model';
+import { QueryDto } from '../../types/query.dto';
 
 @Injectable()
 export class PlacesService {
@@ -42,6 +44,9 @@ export class PlacesService {
 
     @InjectModel(Category)
     private categoryModel: typeof Category,
+
+    @InjectModel(CategoryTranslation)
+    private categoryTranslationsModel: typeof CategoryTranslation,
 
     @InjectModel(PlaceWorkingTimes)
     private workingTimes: typeof PlaceWorkingTimes,
@@ -157,6 +162,65 @@ export class PlacesService {
       throw new NotAcceptableException(`Only allowed to owner`);
     }
     return place;
+  }
+
+  async getAll(query: QueryDto, lang: LanguageEnum) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const where: any = {};
+    if (query.category_id) where.category_id = query.category_id;
+
+    const { rows, count: total } = await this.placeModel.findAndCountAll({
+      where,
+      attributes: [
+        'id',
+        'image',
+        'slug',
+        [Sequelize.col('translation.name'), 'name'],
+        [Sequelize.col('translation.description'), 'description'],
+      ],
+      distinct: true,
+      include: [
+        {
+          model: this.placeTranslationModel,
+          as: 'translation',
+          attributes: [],
+          where: { language: lang },
+        },
+        {
+          model: this.categoryModel,
+          as: 'category',
+          attributes: ['slug'],
+        },
+        {
+          model: this.placeTranslationModel,
+          as: 'translations',
+          attributes: [],
+          required: true,
+          where: {
+            ...(query.search
+              ? {
+                  name: { [Op.iLike]: `%${query.search}%` },
+                }
+              : {}),
+          },
+        },
+      ],
+      limit,
+      offset,
+    });
+
+    return {
+      data: rows,
+      meta: {
+        total,
+        page,
+        limit,
+        pages_count: Math.ceil(total / limit),
+      },
+    };
   }
 
   async getAttractionsForAdmin(query: {

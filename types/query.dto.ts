@@ -26,4 +26,8 @@ export class QueryDto {
   @IsString()
   @MinLength(3)
   search?: string;
+
+  @IsOptional()
+  @IsInt()
+  category_id?: number;
 }
