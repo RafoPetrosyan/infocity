@@ -55,6 +55,7 @@ export class PlacesService {
     private placeImages: typeof PlaceImages,
   ) {}
 
+  /** Get Place by ID **/
   async getById(id: number, lang: LanguageEnum, userId: number = 0) {
     const place = await this.placeModel.findByPk(id, {
       attributes: [
@@ -115,6 +116,7 @@ export class PlacesService {
     return place;
   }
 
+  /** Get Place by ID All Data **/
   async getPlaceByIdAllData(
     id: number,
     user_id: number,
@@ -166,6 +168,7 @@ export class PlacesService {
     return place;
   }
 
+  /** Get a Places list **/
   async getAll(query: QueryDto, lang: LanguageEnum) {
     const page = query.page || 1;
     const limit = query.limit || 10;
@@ -225,6 +228,7 @@ export class PlacesService {
     };
   }
 
+  /** Get an Attractions list for admin **/
   async getAttractionsForAdmin(query: {
     page?: number;
     limit?: number;
@@ -283,6 +287,7 @@ export class PlacesService {
     };
   }
 
+  /** Create place **/
   async create(
     userId: number,
     dto: CreatePlaceDto,
@@ -389,6 +394,7 @@ export class PlacesService {
     return { message: 'Place created successfully.', place: placeResponse };
   }
 
+  /** Create attraction **/
   async createAttraction(
     userId: number,
     dto: CreateAttractionDto,
@@ -416,6 +422,7 @@ export class PlacesService {
     );
   }
 
+  /** Update place **/
   async update(
     userId: number,
     dto: UpdatePlaceDto,
@@ -549,6 +556,7 @@ export class PlacesService {
     return { message: 'Place updated successfully.', place: placeResponse };
   }
 
+  /** Get working times **/
   async getWorkingTimes(id: number) {
     return await this.workingTimes.findAll({
       where: {
@@ -565,6 +573,7 @@ export class PlacesService {
     });
   }
 
+  /** Create or update working times **/
   async createOrUpdateWorkingTimes(
     userId: number,
     dto: CreateWorkingTimesDto,
@@ -616,6 +625,7 @@ export class PlacesService {
     };
   }
 
+  /** Update working time **/
   async updateWorkingTime(
     userId: number,
     dto: CreateWorkingTimeDto,
@@ -646,6 +656,7 @@ export class PlacesService {
     };
   }
 
+  /** Upload images  **/
   async uploadImages(
     userId: number,
     id: number,
@@ -700,6 +711,7 @@ export class PlacesService {
     return { message: 'Images uploaded successfully.', data: response };
   }
 
+  /** Delete image **/
   async deleteImage(userId: number, place_id: number, image_id: number) {
     const place = await this.placeModel.findByPk(place_id, {
       attributes: ['user_id'],
@@ -734,6 +746,7 @@ export class PlacesService {
     return { message: 'Success' };
   }
 
+  /** Get images **/
   async getImages(place_id: number) {
     const place = await this.placeModel.findByPk(place_id, {
       attributes: ['user_id'],
@@ -753,6 +766,7 @@ export class PlacesService {
     return { message: 'Gallery list', gallery };
   }
 
+  /** Delete place **/
   async delete(userId: number, place_id: number) {
     const place = await this.placeModel.findByPk(place_id, {
       attributes: ['user_id', 'logo', 'image', 'image_original', 'id'],
