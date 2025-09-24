@@ -11,6 +11,11 @@ import { Category } from '../categories/models/category.model';
 import { User } from '../users/models/user.model';
 import { CityTranslation } from '../cities/models/city-translation.model';
 import { CategoryTranslation } from '../categories/models/category-translation.model';
+import { Menu } from './models/menus.model';
+import { MenuTranslation } from './models/menus-translation.model';
+import { Item } from './models/items.model';
+import { ItemTranslation } from './models/items-translation.model';
+import { ItemImages } from './models/items-images.model';
 
 @Module({
   imports: [
@@ -19,6 +24,11 @@ import { CategoryTranslation } from '../categories/models/category-translation.m
       PlaceTranslation,
       PlaceImages,
       PlaceWorkingTimes,
+      Menu,
+      MenuTranslation,
+      Item,
+      ItemTranslation,
+      ItemImages,
       CityModel,
       Category,
       User,
