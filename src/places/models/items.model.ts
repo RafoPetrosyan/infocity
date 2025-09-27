@@ -9,9 +9,10 @@ import {
   HasOne,
 } from 'sequelize-typescript';
 import { Place } from './places.model';
-import { Menu } from './menus.model';
+import { PlaceSection } from './place-sections.model';
 import { ItemTranslation } from './items-translation.model';
 import { ItemImages } from './items-images.model';
+import { DOMAIN_URL } from '../../../constants';
 
 @Table({ tableName: 'items' })
 export class Item extends Model {
@@ -22,23 +23,29 @@ export class Item extends Model {
   @BelongsTo(() => Place)
   declare place: Place;
 
-  @ForeignKey(() => Menu)
+  @ForeignKey(() => PlaceSection)
   @Column({ type: DataType.INTEGER, allowNull: true })
-  declare menu_id: number | null;
+  declare place_section_id: number | null;
 
-  @BelongsTo(() => Menu)
-  declare menu: Menu | null;
+  @BelongsTo(() => PlaceSection)
+  declare place_section: PlaceSection | null;
 
-  @Column({ type: DataType.STRING, allowNull: false })
-  declare title: string;
-
-  @Column({ type: DataType.TEXT })
-  declare description: string;
-
-  @Column({ type: DataType.STRING })
+  @Column({
+    type: DataType.STRING,
+    get() {
+      const rawValue = this.getDataValue('image');
+      return rawValue ? `${DOMAIN_URL}/uploads/items/${rawValue}` : null;
+    },
+  })
   declare image: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({
+    type: DataType.STRING,
+    get() {
+      const rawValue = this.getDataValue('image_original');
+      return rawValue ? `${DOMAIN_URL}/uploads/items/${rawValue}` : null;
+    },
+  })
   declare image_original: string;
 
   @Column({ type: DataType.DECIMAL(10, 2), allowNull: false, defaultValue: 0 })
@@ -62,5 +69,3 @@ export class Item extends Model {
   @HasMany(() => ItemImages)
   declare gallery: ItemImages[];
 }
-
-

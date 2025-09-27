@@ -11,11 +11,17 @@ import { Category } from '../categories/models/category.model';
 import { User } from '../users/models/user.model';
 import { CityTranslation } from '../cities/models/city-translation.model';
 import { CategoryTranslation } from '../categories/models/category-translation.model';
-import { Menu } from './models/menus.model';
-import { MenuTranslation } from './models/menus-translation.model';
+import { PlaceSection } from './models/place-sections.model';
+import { PlaceSectionTranslation } from './models/place-sections-translation.model';
 import { Item } from './models/items.model';
 import { ItemTranslation } from './models/items-translation.model';
 import { ItemImages } from './models/items-images.model';
+import { PlaceSectionsService } from './place-sections.service';
+import { PlaceSectionsController } from './place-sections.controller';
+import { ItemsService } from './items.service';
+import { ItemsController } from './items.controller';
+import { ItemImagesService } from './item-images.service';
+import { ItemImagesController } from './item-images.controller';
 
 @Module({
   imports: [
@@ -24,8 +30,8 @@ import { ItemImages } from './models/items-images.model';
       PlaceTranslation,
       PlaceImages,
       PlaceWorkingTimes,
-      Menu,
-      MenuTranslation,
+      PlaceSection,
+      PlaceSectionTranslation,
       Item,
       ItemTranslation,
       ItemImages,
@@ -36,7 +42,7 @@ import { ItemImages } from './models/items-images.model';
       CategoryTranslation,
     ]),
   ],
-  providers: [PlacesService],
-  controllers: [PlacesController],
+  providers: [PlacesService, PlaceSectionsService, ItemsService, ItemImagesService],
+  controllers: [PlacesController, PlaceSectionsController, ItemsController, ItemImagesController],
 })
 export class PlacesModule {}

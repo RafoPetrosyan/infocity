@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('menus', {
+    await queryInterface.createTable('place_sections', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -16,13 +16,6 @@ module.exports = {
         references: { model: 'places', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
-      },
-      title: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: Sequelize.TEXT,
       },
       is_active: {
         type: Sequelize.BOOLEAN,
@@ -41,15 +34,13 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('menus', ['place_id']);
-    await queryInterface.addIndex('menus', ['is_active']);
+    await queryInterface.addIndex('place_sections', ['place_id']);
+    await queryInterface.addIndex('place_sections', ['is_active']);
   },
 
   async down(queryInterface) {
-    await queryInterface.removeIndex('menus', ['place_id']);
-    await queryInterface.removeIndex('menus', ['is_active']);
-    await queryInterface.dropTable('menus');
+    await queryInterface.removeIndex('place_sections', ['place_id']);
+    await queryInterface.removeIndex('place_sections', ['is_active']);
+    await queryInterface.dropTable('place_sections');
   },
 };
-
-

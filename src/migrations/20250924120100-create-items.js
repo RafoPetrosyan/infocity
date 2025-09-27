@@ -17,19 +17,12 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      menu_id: {
+      place_section_id: {
         type: Sequelize.INTEGER,
-        allowNull: true, // optional: item can belong to place only
-        references: { model: 'menus', key: 'id' },
+        allowNull: true,
+        references: { model: 'place_sections', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
-      },
-      title: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: Sequelize.TEXT,
       },
       image: {
         type: Sequelize.STRING,
@@ -70,16 +63,14 @@ module.exports = {
     });
 
     await queryInterface.addIndex('items', ['place_id']);
-    await queryInterface.addIndex('items', ['menu_id']);
+    await queryInterface.addIndex('items', ['place_section_id']);
     await queryInterface.addIndex('items', ['is_available']);
   },
 
   async down(queryInterface) {
     await queryInterface.removeIndex('items', ['place_id']);
-    await queryInterface.removeIndex('items', ['menu_id']);
+    await queryInterface.removeIndex('items', ['place_section_id']);
     await queryInterface.removeIndex('items', ['is_available']);
     await queryInterface.dropTable('items');
   },
 };
-
-

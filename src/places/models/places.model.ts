@@ -9,7 +9,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import { PlaceTranslation } from './places-translation.model';
-import { Menu } from './menus.model';
+import { PlaceSection } from './place-sections.model';
 import { Item } from './items.model';
 import { DOMAIN_URL } from '../../../constants';
 import { CityModel } from '../../cities/models/city.model';
@@ -104,8 +104,8 @@ export class Place extends Model {
   @HasMany(() => PlaceWorkingTimes)
   declare working_times: PlaceWorkingTimes[];
 
-  @HasMany(() => Menu)
-  declare menus: Menu[];
+  @HasMany(() => PlaceSection)
+  declare place_sections: PlaceSection[];
 
   @HasMany(() => Item)
   declare items: Item[];

@@ -24,8 +24,9 @@ import { Op, Sequelize } from 'sequelize';
 import { LanguageEnum } from '../../types';
 import { CreateAttractionDto } from './dto/create-attraction.dto';
 import { CityTranslation } from '../cities/models/city-translation.model';
-import { CategoryTranslation } from '../categories/models/category-translation.model';
 import { QueryDto } from '../../types/query.dto';
+import { PlaceSection } from './models/place-sections.model';
+import { PlaceSectionTranslation } from './models/place-sections-translation.model';
 
 @Injectable()
 export class PlacesService {
@@ -45,14 +46,17 @@ export class PlacesService {
     @InjectModel(Category)
     private categoryModel: typeof Category,
 
-    @InjectModel(CategoryTranslation)
-    private categoryTranslationsModel: typeof CategoryTranslation,
-
     @InjectModel(PlaceWorkingTimes)
     private workingTimes: typeof PlaceWorkingTimes,
 
     @InjectModel(PlaceImages)
     private placeImages: typeof PlaceImages,
+
+    @InjectModel(PlaceSection)
+    private placeSectionModel: typeof PlaceSection,
+
+    @InjectModel(PlaceSectionTranslation)
+    private placeSectionTranslationModel: typeof PlaceSectionTranslation,
   ) {}
 
   /** Get Place by ID **/
@@ -102,6 +106,21 @@ export class PlacesService {
               model: this.cityTranslationsModel,
               as: 'translation',
               attributes: [],
+              where: { language: lang },
+            },
+          ],
+        },
+        {
+          model: this.placeSectionModel,
+          as: 'place_sections',
+          attributes: ['id'],
+          nested: true,
+          subQuery: false,
+          include: [
+            {
+              model: this.placeSectionTranslationModel,
+              as: 'translation',
+              attributes: ['title', 'description'],
               where: { language: lang },
             },
           ],

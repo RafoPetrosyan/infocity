@@ -3,16 +3,16 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('menu_translations', {
+    await queryInterface.createTable('place_section_translations', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      menu_id: {
+      place_section_id: {
         type: Sequelize.INTEGER,
-        references: { model: 'menus', key: 'id' },
+        references: { model: 'place_sections', key: 'id' },
         onDelete: 'CASCADE',
         allowNull: false,
       },
@@ -30,8 +30,8 @@ module.exports = {
     });
 
     await queryInterface.addIndex(
-      'menu_translations',
-      ['menu_id', 'language'],
+      'place_section_translations',
+      ['place_section_id', 'language'],
       {
         unique: true,
       },
@@ -39,7 +39,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('menu_translations');
+    await queryInterface.dropTable('place_section_translations');
   },
 };
 

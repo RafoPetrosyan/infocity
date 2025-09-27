@@ -9,11 +9,11 @@ import {
   HasOne,
 } from 'sequelize-typescript';
 import { Place } from './places.model';
-import { MenuTranslation } from './menus-translation.model';
+import { PlaceSectionTranslation } from './place-sections-translation.model';
 import { Item } from './items.model';
 
-@Table({ tableName: 'menus' })
-export class Menu extends Model {
+@Table({ tableName: 'place_sections' })
+export class PlaceSection extends Model {
   @ForeignKey(() => Place)
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare place_id: number;
@@ -21,23 +21,15 @@ export class Menu extends Model {
   @BelongsTo(() => Place)
   declare place: Place;
 
-  @Column({ type: DataType.STRING, allowNull: false })
-  declare title: string;
-
-  @Column({ type: DataType.TEXT })
-  declare description: string;
-
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   declare is_active: boolean;
 
-  @HasMany(() => MenuTranslation)
-  declare translations: MenuTranslation[];
+  @HasMany(() => PlaceSectionTranslation)
+  declare translations: PlaceSectionTranslation[];
 
-  @HasOne(() => MenuTranslation)
-  declare translation: MenuTranslation;
+  @HasOne(() => PlaceSectionTranslation)
+  declare translation: PlaceSectionTranslation;
 
   @HasMany(() => Item)
   declare items: Item[];
 }
-
-
