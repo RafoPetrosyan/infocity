@@ -118,14 +118,22 @@ export class ItemsService {
         [Sequelize.col('translation.description'), 'description'],
       ],
       include: [
-        { model: this.itemTranslationModel, as: 'translations' },
+        {
+          model: this.itemTranslationModel,
+          as: 'translations',
+          attributes: ['language', 'title', 'description'],
+        },
         {
           model: this.itemTranslationModel,
           as: 'translation',
           where: { language: lang },
           attributes: [],
         },
-        { model: this.itemImagesModel, as: 'gallery' },
+        {
+          model: this.itemImagesModel,
+          as: 'gallery',
+          attributes: ['id', 'original', 'thumbnail', 'type'],
+        },
       ],
     });
     if (!item) throw new NotFoundException('Item not found');
