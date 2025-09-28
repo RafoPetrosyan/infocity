@@ -1,0 +1,652 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotAcceptableException,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Event } from './models/events.model';
+import { EventTranslation } from './models/events-translation.model';
+import { EventCategory } from './models/event-category.model';
+import { EventCategoryTranslation } from './models/event-category-translation.model';
+import { unlink } from 'fs/promises';
+import { CreateEventDto } from './dto/create-event.dto';
+import slugify from 'slugify';
+import { Place } from '../places/models/places.model';
+import { EventImages } from './models/events-images.model';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { Op, Sequelize } from 'sequelize';
+import { PlaceTranslation } from '../places/models/places-translation.model';
+import { CityModel } from '../cities/models/city.model';
+import { CityTranslation } from '../cities/models/city-translation.model';
+import { LanguageEnum } from '../../types';
+import { QueryDto } from '../../types/query.dto';
+import { unlinkFiles } from '../../utils/unlink-files';
+import { DOMAIN_URL } from '../../constants';
+
+@Injectable()
+export class EventsService {
+  constructor(
+    @InjectModel(Event)
+    private eventModel: typeof Event,
+
+    @InjectModel(EventTranslation)
+    private eventTranslationModel: typeof EventTranslation,
+
+    @InjectModel(Place)
+    private placeModel: typeof Place,
+
+    @InjectModel(PlaceTranslation)
+    private placeTranslationModel: typeof PlaceTranslation,
+
+    @InjectModel(CityModel)
+    private cityModel: typeof CityModel,
+
+    @InjectModel(CityTranslation)
+    private cityTranslationsModel: typeof CityTranslation,
+
+    @InjectModel(EventImages)
+    private eventImages: typeof EventImages,
+
+    @InjectModel(EventCategory)
+    private eventCategoryModel: typeof EventCategory,
+
+    @InjectModel(EventCategoryTranslation)
+    private eventCategoryTranslationModel: typeof EventCategoryTranslation,
+  ) {}
+
+  /** Get Event by ID **/
+  async getById(id: number, lang: LanguageEnum, userId: number = 0) {
+    const event = await this.eventModel.findByPk(id, {
+      attributes: [
+        'id',
+        'image',
+        'image_original',
+        'slug',
+        'start_date',
+        'end_date',
+        'email',
+        'phone_number',
+        'longitude',
+        'latitude',
+        'address',
+        'price',
+        'max_attendees',
+        'is_active',
+        'event_category_id',
+        'place_id',
+        [Sequelize.col('place->city->translation.name'), 'city_name'],
+        [
+          Sequelize.literal(
+            `CASE WHEN "Event"."user_id" = '${userId}' THEN true ELSE false END`,
+          ),
+          'is_owner',
+        ],
+        [Sequelize.col('translation.name'), 'name'],
+        [Sequelize.col('translation.description'), 'description'],
+        [Sequelize.col('translation.about'), 'about'],
+        [Sequelize.col('place->translation.name'), 'place_name'],
+        [
+          Sequelize.literal(
+            `CONCAT('${DOMAIN_URL}/uploads/places/', "place"."image")`,
+          ),
+          'place_image',
+        ],
+        [Sequelize.col('event_category->translation.name'), 'category_name'],
+      ],
+      include: [
+        {
+          model: this.eventTranslationModel,
+          as: 'translation',
+          attributes: [],
+          where: { language: lang },
+        },
+        {
+          model: this.placeModel,
+          as: 'place',
+          attributes: [],
+          include: [
+            {
+              model: this.placeTranslationModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+            {
+              model: this.cityModel,
+              as: 'city',
+              attributes: [],
+              include: [
+                {
+                  model: this.cityTranslationsModel,
+                  as: 'translation',
+                  attributes: [],
+                  where: { language: lang },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: this.eventCategoryModel,
+          as: 'event_category',
+          attributes: [],
+          include: [
+            {
+              model: this.eventCategoryTranslationModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    return event;
+  }
+
+  /** Get Event by ID All Data **/
+  async getEventByIdAllData(
+    id: number,
+    user_id: number,
+    lang: LanguageEnum = LanguageEnum.EN,
+  ) {
+    const event = await this.eventModel.findByPk(id, {
+      attributes: [
+        'id',
+        'user_id',
+        'image',
+        'image_original',
+        'slug',
+        'start_date',
+        'end_date',
+        'email',
+        'phone_number',
+        'longitude',
+        'latitude',
+        'address',
+        'price',
+        'max_attendees',
+        'is_active',
+        'is_featured',
+        'place_id',
+      ],
+      include: [
+        {
+          model: this.eventTranslationModel,
+          as: 'translations',
+          attributes: ['name', 'description', 'about', 'language'],
+        },
+      ],
+    });
+
+    if (event && event?.user_id !== user_id) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+    return event;
+  }
+
+  /** Get Events list **/
+  async getAll(query: QueryDto, lang: LanguageEnum) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const where: any = {};
+    if (query.place_id) where.place_id = query.place_id;
+    if (query.is_active !== undefined) where.is_active = query.is_active;
+    if (query.is_featured !== undefined) where.is_featured = query.is_featured;
+    if (query.event_category_id)
+      where.event_category_id = query.event_category_id;
+
+    // Add date filtering
+    if (query.start_date) {
+      where.start_date = { [Op.gte]: new Date(query.start_date) };
+    }
+    if (query.end_date) {
+      where.end_date = { [Op.lte]: new Date(query.end_date) };
+    }
+
+    const { rows, count: total } = await this.eventModel.findAndCountAll({
+      where,
+      attributes: [
+        'id',
+        'image',
+        'slug',
+        'start_date',
+        'end_date',
+        'price',
+        'place_id',
+        [Sequelize.col('translation.name'), 'name'],
+        // [Sequelize.col('place->translation.name'), 'place_name'],
+        // [Sequelize.col('event_category->translation.name'), 'category_name'],
+      ],
+      distinct: true,
+      include: [
+        {
+          model: this.eventTranslationModel,
+          as: 'translation',
+          attributes: [],
+          where: { language: lang },
+        },
+        {
+          model: this.placeModel,
+          as: 'place',
+          attributes: ['id'],
+          include: [
+            {
+              model: this.placeTranslationModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+          ],
+        },
+        {
+          model: this.eventTranslationModel,
+          as: 'translations',
+          attributes: [],
+          required: true,
+          where: {
+            ...(query.search
+              ? {
+                  name: { [Op.iLike]: `%${query.search}%` },
+                }
+              : {}),
+          },
+        },
+        {
+          model: this.eventCategoryModel,
+          as: 'event_category',
+          attributes: ['id'],
+          include: [
+            {
+              model: this.eventCategoryTranslationModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+          ],
+        },
+      ],
+      order: [['start_date', 'ASC']],
+      limit,
+      offset,
+    });
+
+    return {
+      data: rows,
+      meta: {
+        total,
+        page,
+        limit,
+        pages_count: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /** Create event **/
+  async create(
+    userId: number,
+    dto: CreateEventDto,
+    files: {
+      coverOriginalName: string | undefined;
+      coverOriginalPath: string | undefined;
+      coverThumbName: string | undefined;
+      coverThumbPath: string | undefined;
+    },
+  ) {
+    if (!files.coverOriginalName) {
+      if (files.coverThumbPath) await unlink(files.coverThumbPath);
+      throw new NotFoundException(`Cover image is required`);
+    }
+
+    const place = await this.placeModel.findByPk(dto.place_id, {
+      attributes: ['id'],
+    });
+    if (!place) {
+      await unlinkFiles([files.coverOriginalPath, files.coverThumbPath]);
+      throw new NotFoundException(`Place does not exist`);
+    }
+
+    let baseSlug = slugify(dto.en.name, { lower: true, strict: true });
+    const existBaseSlug = await this.eventModel.findOne({
+      where: { slug: baseSlug },
+      attributes: ['id'],
+    });
+
+    const eventData: any = {
+      slug: existBaseSlug ? Date.now().toString() + '-' + baseSlug : baseSlug,
+      image: files.coverThumbName,
+      image_original: files.coverOriginalName,
+      place_id: place.id,
+      event_category_id: dto.event_category_id || null,
+      start_date: new Date(dto.start_date),
+      end_date: new Date(dto.end_date),
+      email: dto.email || null,
+      address: dto.address || null,
+      phone_number: dto.phone_number || null,
+      longitude: dto.longitude || null,
+      latitude: dto.latitude || null,
+      price: dto.price || null,
+      max_attendees: dto.max_attendees || null,
+      is_active: dto.is_active !== undefined ? dto.is_active : true,
+      is_featured: dto.is_featured || false,
+      user_id: userId,
+    };
+
+    if (dto.latitude && dto.longitude) {
+      eventData.location = {
+        type: 'Point',
+        coordinates: [dto.longitude, dto.latitude],
+      };
+    }
+
+    const event = await this.eventModel.create(eventData);
+    if (existBaseSlug) {
+      const finalSlug = `${baseSlug}-${event.id}`;
+      await event.update({ slug: finalSlug });
+    }
+
+    const languages = [
+      {
+        language: 'en',
+        name: dto.en.name,
+        description: dto.en.description || '',
+        about: dto.en.about || '',
+        event_id: event.id,
+      },
+      {
+        language: 'hy',
+        name: dto.hy.name,
+        description: dto.hy.description || '',
+        about: dto.hy.about || '',
+        event_id: event.id,
+      },
+      {
+        language: 'ru',
+        name: dto.ru.name,
+        description: dto.ru.description || '',
+        about: dto.ru.about || '',
+        event_id: event.id,
+      },
+    ];
+    await this.eventTranslationModel.bulkCreate(languages);
+
+    const eventResponse = await this.getEventByIdAllData(event.id, userId);
+    return { message: 'Event created successfully.', event: eventResponse };
+  }
+
+  /** Update event **/
+  async update(
+    userId: number,
+    dto: UpdateEventDto,
+    id: number,
+    files: {
+      coverOriginalName: string | undefined;
+      coverOriginalPath: string | undefined;
+      coverThumbName: string | undefined;
+      coverThumbPath: string | undefined;
+    },
+  ) {
+    const event = await this.eventModel.findByPk(id, {
+      attributes: ['user_id', 'image_original', 'image'],
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with id ${id} not found`);
+    }
+
+    if (event.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const updateData: any = {};
+
+    if (dto.place_id) {
+      const place = await this.placeModel.findByPk(dto.place_id, {
+        attributes: ['id'],
+      });
+
+      if (!place) {
+        await unlinkFiles([files.coverOriginalPath, files.coverThumbPath]);
+        throw new NotFoundException(`Place does not exist`);
+      }
+      updateData.place_id = place.id;
+    }
+
+    if (dto.event_category_id !== undefined) {
+      updateData.event_category_id = dto.event_category_id;
+    }
+
+    if (dto.start_date) updateData.start_date = new Date(dto.start_date);
+    if (dto.end_date) updateData.end_date = new Date(dto.end_date);
+    if (dto.longitude) updateData.longitude = dto.longitude;
+    if (dto.latitude) updateData.latitude = dto.latitude;
+    if (dto.phone_number) updateData.phone_number = dto.phone_number;
+    if (dto.email) updateData.email = dto.email;
+    if (dto.address) updateData.address = dto.address;
+    if (dto.price !== undefined) updateData.price = dto.price;
+    if (dto.max_attendees) updateData.max_attendees = dto.max_attendees;
+    if (dto.is_active !== undefined) updateData.is_active = dto.is_active;
+    if (dto.is_featured !== undefined) updateData.is_featured = dto.is_featured;
+
+    if (files.coverThumbName) {
+      updateData.image = files.coverThumbName;
+      if (event.dataValues.image) {
+        await unlink(`uploads/events/${event.dataValues.image}`);
+      }
+    }
+    if (files.coverOriginalName) {
+      updateData.image_original = files.coverOriginalName;
+      if (event.dataValues.image_original) {
+        await unlink(`uploads/events/${event.dataValues.image_original}`);
+      }
+    }
+
+    if (dto.latitude && dto.longitude) {
+      updateData.location = {
+        type: 'Point',
+        coordinates: [dto.longitude, dto.latitude],
+      };
+    }
+
+    await this.eventModel.update(updateData, {
+      where: { id },
+    });
+
+    if (dto.en) {
+      const data = {
+        name: dto.en.name,
+        description: dto.en.description || '',
+        about: dto.en.about || '',
+      };
+      await this.eventTranslationModel.update(data, {
+        where: { event_id: id, language: 'en' },
+      });
+    }
+
+    if (dto.hy) {
+      const data = {
+        name: dto.hy.name,
+        description: dto.hy.description || '',
+        about: dto.hy.about || '',
+      };
+      await this.eventTranslationModel.update(data, {
+        where: { event_id: id, language: 'hy' },
+      });
+    }
+
+    if (dto.ru) {
+      const data = {
+        name: dto.ru.name,
+        description: dto.ru.description || '',
+        about: dto.ru.about || '',
+      };
+      await this.eventTranslationModel.update(data, {
+        where: { event_id: id, language: 'ru' },
+      });
+    }
+
+    const eventResponse = await this.getEventByIdAllData(id, userId);
+    return { message: 'Event updated successfully.', event: eventResponse };
+  }
+
+  /** Upload images  **/
+  async uploadImages(
+    userId: number,
+    id: number,
+    images: any,
+    userRole: string,
+  ) {
+    const event = await this.eventModel.findByPk(id, {
+      attributes: ['user_id'],
+    });
+
+    const imagePaths = images.reduce((acc: any, item: any) => {
+      acc.push(item.path);
+      acc.push(item.thumbPath);
+      return acc;
+    }, []);
+
+    if (!event) {
+      await unlinkFiles(imagePaths);
+      throw new NotFoundException(`Event with id ${id} not found`);
+    }
+
+    if (userRole === 'user' && event.user_id !== userId) {
+      await unlinkFiles(imagePaths);
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const existingCount = await this.eventImages.count({
+      where: { event_id: id },
+    });
+
+    if (existingCount + images.length > 15) {
+      await unlinkFiles(imagePaths);
+      throw new BadRequestException(`You can upload a maximum of 15 images.`);
+    }
+
+    const insertData = images.map((image: any) => {
+      return {
+        event_id: id,
+        original: image.filename,
+        thumbnail: image.thumbFilename,
+      };
+    });
+
+    await this.eventImages.bulkCreate(insertData);
+
+    const response = await this.eventImages.findAll({
+      where: {
+        event_id: id,
+      },
+      attributes: ['id', 'original', 'thumbnail', 'type'],
+    });
+    return { message: 'Images uploaded successfully.', data: response };
+  }
+
+  /** Delete image **/
+  async deleteImage(userId: number, event_id: number, image_id: number) {
+    const event = await this.eventModel.findByPk(event_id, {
+      attributes: ['user_id'],
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with id ${event_id} not found`);
+    }
+
+    if (event.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const image = await this.eventImages.findOne({
+      where: {
+        id: image_id,
+        event_id,
+      },
+      attributes: ['original', 'thumbnail', 'id', 'event_id'],
+    });
+
+    if (!image) {
+      throw new NotFoundException(`Image with id ${image_id} not found`);
+    }
+    const imagePaths = [
+      `uploads/events/${image.dataValues.original}`,
+      `uploads/events/${image.dataValues.thumbnail}`,
+    ];
+    await unlinkFiles(imagePaths);
+    await image.destroy();
+
+    return { message: 'Success' };
+  }
+
+  /** Get images **/
+  async getImages(event_id: number) {
+    const event = await this.eventModel.findByPk(event_id, {
+      attributes: ['user_id'],
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with id ${event_id} not found`);
+    }
+
+    const gallery = await this.eventImages.findAll({
+      where: {
+        event_id,
+      },
+      attributes: ['original', 'thumbnail', 'id', 'type'],
+    });
+
+    return { message: 'Gallery list', gallery };
+  }
+
+  /** Delete event **/
+  async delete(userId: number, event_id: number) {
+    const event = await this.eventModel.findByPk(event_id, {
+      attributes: ['user_id', 'image', 'image_original', 'id'],
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with id ${event_id} not found`);
+    }
+
+    if (event.user_id !== userId) {
+      throw new NotAcceptableException(`Only allowed to owner`);
+    }
+
+    const images = await this.eventImages.findAll({
+      where: {
+        event_id,
+      },
+      attributes: ['original', 'thumbnail'],
+    });
+
+    const imagePaths: string[] = [];
+
+    if (event.dataValues.image) {
+      imagePaths.push(`uploads/events/${event.dataValues.image}`);
+    }
+    if (event.dataValues.image_original) {
+      imagePaths.push(`uploads/events/${event.dataValues.image_original}`);
+    }
+
+    if (images && images.length > 0) {
+      images.forEach((image: any) => {
+        imagePaths.push(`uploads/events/${image.dataValues.original}`);
+        imagePaths.push(`uploads/events/${image.dataValues.thumbnail}`);
+      });
+    }
+
+    await unlinkFiles(imagePaths);
+    await event.destroy();
+
+    return { message: 'Success' };
+  }
+}
