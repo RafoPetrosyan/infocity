@@ -223,8 +223,6 @@ export class EventsService {
         'price',
         'place_id',
         [Sequelize.col('translation.name'), 'name'],
-        // [Sequelize.col('place->translation.name'), 'place_name'],
-        // [Sequelize.col('event_category->translation.name'), 'category_name'],
       ],
       distinct: true,
       include: [
@@ -233,19 +231,6 @@ export class EventsService {
           as: 'translation',
           attributes: [],
           where: { language: lang },
-        },
-        {
-          model: this.placeModel,
-          as: 'place',
-          attributes: ['id'],
-          include: [
-            {
-              model: this.placeTranslationModel,
-              as: 'translation',
-              attributes: [],
-              where: { language: lang },
-            },
-          ],
         },
         {
           model: this.eventTranslationModel,
@@ -259,19 +244,6 @@ export class EventsService {
                 }
               : {}),
           },
-        },
-        {
-          model: this.eventCategoryModel,
-          as: 'event_category',
-          attributes: ['id'],
-          include: [
-            {
-              model: this.eventCategoryTranslationModel,
-              as: 'translation',
-              attributes: [],
-              where: { language: lang },
-            },
-          ],
         },
       ],
       order: [['start_date', 'ASC']],
