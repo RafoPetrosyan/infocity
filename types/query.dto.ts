@@ -5,6 +5,8 @@ import {
   Max,
   IsString,
   MinLength,
+  IsBoolean,
+  IsDateString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -34,4 +36,32 @@ export class QueryDto {
   @IsOptional()
   @IsInt()
   section_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  place_id?: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  is_active?: boolean;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  is_featured?: boolean;
+
+  @IsOptional()
+  @IsDateString()
+  start_date?: string;
+
+  @IsOptional()
+  @IsDateString()
+  end_date?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  event_category_id?: number;
 }
