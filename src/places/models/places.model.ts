@@ -17,6 +17,7 @@ import { Category } from '../../categories/models/category.model';
 import { PlaceImages } from './places-images.model';
 import { PlaceWorkingTimes } from './places-working-times.model';
 import { User } from '../../users/models/user.model';
+import { UserFollow } from '../../follows/models/user-follow.model';
 
 @Table({ tableName: 'places' })
 export class Place extends Model {
@@ -109,4 +110,13 @@ export class Place extends Model {
 
   @HasMany(() => Item)
   declare items: Item[];
+
+  @HasMany(() => UserFollow, {
+    foreignKey: 'entity_id',
+    constraints: false,
+    scope: {
+      followable_type: 'place',
+    },
+  })
+  declare followers: UserFollow[];
 }

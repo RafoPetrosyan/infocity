@@ -16,6 +16,7 @@ import { EmotionsModel } from '../../emotions/models/emotions.model';
 import { UserEmotions } from './user-emotions.model';
 import { DOMAIN_URL } from '../../../constants';
 import { Place } from '../../places/models/places.model';
+import { UserFollow } from '../../follows/models/user-follow.model';
 
 @Table({ tableName: 'users' })
 export class User extends Model {
@@ -98,6 +99,9 @@ export class User extends Model {
 
   @BelongsToMany(() => EmotionsModel, () => UserEmotions)
   declare emotions: EmotionsModel[];
+
+  @HasMany(() => UserFollow)
+  declare follows: UserFollow[];
 
   @BeforeCreate
   @BeforeUpdate

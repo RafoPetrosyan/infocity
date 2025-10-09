@@ -14,6 +14,7 @@ import { EventCategory } from './event-category.model';
 import { DOMAIN_URL } from '../../../constants';
 import { Place } from '../../places/models/places.model';
 import { User } from '../../users/models/user.model';
+import { UserFollow } from '../../follows/models/user-follow.model';
 
 @Table({ tableName: 'events' })
 export class Event extends Model {
@@ -103,4 +104,13 @@ export class Event extends Model {
 
   @HasMany(() => EventImages)
   declare gallery: EventImages[];
+
+  @HasMany(() => UserFollow, {
+    foreignKey: 'entity_id',
+    constraints: false,
+    scope: {
+      followable_type: 'event',
+    },
+  })
+  declare followers: UserFollow[];
 }
