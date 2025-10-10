@@ -13,9 +13,7 @@ export class MailService {
   async sendVerificationEmail(email: string, code: string, lang: LanguageEnum) {
     const subject = (await this.i18n.translate(
       'validation.verification_subject',
-      {
-        lang,
-      },
+      { lang },
     )) as string;
 
     await this.mailerService.sendMail({
