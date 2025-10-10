@@ -57,43 +57,59 @@ export class EventsService {
 
   /** Get Event by ID **/
   async getById(id: number, lang: LanguageEnum, userId: number = 0) {
-    const event = await this.eventModel.findByPk(id, {
-      attributes: [
-        'id',
-        'image',
-        'image_original',
-        'slug',
-        'start_date',
-        'end_date',
-        'email',
-        'phone_number',
-        'longitude',
-        'latitude',
-        'address',
-        'price',
-        'max_attendees',
-        'is_active',
-        'event_category_id',
-        'place_id',
-        [Sequelize.col('place->city->translation.name'), 'city_name'],
-        [
-          Sequelize.literal(
-            `CASE WHEN "Event"."user_id" = '${userId}' THEN true ELSE false END`,
-          ),
-          'is_owner',
-        ],
-        [Sequelize.col('translation.name'), 'name'],
-        [Sequelize.col('translation.description'), 'description'],
-        [Sequelize.col('translation.about'), 'about'],
-        [Sequelize.col('place->translation.name'), 'place_name'],
-        [
-          Sequelize.literal(
-            `CONCAT('${DOMAIN_URL}/uploads/places/', "place"."image")`,
-          ),
-          'place_image',
-        ],
-        [Sequelize.col('event_category->translation.name'), 'category_name'],
+    const attributes: any[] = [
+      'id',
+      'image',
+      'image_original',
+      'slug',
+      'start_date',
+      'end_date',
+      'email',
+      'phone_number',
+      'longitude',
+      'latitude',
+      'address',
+      'price',
+      'max_attendees',
+      'is_active',
+      'event_category_id',
+      'place_id',
+      [Sequelize.col('place->city->translation.name'), 'city_name'],
+      [
+        Sequelize.literal(
+          `CASE WHEN "Event"."user_id" = '${userId}' THEN true ELSE false END`,
+        ),
+        'is_owner',
       ],
+      [Sequelize.col('translation.name'), 'name'],
+      [Sequelize.col('translation.description'), 'description'],
+      [Sequelize.col('translation.about'), 'about'],
+      [Sequelize.col('place->translation.name'), 'place_name'],
+      [
+        Sequelize.literal(
+          `CONCAT('${DOMAIN_URL}/uploads/places/', "place"."image")`,
+        ),
+        'place_image',
+      ],
+      [Sequelize.col('event_category->translation.name'), 'category_name'],
+    ];
+
+    if (userId) {
+      attributes.push([
+        Sequelize.literal(`EXISTS (
+        SELECT 1 FROM "user_follows" uf
+        WHERE uf.entity_type = 'event'
+          AND uf.entity_id = "Event"."id"
+          AND uf.user_id = ${userId}
+      )`),
+        'is_followed',
+      ]);
+    } else {
+      attributes.push([Sequelize.literal('false'), 'is_followed']);
+    }
+
+    const event = await this.eventModel.findByPk(id, {
+      attributes,
       include: [
         {
           model: this.eventTranslationModel,
@@ -192,7 +208,7 @@ export class EventsService {
   }
 
   /** Get Events list **/
-  async getAll(query: QueryDto, lang: LanguageEnum) {
+  async getAll(query: QueryDto, lang: LanguageEnum, userId?: number) {
     const page = query.page || 1;
     const limit = query.limit || 10;
     const offset = (page - 1) * limit;
@@ -212,18 +228,34 @@ export class EventsService {
       where.end_date = { [Op.lte]: new Date(query.end_date) };
     }
 
+    const attributes: any[] = [
+      'id',
+      'image',
+      'slug',
+      'start_date',
+      'end_date',
+      'price',
+      'place_id',
+      [Sequelize.col('translation.name'), 'name'],
+    ];
+
+    if (userId) {
+      attributes.push([
+        Sequelize.literal(`EXISTS (
+        SELECT 1 FROM "user_follows" uf
+        WHERE uf.entity_type = 'event'
+          AND uf.entity_id = "Event"."id"
+          AND uf.user_id = ${userId}
+      )`),
+        'is_followed',
+      ]);
+    } else {
+      attributes.push([Sequelize.literal('false'), 'is_followed']);
+    }
+
     const { rows, count: total } = await this.eventModel.findAndCountAll({
       where,
-      attributes: [
-        'id',
-        'image',
-        'slug',
-        'start_date',
-        'end_date',
-        'price',
-        'place_id',
-        [Sequelize.col('translation.name'), 'name'],
-      ],
+      attributes,
       distinct: true,
       include: [
         {

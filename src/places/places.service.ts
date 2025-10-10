@@ -61,30 +61,46 @@ export class PlacesService {
 
   /** Get Place by ID **/
   async getById(id: number, lang: LanguageEnum, userId: number = 0) {
-    const place = await this.placeModel.findByPk(id, {
-      attributes: [
-        'id',
-        'image',
-        'image_original',
-        'slug',
-        'email',
-        'phone_number',
-        'longitude',
-        'latitude',
-        'social_links',
-        'logo',
-        'address',
-        [Sequelize.col('city->translation.name'), 'city_name'],
-        [
-          Sequelize.literal(
-            `CASE WHEN "Place"."user_id" = '${userId}' THEN true ELSE false END`,
-          ),
-          'is_owner',
-        ],
-        [Sequelize.col('translation.name'), 'name'],
-        [Sequelize.col('translation.description'), 'description'],
-        [Sequelize.col('translation.about'), 'about'],
+    const attributes: any[] = [
+      'id',
+      'image',
+      'image_original',
+      'slug',
+      'email',
+      'phone_number',
+      'longitude',
+      'latitude',
+      'social_links',
+      'logo',
+      'address',
+      [Sequelize.col('city->translation.name'), 'city_name'],
+      [
+        Sequelize.literal(
+          `CASE WHEN "Place"."user_id" = '${userId}' THEN true ELSE false END`,
+        ),
+        'is_owner',
       ],
+      [Sequelize.col('translation.name'), 'name'],
+      [Sequelize.col('translation.description'), 'description'],
+      [Sequelize.col('translation.about'), 'about'],
+    ];
+
+    if (userId) {
+      attributes.push([
+        Sequelize.literal(`EXISTS (
+        SELECT 1 FROM "user_follows" uf
+        WHERE uf.entity_type = 'place'
+          AND uf.entity_id = "Place"."id"
+          AND uf.user_id = ${userId}
+      )`),
+        'is_followed',
+      ]);
+    } else {
+      attributes.push([Sequelize.literal('false'), 'is_followed']);
+    }
+
+    const place = await this.placeModel.findByPk(id, {
+      attributes,
       include: [
         {
           model: this.placeTranslationModel,
@@ -188,7 +204,7 @@ export class PlacesService {
   }
 
   /** Get a Places list **/
-  async getAll(query: QueryDto, lang: LanguageEnum) {
+  async getAll(query: QueryDto, lang: LanguageEnum, userId?: number) {
     const page = query.page || 1;
     const limit = query.limit || 10;
     const offset = (page - 1) * limit;
@@ -196,15 +212,31 @@ export class PlacesService {
     const where: any = {};
     if (query.category_id) where.category_id = query.category_id;
 
+    const attributes: any[] = [
+      'id',
+      'image',
+      'slug',
+      [Sequelize.col('translation.name'), 'name'],
+      [Sequelize.col('translation.description'), 'description'],
+    ];
+
+    if (userId) {
+      attributes.push([
+        Sequelize.literal(`EXISTS (
+        SELECT 1 FROM "user_follows" uf
+        WHERE uf.entity_type = 'place'
+          AND uf.entity_id = "Place"."id"
+          AND uf.user_id = ${userId}
+      )`),
+        'is_followed',
+      ]);
+    } else {
+      attributes.push([Sequelize.literal('false'), 'is_followed']);
+    }
+
     const { rows, count: total } = await this.placeModel.findAndCountAll({
       where,
-      attributes: [
-        'id',
-        'image',
-        'slug',
-        [Sequelize.col('translation.name'), 'name'],
-        [Sequelize.col('translation.description'), 'description'],
-      ],
+      attributes,
       distinct: true,
       include: [
         {

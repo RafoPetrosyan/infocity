@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { UserFollow } from './models/user-follow.model';
-import { User } from '../users/models/user.model';
 import { Place } from '../places/models/places.model';
 import { Event } from '../events/models/events.model';
 import { FollowDto, GetFollowsDto } from './dto/follow.dto';
@@ -15,10 +14,10 @@ export class FollowsService {
   constructor(
     @InjectModel(UserFollow)
     private userFollowModel: typeof UserFollow,
-    @InjectModel(User)
-    private userModel: typeof User,
+
     @InjectModel(Place)
     private placeModel: typeof Place,
+
     @InjectModel(Event)
     private eventModel: typeof Event,
   ) {}
@@ -82,13 +81,13 @@ export class FollowsService {
       where: whereCondition,
       limit,
       offset,
-      attributes: ['id', 'entity_type', 'createdAt'],
+      attributes: ['id', 'entity_type', 'createdAt', 'entity_id'],
       order: [['createdAt', 'DESC']],
       include: [
         {
           model: Place,
           required: false,
-          attributes: ['id'],
+          attributes: ['id', 'image'],
           include: [
             {
               model: PlaceTranslation,
@@ -106,7 +105,7 @@ export class FollowsService {
         {
           model: Event,
           required: false,
-          attributes: ['id'],
+          attributes: ['id', 'image'],
           include: [
             {
               model: EventTranslation,
@@ -122,16 +121,39 @@ export class FollowsService {
           ),
         },
       ],
-      distinct: true, // ✅ prevents count duplication when includes exist
+      distinct: true,
+    });
+
+    const formattedRows = rows.map((row) => {
+      if (row.entity_type === 'place') {
+        return {
+          id: row.id,
+          type: row.entity_type,
+          name: row.dataValues.place.translation.name,
+          item_id: row.entity_id,
+          image: row.dataValues.place.image,
+          createdAt: row.createdAt,
+        };
+      } else if (row.entity_type === 'event') {
+        return {
+          id: row.id,
+          type: row.entity_type,
+          name: row.dataValues.event.translation.name,
+          item_id: row.entity_id,
+          image: row.dataValues.event.image,
+          createdAt: row.createdAt,
+        };
+      }
+      return row;
     });
 
     return {
-      data: rows,
+      data: formattedRows,
       meta: {
+        total: count,
         page,
         limit,
-        total: count,
-        totalPages: Math.ceil(count / limit),
+        pages_count: Math.ceil(count / limit),
       },
     };
   }

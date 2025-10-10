@@ -13,16 +13,17 @@ import { Place } from '../../places/models/places.model';
 @Table({ tableName: 'categories' })
 export class Category extends Model {
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
-  slug: string;
+  declare slug: string;
 
   @Column({
     type: DataType.STRING,
+
     get() {
       const rawValue = this.getDataValue('image');
       return rawValue ? `${DOMAIN_URL}/uploads/categories/${rawValue}` : null;
     },
   })
-  image: string;
+  declare image: string;
 
   @Column({ type: DataType.INTEGER })
   declare order: number;

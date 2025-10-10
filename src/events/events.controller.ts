@@ -30,8 +30,14 @@ export class EventsController {
 
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
-  getAll(@Query() params: QueryDto, @I18nLang() lang: LanguageEnum) {
-    return this.eventsService.getAll(params, lang);
+  getAll(
+    @Query() params: QueryDto,
+    @I18nLang() lang: LanguageEnum,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.sub;
+
+    return this.eventsService.getAll(params, lang, userId);
   }
 
   @Get('/:id')
@@ -60,10 +66,9 @@ export class EventsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
-    UploadAndOptimizeImages(
-      [{ name: 'image', maxCount: 1, withThumb: true }],
-      { folder: './uploads/events' },
-    ),
+    UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
+      folder: './uploads/events',
+    }),
   )
   async create(
     @Req() req: any,
@@ -89,10 +94,9 @@ export class EventsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
-    UploadAndOptimizeImages(
-      [{ name: 'image', maxCount: 1, withThumb: true }],
-      { folder: './uploads/events' },
-    ),
+    UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
+      folder: './uploads/events',
+    }),
   )
   async update(
     @Req() req: any,

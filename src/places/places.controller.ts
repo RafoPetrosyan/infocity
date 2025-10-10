@@ -35,8 +35,13 @@ export class PlacesController {
 
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
-  getAll(@Query() params: QueryDto, @I18nLang() lang: LanguageEnum) {
-    return this.placesService.getAll(params, lang);
+  getAll(
+    @Query() params: QueryDto,
+    @I18nLang() lang: LanguageEnum,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.sub;
+    return this.placesService.getAll(params, lang, userId);
   }
 
   @Get('/attractions')

@@ -7,12 +7,10 @@ import {
   Put,
   Param,
   Delete,
-  Query,
 } from '@nestjs/common';
 import { EventCategoriesService } from './event-categories.service';
 import { CreateEventCategoryDto } from './dto/create-event-category.dto';
 import { UpdateEventCategoryDto } from './dto/update-event-category.dto';
-import { QueryEventCategoryDto } from './dto/query-event-category.dto';
 import { I18nLang } from 'nestjs-i18n';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -71,4 +69,3 @@ export class EventCategoriesController {
     return this.eventCategoriesService.delete(id);
   }
 }
-
