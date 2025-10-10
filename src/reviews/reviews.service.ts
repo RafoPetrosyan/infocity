@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Review } from './models/review.model';
 import { ReviewEmotions } from './models/review-emotions.model';
@@ -8,7 +12,6 @@ import { Place } from '../places/models/places.model';
 import { Event } from '../events/models/events.model';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { QueryReviewDto } from './dto/query-review.dto';
 import { Op } from 'sequelize';
 
 @Injectable()
@@ -26,9 +29,15 @@ export class ReviewsService {
     private eventModel: typeof Event,
   ) {}
 
-  async create(createReviewDto: CreateReviewDto, userId: number): Promise<Review> {
+  async create(
+    createReviewDto: CreateReviewDto,
+    userId: number,
+  ): Promise<Review> {
     // Validate that the entity exists
-    await this.validateEntity(createReviewDto.entity_id, createReviewDto.entity_type);
+    await this.validateEntity(
+      createReviewDto.entity_id,
+      createReviewDto.entity_type,
+    );
 
     // Check if user already has a review for this entity
     const existingReview = await this.reviewModel.findOne({
@@ -61,46 +70,6 @@ export class ReviewsService {
     return this.findOne(review.id);
   }
 
-  async findAll(query: QueryReviewDto) {
-    const { page = 1, limit = 10, ...filters } = query;
-    const offset = (page - 1) * limit;
-
-    const whereClause: any = {};
-    if (filters.entity_id) whereClause.entity_id = filters.entity_id;
-    if (filters.entity_type) whereClause.entity_type = filters.entity_type;
-    if (filters.user_id) whereClause.user_id = filters.user_id;
-
-    const { rows: reviews, count } = await this.reviewModel.findAndCountAll({
-      where: whereClause,
-      include: [
-        {
-          model: User,
-          attributes: ['id', 'first_name', 'last_name', 'avatar'],
-        },
-        {
-          model: ReviewEmotions,
-          include: [
-            {
-              model: EmotionsModel,
-              include: ['lang'],
-            },
-          ],
-        },
-      ],
-      order: [['created_at', 'DESC']],
-      limit,
-      offset,
-    });
-
-    return {
-      reviews,
-      total: count,
-      page,
-      limit,
-      totalPages: Math.ceil(count / limit),
-    };
-  }
-
   async findOne(id: number): Promise<Review> {
     const review = await this.reviewModel.findByPk(id, {
       include: [
@@ -110,12 +79,7 @@ export class ReviewsService {
         },
         {
           model: ReviewEmotions,
-          include: [
-            {
-              model: EmotionsModel,
-              include: ['lang'],
-            },
-          ],
+          attributes: ['emotion_id'],
         },
       ],
     });
@@ -124,16 +88,29 @@ export class ReviewsService {
       throw new NotFoundException('Review not found');
     }
 
-    return review;
+    const emotion_ids = review.emotions?.map((re) => re.emotion_id) ?? [];
+    const plainReview = review.toJSON();
+    delete plainReview.emotions;
+
+    return {
+      ...plainReview,
+      emotion_ids,
+    };
   }
 
-  async update(id: number, updateReviewDto: UpdateReviewDto, userId: number): Promise<Review> {
+  async update(
+    id: number,
+    updateReviewDto: UpdateReviewDto,
+    userId: number,
+  ): Promise<Review> {
     const review = await this.reviewModel.findOne({
       where: { id, user_id: userId },
     });
 
     if (!review) {
-      throw new NotFoundException('Review not found or you do not have permission to update it');
+      throw new NotFoundException(
+        'Review not found or you do not have permission to update it',
+      );
     }
 
     // Validate emotions if provided
@@ -165,7 +142,9 @@ export class ReviewsService {
     });
 
     if (!review) {
-      throw new NotFoundException('Review not found or you do not have permission to delete it');
+      throw new NotFoundException(
+        'Review not found or you do not have permission to delete it',
+      );
     }
 
     // Remove associated emotions first
@@ -176,7 +155,12 @@ export class ReviewsService {
     await review.destroy();
   }
 
-  async getReviewsByEntity(entityId: number, entityType: 'place' | 'event', page = 1, limit = 10) {
+  async getReviewsByEntity(
+    entityId: number,
+    entityType: 'place' | 'event',
+    page = 1,
+    limit = 10,
+  ) {
     const offset = (page - 1) * limit;
 
     const { rows: reviews, count } = await this.reviewModel.findAndCountAll({
@@ -191,29 +175,41 @@ export class ReviewsService {
         },
         {
           model: ReviewEmotions,
-          include: [
-            {
-              model: EmotionsModel,
-              include: ['lang'],
-            },
-          ],
+          attributes: ['emotion_id'],
         },
       ],
-      order: [['created_at', 'DESC']],
+      distinct: true,
+      order: [['createdAt', 'DESC']],
       limit,
       offset,
     });
 
+    const transformedReviews = reviews.map((review) => {
+      const emotion_ids = review.emotions?.map((re) => re.emotion_id) ?? [];
+      const plain = review.toJSON();
+      delete plain.emotions;
+
+      return {
+        ...plain,
+        emotion_ids,
+      };
+    });
+
     return {
-      reviews,
-      total: count,
-      page,
-      limit,
-      totalPages: Math.ceil(count / limit),
+      reviews: transformedReviews,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
     };
   }
 
-  private async validateEntity(entityId: number, entityType: 'place' | 'event'): Promise<void> {
+  private async validateEntity(
+    entityId: number,
+    entityType: 'place' | 'event',
+  ): Promise<void> {
     let entity;
     if (entityType === 'place') {
       entity = await this.placeModel.findByPk(entityId);
@@ -236,8 +232,11 @@ export class ReviewsService {
     }
   }
 
-  private async addEmotionsToReview(reviewId: number, emotionIds: number[]): Promise<void> {
-    const reviewEmotions = emotionIds.map(emotionId => ({
+  private async addEmotionsToReview(
+    reviewId: number,
+    emotionIds: number[],
+  ): Promise<void> {
+    const reviewEmotions = emotionIds.map((emotionId) => ({
       review_id: reviewId,
       emotion_id: emotionId,
     }));

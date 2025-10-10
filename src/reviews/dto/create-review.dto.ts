@@ -16,6 +16,16 @@ export class CreateReviewDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
-  @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : []))
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((v) => Number(v.trim()));
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(Number);
+    }
+
+    return [];
+  })
   emotion_ids?: number[];
 }
