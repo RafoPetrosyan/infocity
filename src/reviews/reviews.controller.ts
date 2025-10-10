@@ -14,10 +14,12 @@ import {
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { QueryReviewDto } from './dto/query-review.dto';
+import { QueryReviewDto, GetMyReviewsDto } from './dto/query-review.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { I18nLang } from 'nestjs-i18n';
+import { LanguageEnum } from '../../types';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -28,6 +30,18 @@ export class ReviewsController {
   @Roles('user')
   create(@Body() createReviewDto: CreateReviewDto, @Req() req: any) {
     return this.reviewsService.create(createReviewDto, req.user.sub);
+  }
+
+  @Get('my')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async getMyReviews(
+    @Req() req: any,
+    @Query() query: GetMyReviewsDto,
+    @I18nLang() lang: LanguageEnum,
+  ) {
+    const userId = req.user.sub;
+    return this.reviewsService.getUserReviews(userId, query, lang);
   }
 
   @Get('/:entityId/:entityType')

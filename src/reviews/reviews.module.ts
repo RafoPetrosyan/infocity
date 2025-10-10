@@ -8,6 +8,8 @@ import { EmotionsModel } from '../emotions/models/emotions.model';
 import { User } from '../users/models/user.model';
 import { Place } from '../places/models/places.model';
 import { Event } from '../events/models/events.model';
+import { PlaceTranslation } from '../places/models/places-translation.model';
+import { EventTranslation } from '../events/models/events-translation.model';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { Event } from '../events/models/events.model';
       User,
       Place,
       Event,
+      PlaceTranslation,
+      EventTranslation,
     ]),
   ],
   controllers: [ReviewsController],

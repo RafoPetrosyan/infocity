@@ -12,7 +12,12 @@ import { Place } from '../places/models/places.model';
 import { Event } from '../events/models/events.model';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { GetMyReviewsDto } from './dto/query-review.dto';
 import { Op } from 'sequelize';
+import { LanguageEnum } from '../../types';
+import { Sequelize } from 'sequelize-typescript';
+import { PlaceTranslation } from '../places/models/places-translation.model';
+import { EventTranslation } from '../events/models/events-translation.model';
 
 @Injectable()
 export class ReviewsService {
@@ -242,5 +247,114 @@ export class ReviewsService {
     }));
 
     await this.reviewEmotionsModel.bulkCreate(reviewEmotions);
+  }
+
+  async getUserReviews(
+    userId: number,
+    query: GetMyReviewsDto,
+    lang: LanguageEnum,
+  ) {
+    const { page = 1, limit = 10, type } = query;
+    const offset = (page - 1) * limit;
+
+    const whereCondition: any = { user_id: userId };
+    if (type) {
+      whereCondition.entity_type = type;
+    }
+
+    const { count, rows } = await this.reviewModel.findAndCountAll({
+      where: whereCondition,
+      limit,
+      offset,
+      attributes: [
+        'id',
+        'text',
+        'entity_id',
+        'entity_type',
+        'user_id',
+        'createdAt',
+        'updatedAt',
+      ],
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: ReviewEmotions,
+          attributes: ['emotion_id'],
+        },
+        {
+          model: Place,
+          required: false,
+          attributes: ['id', 'image'],
+          include: [
+            {
+              model: PlaceTranslation,
+              as: 'translation',
+              attributes: ['name'],
+              where: { language: lang },
+              required: false,
+            },
+          ],
+          where: Sequelize.where(Sequelize.col('Review.entity_type'), 'place'),
+        },
+        {
+          model: Event,
+          required: false,
+          attributes: ['id', 'image'],
+          include: [
+            {
+              model: EventTranslation,
+              as: 'translation',
+              attributes: ['name'],
+              where: { language: lang },
+              required: false,
+            },
+          ],
+          where: Sequelize.where(Sequelize.col('Review.entity_type'), 'event'),
+        },
+      ],
+      distinct: true,
+    });
+
+    const formattedRows = rows.map((row) => {
+      const emotion_ids = row.emotions?.map((re) => re.emotion_id) ?? [];
+      const plainReview = row.toJSON();
+      delete plainReview.emotions;
+
+      let entityData: any = null;
+      if (row.entity_type === 'place' && row.dataValues.place) {
+        entityData = {
+          id: row.dataValues.place.id,
+          name: row.dataValues.place.translation?.name || null,
+          image: row.dataValues.place.image,
+          type: 'place',
+        };
+      } else if (row.entity_type === 'event' && row.dataValues.event) {
+        entityData = {
+          id: row.dataValues.event.id,
+          name: row.dataValues.event.translation?.name || null,
+          image: row.dataValues.event.image,
+          type: 'event',
+        };
+      }
+
+      delete plainReview?.place;
+      delete plainReview?.event;
+
+      return {
+        ...plainReview,
+        emotion_ids,
+        entity: entityData,
+      };
+    });
+
+    return {
+      data: formattedRows,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
+    };
   }
 }

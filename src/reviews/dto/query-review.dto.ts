@@ -1,5 +1,5 @@
 import { IsOptional, IsInt, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class QueryReviewDto {
   @IsOptional()
@@ -25,4 +25,20 @@ export class QueryReviewDto {
   @IsInt()
   @Type(() => Number)
   limit?: number = 10;
+}
+
+export class GetMyReviewsDto {
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => (value ? parseInt(value) : 1))
+  page?: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => (value ? parseInt(value) : 10))
+  limit?: number = 10;
+
+  @IsOptional()
+  @IsEnum(['place', 'event'])
+  type?: 'place' | 'event';
 }
