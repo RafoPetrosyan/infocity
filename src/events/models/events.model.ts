@@ -15,6 +15,7 @@ import { DOMAIN_URL } from '../../../constants';
 import { Place } from '../../places/models/places.model';
 import { User } from '../../users/models/user.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
+import { Review } from '../../reviews/models/review.model';
 
 @Table({ tableName: 'events' })
 export class Event extends Model {
@@ -113,4 +114,13 @@ export class Event extends Model {
     },
   })
   declare followers: UserFollow[];
+
+  @HasMany(() => Review, {
+    foreignKey: 'entity_id',
+    constraints: false,
+    scope: {
+      entity_type: 'event',
+    },
+  })
+  declare reviews: Review[];
 }

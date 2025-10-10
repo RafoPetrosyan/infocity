@@ -15,6 +15,7 @@ import { PlacesModule } from './places/places.module';
 import { EventsModule } from './events/events.module';
 import { EventCategoriesModule } from './events/event-categories.module';
 import { FollowsModule } from './follows/follows.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import * as path from 'node:path';
 
 @Module({
@@ -54,6 +55,7 @@ import * as path from 'node:path';
     EventsModule,
     EventCategoriesModule,
     FollowsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

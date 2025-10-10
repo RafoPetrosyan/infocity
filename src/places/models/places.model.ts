@@ -18,6 +18,7 @@ import { PlaceImages } from './places-images.model';
 import { PlaceWorkingTimes } from './places-working-times.model';
 import { User } from '../../users/models/user.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
+import { Review } from '../../reviews/models/review.model';
 
 @Table({ tableName: 'places' })
 export class Place extends Model {
@@ -119,4 +120,13 @@ export class Place extends Model {
     },
   })
   declare followers: UserFollow[];
+
+  @HasMany(() => Review, {
+    foreignKey: 'entity_id',
+    constraints: false,
+    scope: {
+      entity_type: 'place',
+    },
+  })
+  declare reviews: Review[];
 }
