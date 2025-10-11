@@ -19,6 +19,7 @@ import { PlaceWorkingTimes } from './places-working-times.model';
 import { User } from '../../users/models/user.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
 import { Review } from '../../reviews/models/review.model';
+import { EntityEmotionCounts } from '../../reviews/models/entity-emotion-counts.model';
 
 @Table({ tableName: 'places' })
 export class Place extends Model {
@@ -129,4 +130,13 @@ export class Place extends Model {
     },
   })
   declare reviews: Review[];
+
+  @HasMany(() => EntityEmotionCounts, {
+    foreignKey: 'entity_id',
+    constraints: false,
+    scope: {
+      entity_type: 'place',
+    },
+  })
+  declare emotions: EntityEmotionCounts[];
 }

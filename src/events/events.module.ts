@@ -12,6 +12,7 @@ import { CityModel } from '../cities/models/city.model';
 import { CityTranslation } from '../cities/models/city-translation.model';
 import { EventCategory } from './models/event-category.model';
 import { EventCategoryTranslation } from './models/event-category-translation.model';
+import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EventCategoryTranslation } from './models/event-category-translation.mo
       CityModel,
       CityTranslation,
       User,
+      EntityEmotionCounts,
     ]),
   ],
   providers: [EventsService],
