@@ -28,6 +28,9 @@ import { QueryDto } from '../../types/query.dto';
 import { PlaceSection } from './models/place-sections.model';
 import { PlaceSectionTranslation } from './models/place-sections-translation.model';
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
+import { User } from '../users/models/user.model';
+import { EmotionsModel } from '../emotions/models/emotions.model';
+import { UserFollow } from '../follows/models/user-follow.model';
 
 @Injectable()
 export class PlacesService {
@@ -61,6 +64,15 @@ export class PlacesService {
 
     @InjectModel(EntityEmotionCounts)
     private entityEmotionCountsModel: typeof EntityEmotionCounts,
+
+    @InjectModel(User)
+    private usersModel: typeof User,
+
+    @InjectModel(EmotionsModel)
+    private emotionsModel: typeof EmotionsModel,
+
+    @InjectModel(UserFollow)
+    private userFollowModel: typeof UserFollow,
   ) {}
 
   /** Get Place by ID **/
@@ -243,6 +255,40 @@ export class PlacesService {
       attributes.push([Sequelize.literal('false'), 'is_followed']);
     }
 
+    let userEmotionIds: number[] = [];
+    if (userId && !query.emotion_id) {
+      const user = await this.usersModel.findByPk(userId, {
+        attributes: ['id'],
+        include: [
+          {
+            model: this.emotionsModel,
+            attributes: ['id'],
+            through: { attributes: [] },
+          },
+        ],
+      });
+
+      if (user?.emotions) {
+        userEmotionIds = user.emotions.map((e) => e.id);
+      }
+    }
+
+    if (query.emotion_id) {
+      userEmotionIds.push(query.emotion_id);
+    }
+
+    const emotionCondition =
+      userEmotionIds.length > 0
+        ? `CASE WHEN EXISTS (
+        SELECT 1 FROM "entity_emotion_counts" eec
+        WHERE eec.entity_type = 'place'
+          AND eec.entity_id = "Place"."id"
+          AND eec.emotion_id IN (${userEmotionIds.join(',')})
+      ) THEN 1 ELSE 0 END`
+        : '0';
+
+    attributes.push([Sequelize.literal(emotionCondition), 'has_user_emotion']);
+
     const { rows, count: total } = await this.placeModel.findAndCountAll({
       where,
       attributes,
@@ -271,15 +317,14 @@ export class PlacesService {
           required: true,
           where: {
             ...(query.search
-              ? {
-                  name: { [Op.iLike]: `%${query.search}%` },
-                }
+              ? { name: { [Op.iLike]: `%${query.search}%` } }
               : {}),
           },
         },
       ],
       limit,
       offset,
+      order: [[Sequelize.literal('"has_user_emotion"'), 'DESC']],
     });
 
     return {

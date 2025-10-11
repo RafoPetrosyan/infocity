@@ -117,7 +117,7 @@ export class Place extends Model {
     foreignKey: 'entity_id',
     constraints: false,
     scope: {
-      followable_type: 'place',
+      entity_type: 'place',
     },
   })
   declare followers: UserFollow[];
