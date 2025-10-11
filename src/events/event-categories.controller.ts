@@ -69,3 +69,4 @@ export class EventCategoriesController {
     return this.eventCategoriesService.delete(id);
   }
 }
+
