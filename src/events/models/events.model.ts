@@ -111,7 +111,7 @@ export class Event extends Model {
     foreignKey: 'entity_id',
     constraints: false,
     scope: {
-      followable_type: 'event',
+      entity_type: 'event',
     },
   })
   declare followers: UserFollow[];
