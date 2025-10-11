@@ -4,7 +4,7 @@ import {
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Event } from './models/events.model';
 import { EventTranslation } from './models/events-translation.model';
 import { EventCategory } from './models/event-category.model';
@@ -15,7 +15,7 @@ import slugify from 'slugify';
 import { Place } from '../places/models/places.model';
 import { EventImages } from './models/events-images.model';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Op, Sequelize } from 'sequelize';
+import { Op, Sequelize, QueryTypes } from 'sequelize';
 import { PlaceTranslation } from '../places/models/places-translation.model';
 import { CityModel } from '../cities/models/city.model';
 import { CityTranslation } from '../cities/models/city-translation.model';
@@ -24,6 +24,8 @@ import { QueryDto } from '../../types/query.dto';
 import { unlinkFiles } from '../../utils/unlink-files';
 import { DOMAIN_URL } from '../../constants';
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
+import { User } from '../users/models/user.model';
+import { EmotionsModel } from '../emotions/models/emotions.model';
 
 @Injectable()
 export class EventsService {
@@ -57,6 +59,14 @@ export class EventsService {
 
     @InjectModel(EntityEmotionCounts)
     private entityEmotionCountsModel: typeof EntityEmotionCounts,
+
+    @InjectModel(User)
+    private usersModel: typeof User,
+
+    @InjectModel(EmotionsModel)
+    private emotionsModel: typeof EmotionsModel,
+
+    @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
 
   /** Get Event by ID **/
@@ -217,85 +227,155 @@ export class EventsService {
   }
 
   /** Get Events list **/
+  /** Get Events list **/
   async getAll(query: QueryDto, lang: LanguageEnum, userId?: number) {
     const page = query.page || 1;
     const limit = query.limit || 10;
     const offset = (page - 1) * limit;
 
-    const where: any = {};
-    if (query.place_id) where.place_id = query.place_id;
-    if (query.is_active !== undefined) where.is_active = query.is_active;
-    if (query.is_featured !== undefined) where.is_featured = query.is_featured;
-    if (query.event_category_id)
-      where.event_category_id = query.event_category_id;
-
-    // Add date filtering
-    if (query.start_date) {
-      where.start_date = { [Op.gte]: new Date(query.start_date) };
-    }
-    if (query.end_date) {
-      where.end_date = { [Op.lte]: new Date(query.end_date) };
-    }
-
-    const attributes: any[] = [
-      'id',
-      'image',
-      'slug',
-      'start_date',
-      'end_date',
-      'price',
-      'place_id',
-      [Sequelize.col('translation.name'), 'name'],
-    ];
-
-    if (userId) {
-      attributes.push([
-        Sequelize.literal(`EXISTS (
-        SELECT 1 FROM "user_follows" uf
-        WHERE uf.entity_type = 'event'
-          AND uf.entity_id = "Event"."id"
-          AND uf.user_id = ${userId}
-      )`),
-        'is_followed',
-      ]);
-    } else {
-      attributes.push([Sequelize.literal('false'), 'is_followed']);
-    }
-
-    const { rows, count: total } = await this.eventModel.findAndCountAll({
-      where,
-      attributes,
-      distinct: true,
-      include: [
-        {
-          model: this.eventTranslationModel,
-          as: 'translation',
-          attributes: [],
-          where: { language: lang },
-        },
-        {
-          model: this.entityEmotionCountsModel,
-          as: 'emotions',
-          attributes: ['emotion_id', 'count'],
-        },
-        {
-          model: this.eventTranslationModel,
-          as: 'translations',
-          attributes: [],
-          required: true,
-          where: {
-            ...(query.search
-              ? {
-                  name: { [Op.iLike]: `%${query.search}%` },
-                }
-              : {}),
-          },
-        },
-      ],
-      order: [['start_date', 'ASC']],
+    const where: string[] = [];
+    const replacements: any = {
+      lang,
       limit,
       offset,
-    });
+      cdn_url: `${DOMAIN_URL}/uploads/events/`,
+    };
+
+    // --- filters ---
+    if (query.place_id) {
+      where.push(`e.place_id = :place_id`);
+      replacements.place_id = query.place_id;
+    }
+    if (query.is_active !== undefined) {
+      where.push(`e.is_active = :is_active`);
+      replacements.is_active = query.is_active;
+    }
+    if (query.is_featured !== undefined) {
+      where.push(`e.is_featured = :is_featured`);
+      replacements.is_featured = query.is_featured;
+    }
+    if (query.event_category_id) {
+      where.push(`e.event_category_id = :event_category_id`);
+      replacements.event_category_id = query.event_category_id;
+    }
+    if (query.start_date) {
+      where.push(`e.start_date >= :start_date`);
+      replacements.start_date = query.start_date;
+    }
+    if (query.end_date) {
+      where.push(`e.end_date <= :end_date`);
+      replacements.end_date = query.end_date;
+    }
+    if (query.search) {
+      where.push(`et.name ILIKE :search`);
+      replacements.search = `%${query.search}%`;
+    }
+
+    // --- user emotions setup ---
+    let userEmotionIds: number[] = [];
+    if (userId && !query.emotion_id) {
+      const user = await this.usersModel.findByPk(userId, {
+        attributes: ['id'],
+        include: [
+          {
+            model: this.emotionsModel,
+            attributes: ['id'],
+            through: { attributes: [] },
+          },
+        ],
+      });
+      if (user?.emotions) {
+        userEmotionIds = user.emotions.map((e) => e.id);
+      }
+    }
+
+    if (query.emotion_id) {
+      userEmotionIds.push(query.emotion_id);
+    }
+
+    const emotionIdsSql =
+      userEmotionIds.length > 0 ? `(${userEmotionIds.join(',')})` : '(NULL)';
+
+    const emotionCondition = `
+    CASE WHEN EXISTS (
+      SELECT 1 FROM entity_emotion_counts eec
+      WHERE eec.entity_type = 'event'
+        AND eec.entity_id = e.id
+        AND eec.emotion_id IN ${emotionIdsSql}
+    ) THEN 1 ELSE 0 END AS has_user_emotion
+  `;
+
+    const isFollowedCondition = userId
+      ? `EXISTS (
+        SELECT 1 FROM user_follows uf
+        WHERE uf.entity_type = 'event'
+          AND uf.entity_id = e.id
+          AND uf.user_id = ${userId}
+      ) AS is_followed`
+      : `FALSE AS is_followed`;
+
+    // --- where clause ---
+    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    // --- sort setup ---
+    const sortField = query.sort_field || 'start_date';
+    const sortOrder = query.sort_order === 'DESC' ? 'DESC' : 'ASC';
+    const orderClause = `ORDER BY has_user_emotion DESC, e.${sortField} ${sortOrder}, e.id DESC`;
+
+    // --- main query ---
+    const sql = `
+    SELECT
+      e.id,
+      (:cdn_url || e.image) AS image,
+      e.slug,
+      e.start_date,
+      e.end_date,
+      e.price,
+      e.place_id,
+      et.name,
+      ${isFollowedCondition},
+      ${emotionCondition},
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'emotion_id', eec.emotion_id,
+            'count', eec.count
+          )
+        ) FILTER (WHERE eec.emotion_id IS NOT NULL),
+        '[]'
+      ) AS emotions
+    FROM events e
+           JOIN event_translations et
+                ON et.event_id = e.id AND et.language = :lang
+           LEFT JOIN entity_emotion_counts eec
+                     ON eec.entity_type = 'event' AND eec.entity_id = e.id
+      ${whereClause}
+    GROUP BY e.id, et.name
+    ${orderClause}
+    LIMIT :limit OFFSET :offset
+  `;
+
+    const countSql = `
+    SELECT COUNT(DISTINCT e.id) AS total
+    FROM events e
+           JOIN event_translations et
+                ON et.event_id = e.id AND et.language = :lang
+      ${whereClause}
+  `;
+
+    const [rows, countResult] = await Promise.all([
+      this.sequelize.query(sql, {
+        replacements,
+        type: QueryTypes.SELECT,
+      }),
+      this.sequelize.query(countSql, {
+        replacements,
+        type: QueryTypes.SELECT,
+      }),
+    ]);
+
+    // @ts-ignore
+    const total = Number(countResult[0]?.total || 0);
 
     return {
       data: rows,

@@ -68,4 +68,12 @@ export class QueryDto {
   @IsOptional()
   @IsInt()
   emotion_id?: number;
+
+  @IsOptional()
+  @IsString()
+  sort_field?: string;
+
+  @IsOptional()
+  @IsString()
+  sort_order?: string;
 }
