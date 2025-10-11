@@ -23,6 +23,8 @@ import { ItemsController } from './items.controller';
 import { ItemImagesService } from './item-images.service';
 import { ItemImagesController } from './item-images.controller';
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
+import { EmotionsModel } from '../emotions/models/emotions.model';
+import { UserFollow } from '../follows/models/user-follow.model';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.mod
       CityTranslation,
       CategoryTranslation,
       EntityEmotionCounts,
+      EmotionsModel,
+      UserFollow,
     ]),
   ],
   providers: [
