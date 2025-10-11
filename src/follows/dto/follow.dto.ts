@@ -25,3 +25,4 @@ export class GetFollowsDto {
   @IsEnum(['place', 'event'])
   type?: 'place' | 'event';
 }
+

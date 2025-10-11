@@ -6,6 +6,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Review } from './models/review.model';
 import { ReviewEmotions } from './models/review-emotions.model';
+import { EntityEmotionCounts } from './models/entity-emotion-counts.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { User } from '../users/models/user.model';
 import { Place } from '../places/models/places.model';
@@ -26,6 +27,8 @@ export class ReviewsService {
     private reviewModel: typeof Review,
     @InjectModel(ReviewEmotions)
     private reviewEmotionsModel: typeof ReviewEmotions,
+    @InjectModel(EntityEmotionCounts)
+    private entityEmotionCountsModel: typeof EntityEmotionCounts,
     @InjectModel(EmotionsModel)
     private emotionsModel: typeof EmotionsModel,
     @InjectModel(Place)
@@ -70,6 +73,12 @@ export class ReviewsService {
     // Add emotions if provided
     if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
       await this.addEmotionsToReview(review.id, createReviewDto.emotion_ids);
+      // Update emotion counts for the entity
+      await this.incrementEmotionCounts(
+        createReviewDto.entity_id,
+        createReviewDto.entity_type,
+        createReviewDto.emotion_ids,
+      );
     }
 
     return this.findOne(review.id);
@@ -127,6 +136,13 @@ export class ReviewsService {
 
     // Update emotions if provided
     if (updateReviewDto.emotion_ids !== undefined) {
+      // Get current emotions before updating
+      const currentEmotions = await this.reviewEmotionsModel.findAll({
+        where: { review_id: id },
+        attributes: ['emotion_id'],
+      });
+      const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+
       // Remove existing emotions
       await this.reviewEmotionsModel.destroy({
         where: { review_id: id },
@@ -136,6 +152,14 @@ export class ReviewsService {
       if (updateReviewDto.emotion_ids.length > 0) {
         await this.addEmotionsToReview(id, updateReviewDto.emotion_ids);
       }
+
+      // Update emotion counts for the entity
+      await this.updateEmotionCounts(
+        review.entity_id,
+        review.entity_type,
+        currentEmotionIds,
+        updateReviewDto.emotion_ids || [],
+      );
     }
 
     return this.findOne(id);
@@ -152,10 +176,26 @@ export class ReviewsService {
       );
     }
 
+    // Get current emotions before removing
+    const currentEmotions = await this.reviewEmotionsModel.findAll({
+      where: { review_id: id },
+      attributes: ['emotion_id'],
+    });
+    const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+
     // Remove associated emotions first
     await this.reviewEmotionsModel.destroy({
       where: { review_id: id },
     });
+
+    // Update emotion counts for the entity (decrement)
+    if (currentEmotionIds.length > 0) {
+      await this.decrementEmotionCounts(
+        review.entity_id,
+        review.entity_type,
+        currentEmotionIds,
+      );
+    }
 
     await review.destroy();
   }
@@ -247,6 +287,133 @@ export class ReviewsService {
     }));
 
     await this.reviewEmotionsModel.bulkCreate(reviewEmotions);
+  }
+
+  /**
+   * Updates emotion counts for an entity when emotions are added
+   */
+  private async incrementEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+    emotionIds: number[],
+  ): Promise<void> {
+    if (emotionIds.length === 0) return;
+
+    for (const emotionId of emotionIds) {
+      // Use findOrCreate to either find existing record or create new one
+      const [emotionCount, created] = await this.entityEmotionCountsModel.findOrCreate({
+        where: {
+          entity_id: entityId,
+          entity_type: entityType,
+          emotion_id: emotionId,
+        },
+        defaults: {
+          entity_id: entityId,
+          entity_type: entityType,
+          emotion_id: emotionId,
+          count: 1,
+        },
+      });
+
+      // If the record already exists, increment the count
+      if (!created) {
+        await emotionCount.increment('count');
+      }
+    }
+  }
+
+  /**
+   * Updates emotion counts for an entity when emotions are removed
+   */
+  private async decrementEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+    emotionIds: number[],
+  ): Promise<void> {
+    if (emotionIds.length === 0) return;
+
+    for (const emotionId of emotionIds) {
+      const emotionCount = await this.entityEmotionCountsModel.findOne({
+        where: {
+          entity_id: entityId,
+          entity_type: entityType,
+          emotion_id: emotionId,
+        },
+      });
+
+      if (emotionCount) {
+        if (emotionCount.count > 1) {
+          // Decrement the count
+          await emotionCount.decrement('count');
+        } else {
+          // Remove the record if count is 1
+          await emotionCount.destroy();
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates emotion counts when emotions are changed (for update operations)
+   */
+  private async updateEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+    oldEmotionIds: number[],
+    newEmotionIds: number[],
+  ): Promise<void> {
+    // Find emotions to add and remove
+    const emotionsToAdd = newEmotionIds.filter(
+      (id) => !oldEmotionIds.includes(id),
+    );
+    const emotionsToRemove = oldEmotionIds.filter(
+      (id) => !newEmotionIds.includes(id),
+    );
+
+    // Remove old emotions
+    if (emotionsToRemove.length > 0) {
+      await this.decrementEmotionCounts(entityId, entityType, emotionsToRemove);
+    }
+
+    // Add new emotions
+    if (emotionsToAdd.length > 0) {
+      await this.incrementEmotionCounts(entityId, entityType, emotionsToAdd);
+    }
+  }
+
+  /**
+   * Gets emotion counts for a specific entity
+   * Returns all emotions with their counts, including 0 for emotions with no reviews
+   */
+  async getEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+  ): Promise<Array<{ emotion_id: number; count: number }>> {
+    // Get all available emotions
+    const allEmotions = await this.emotionsModel.findAll({
+      attributes: ['id'],
+      order: [['id', 'ASC']],
+    });
+
+    // Get existing emotion counts for this entity
+    const existingCounts = await this.entityEmotionCountsModel.findAll({
+      where: {
+        entity_id: entityId,
+        entity_type: entityType,
+      },
+      attributes: ['emotion_id', 'count'],
+    });
+
+    // Create a map of existing counts for quick lookup
+    const countMap = new Map(
+      existingCounts.map((ec) => [ec.emotion_id, ec.count]),
+    );
+
+    // Return all emotions with their counts (0 if not found)
+    return allEmotions.map((emotion) => ({
+      emotion_id: emotion.id,
+      count: countMap.get(emotion.id) || 0,
+    }));
   }
 
   async getUserReviews(

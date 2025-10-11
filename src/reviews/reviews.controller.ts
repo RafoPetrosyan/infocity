@@ -14,7 +14,7 @@ import {
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { QueryReviewDto, GetMyReviewsDto } from './dto/query-review.dto';
+import { GetMyReviewsDto } from './dto/query-review.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -57,6 +57,14 @@ export class ReviewsController {
       page,
       limit,
     );
+  }
+
+  @Get('/:entityId/:entityType/emotion-counts')
+  getEmotionCounts(
+    @Param('entityId', ParseIntPipe) entityId: number,
+    @Param('entityType') entityType: 'place' | 'event',
+  ) {
+    return this.reviewsService.getEmotionCounts(entityId, entityType);
   }
 
   @Put(':id')
