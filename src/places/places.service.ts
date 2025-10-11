@@ -27,6 +27,7 @@ import { CityTranslation } from '../cities/models/city-translation.model';
 import { QueryDto } from '../../types/query.dto';
 import { PlaceSection } from './models/place-sections.model';
 import { PlaceSectionTranslation } from './models/place-sections-translation.model';
+import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 
 @Injectable()
 export class PlacesService {
@@ -57,6 +58,9 @@ export class PlacesService {
 
     @InjectModel(PlaceSectionTranslation)
     private placeSectionTranslationModel: typeof PlaceSectionTranslation,
+
+    @InjectModel(EntityEmotionCounts)
+    private entityEmotionCountsModel: typeof EntityEmotionCounts,
   ) {}
 
   /** Get Place by ID **/
@@ -112,6 +116,11 @@ export class PlacesService {
           model: this.workingTimes,
           as: 'working_times',
           attributes: { exclude: ['place_id'] },
+        },
+        {
+          model: this.entityEmotionCountsModel,
+          as: 'emotions',
+          attributes: ['emotion_id', 'count'],
         },
         {
           model: this.cityModel,
@@ -249,6 +258,11 @@ export class PlacesService {
           model: this.categoryModel,
           as: 'category',
           attributes: ['slug'],
+        },
+        {
+          model: this.entityEmotionCountsModel,
+          as: 'emotions',
+          attributes: ['emotion_id', 'count'],
         },
         {
           model: this.placeTranslationModel,

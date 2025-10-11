@@ -16,6 +16,7 @@ import { Place } from '../../places/models/places.model';
 import { User } from '../../users/models/user.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
 import { Review } from '../../reviews/models/review.model';
+import { EntityEmotionCounts } from '../../reviews/models/entity-emotion-counts.model';
 
 @Table({ tableName: 'events' })
 export class Event extends Model {
@@ -123,4 +124,13 @@ export class Event extends Model {
     },
   })
   declare reviews: Review[];
+
+  @HasMany(() => EntityEmotionCounts, {
+    foreignKey: 'entity_id',
+    constraints: false,
+    scope: {
+      entity_type: 'event',
+    },
+  })
+  declare emotions: EntityEmotionCounts[];
 }

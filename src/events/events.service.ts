@@ -23,6 +23,7 @@ import { LanguageEnum } from '../../types';
 import { QueryDto } from '../../types/query.dto';
 import { unlinkFiles } from '../../utils/unlink-files';
 import { DOMAIN_URL } from '../../constants';
+import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 
 @Injectable()
 export class EventsService {
@@ -53,6 +54,9 @@ export class EventsService {
 
     @InjectModel(EventCategoryTranslation)
     private eventCategoryTranslationModel: typeof EventCategoryTranslation,
+
+    @InjectModel(EntityEmotionCounts)
+    private entityEmotionCountsModel: typeof EntityEmotionCounts,
   ) {}
 
   /** Get Event by ID **/
@@ -155,6 +159,11 @@ export class EventsService {
               where: { language: lang },
             },
           ],
+        },
+        {
+          model: this.entityEmotionCountsModel,
+          as: 'emotions',
+          attributes: ['emotion_id', 'count'],
         },
       ],
     });
@@ -263,6 +272,11 @@ export class EventsService {
           as: 'translation',
           attributes: [],
           where: { language: lang },
+        },
+        {
+          model: this.entityEmotionCountsModel,
+          as: 'emotions',
+          attributes: ['emotion_id', 'count'],
         },
         {
           model: this.eventTranslationModel,
