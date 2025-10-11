@@ -4,7 +4,7 @@ import {
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel, InjectConnection } from '@nestjs/sequelize';
 import { Place } from './models/places.model';
 import { PlaceTranslation } from './models/places-translation.model';
 import { unlink } from 'fs/promises';
@@ -20,7 +20,7 @@ import {
 import { PlaceWorkingTimes } from './models/places-working-times.model';
 import { PlaceImages } from './models/places-images.model';
 import { UpdatePlaceDto } from './dto/update-place.dto';
-import { Op, Sequelize } from 'sequelize';
+import { Op, Sequelize, QueryTypes } from 'sequelize';
 import { LanguageEnum } from '../../types';
 import { CreateAttractionDto } from './dto/create-attraction.dto';
 import { CityTranslation } from '../cities/models/city-translation.model';
@@ -31,6 +31,7 @@ import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.mod
 import { User } from '../users/models/user.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { UserFollow } from '../follows/models/user-follow.model';
+import { DOMAIN_URL } from '../../constants';
 
 @Injectable()
 export class PlacesService {
@@ -73,6 +74,8 @@ export class PlacesService {
 
     @InjectModel(UserFollow)
     private userFollowModel: typeof UserFollow,
+
+    @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
 
   /** Get Place by ID **/
@@ -230,31 +233,25 @@ export class PlacesService {
     const limit = query.limit || 10;
     const offset = (page - 1) * limit;
 
-    const where: any = {};
-    if (query.category_id) where.category_id = query.category_id;
+    const where: string[] = [];
+    const replacements: any = {
+      lang,
+      limit,
+      offset,
+      cdn_url: `${DOMAIN_URL}/uploads/places/`,
+    };
 
-    const attributes: any[] = [
-      'id',
-      'image',
-      'slug',
-      [Sequelize.col('translation.name'), 'name'],
-      [Sequelize.col('translation.description'), 'description'],
-    ];
-
-    if (userId) {
-      attributes.push([
-        Sequelize.literal(`EXISTS (
-        SELECT 1 FROM "user_follows" uf
-        WHERE uf.entity_type = 'place'
-          AND uf.entity_id = "Place"."id"
-          AND uf.user_id = ${userId}
-      )`),
-        'is_followed',
-      ]);
-    } else {
-      attributes.push([Sequelize.literal('false'), 'is_followed']);
+    if (query.category_id) {
+      where.push(`p.category_id = :category_id`);
+      replacements.category_id = query.category_id;
     }
 
+    if (query.search) {
+      where.push(`pt.name ILIKE :search`);
+      replacements.search = `%${query.search}%`;
+    }
+
+    // --- user emotions setup ---
     let userEmotionIds: number[] = [];
     if (userId && !query.emotion_id) {
       const user = await this.usersModel.findByPk(userId, {
@@ -267,7 +264,6 @@ export class PlacesService {
           },
         ],
       });
-
       if (user?.emotions) {
         userEmotionIds = user.emotions.map((e) => e.id);
       }
@@ -277,55 +273,83 @@ export class PlacesService {
       userEmotionIds.push(query.emotion_id);
     }
 
-    const emotionCondition =
-      userEmotionIds.length > 0
-        ? `CASE WHEN EXISTS (
-        SELECT 1 FROM "entity_emotion_counts" eec
-        WHERE eec.entity_type = 'place'
-          AND eec.entity_id = "Place"."id"
-          AND eec.emotion_id IN (${userEmotionIds.join(',')})
-      ) THEN 1 ELSE 0 END`
-        : '0';
+    const emotionIdsSql =
+      userEmotionIds.length > 0 ? `(${userEmotionIds.join(',')})` : '(NULL)';
 
-    attributes.push([Sequelize.literal(emotionCondition), 'has_user_emotion']);
+    const emotionCondition = `
+    CASE WHEN EXISTS (
+      SELECT 1 FROM entity_emotion_counts eec
+      WHERE eec.entity_type = 'place'
+        AND eec.entity_id = p.id
+        AND eec.emotion_id IN ${emotionIdsSql}
+    ) THEN 1 ELSE 0 END AS has_user_emotion
+  `;
 
-    const { rows, count: total } = await this.placeModel.findAndCountAll({
-      where,
-      attributes,
-      distinct: true,
-      include: [
-        {
-          model: this.placeTranslationModel,
-          as: 'translation',
-          attributes: [],
-          where: { language: lang },
-        },
-        {
-          model: this.categoryModel,
-          as: 'category',
-          attributes: ['slug'],
-        },
-        {
-          model: this.entityEmotionCountsModel,
-          as: 'emotions',
-          attributes: ['emotion_id', 'count'],
-        },
-        {
-          model: this.placeTranslationModel,
-          as: 'translations',
-          attributes: [],
-          required: true,
-          where: {
-            ...(query.search
-              ? { name: { [Op.iLike]: `%${query.search}%` } }
-              : {}),
-          },
-        },
-      ],
-      limit,
-      offset,
-      order: [[Sequelize.literal('"has_user_emotion"'), 'DESC']],
-    });
+    const isFollowedCondition = userId
+      ? `EXISTS (
+        SELECT 1 FROM user_follows uf
+        WHERE uf.entity_type = 'place'
+          AND uf.entity_id = p.id
+          AND uf.user_id = ${userId}
+      ) AS is_followed`
+      : `FALSE AS is_followed`;
+
+    // --- where clause ---
+    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    // --- main query ---
+    const sql = `
+      SELECT
+        p.id,
+        (:cdn_url || p.image) AS image,
+        p.slug,
+        pt.name,
+        pt.description,
+        c.slug AS category_slug,
+        ${isFollowedCondition},
+        ${emotionCondition},
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+          'emotion_id', eec.emotion_id,
+          'count', eec.count
+        )
+      ) FILTER (WHERE eec.emotion_id IS NOT NULL),
+          '[]'
+        ) AS emotions
+      FROM places p
+             JOIN place_translations pt
+                  ON pt.place_id = p.id AND pt.language = :lang
+             LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN entity_emotion_counts eec
+                       ON eec.entity_type = 'place' AND eec.entity_id = p.id
+        ${whereClause}
+      GROUP BY p.id, pt.name, pt.description, c.slug
+      ORDER BY has_user_emotion DESC, p.id DESC
+        LIMIT :limit OFFSET :offset
+    `;
+
+    const countSql = `
+      SELECT COUNT(DISTINCT p.id) AS total
+      FROM places p
+             JOIN place_translations pt
+                  ON pt.place_id = p.id AND pt.language = :lang
+        ${whereClause}
+    `;
+
+    const [rows, countResult] = await Promise.all([
+      this.sequelize.query(sql, {
+        replacements,
+        type: QueryTypes.SELECT,
+      }),
+      this.sequelize.query(countSql, {
+        replacements,
+        type: QueryTypes.SELECT,
+      }),
+    ]);
+
+    // @ts-ignore
+    const total = Number(countResult[0]?.total || 0);
 
     return {
       data: rows,
