@@ -8,6 +8,7 @@ import { Review } from './models/review.model';
 import { ReviewEmotions } from './models/review-emotions.model';
 import { EntityEmotionCounts } from './models/entity-emotion-counts.model';
 import { ReviewReply } from './models/review-reply.model';
+import { ReviewLike } from './models/review-like.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { User } from '../users/models/user.model';
 import { Place } from '../places/models/places.model';
@@ -17,6 +18,7 @@ import { UpdateReviewDto } from './dto/update-review.dto';
 import { GetMyReviewsDto } from './dto/query-review.dto';
 import { CreateReviewReplyDto } from './dto/create-review-reply.dto';
 import { UpdateReviewReplyDto } from './dto/update-review-reply.dto';
+import { ToggleLikeDto } from './dto/toggle-like.dto';
 import { Op } from 'sequelize';
 import { LanguageEnum } from '../../types';
 import { Sequelize } from 'sequelize-typescript';
@@ -34,6 +36,8 @@ export class ReviewsService {
     private entityEmotionCountsModel: typeof EntityEmotionCounts,
     @InjectModel(ReviewReply)
     private reviewReplyModel: typeof ReviewReply,
+    @InjectModel(ReviewLike)
+    private reviewLikeModel: typeof ReviewLike,
     @InjectModel(EmotionsModel)
     private emotionsModel: typeof EmotionsModel,
     @InjectModel(Place)
@@ -203,6 +207,7 @@ export class ReviewsService {
     entityType: 'place' | 'event',
     page = 1,
     limit = 10,
+    userId?: number,
   ) {
     const offset = (page - 1) * limit;
 
@@ -230,6 +235,26 @@ export class ReviewsService {
           WHERE rr.review_id = "Review".id
         )`),
             'replies_count',
+          ],
+          [
+            Sequelize.literal(`(
+          SELECT COUNT(*)
+          FROM "review_likes" AS rl
+          WHERE rl.review_id = "Review".id
+        )`),
+            'likes_count',
+          ],
+          [
+            Sequelize.literal(`(
+          CASE WHEN EXISTS (
+            SELECT 1
+            FROM "review_likes" AS rl2
+            WHERE rl2.review_id = "Review".id
+              AND rl2.user_id = ${userId || 0}
+          )
+          THEN true ELSE false END
+        )`),
+            'is_liked',
           ],
         ],
       },
@@ -599,6 +624,7 @@ export class ReviewsService {
     reviewId: number,
     page = 1,
     limit = 10,
+    userId?: number,
   ): Promise<any> {
     const offset = (page - 1) * limit;
 
@@ -617,6 +643,30 @@ export class ReviewsService {
             attributes: ['id', 'first_name', 'last_name', 'avatar'],
           },
         ],
+        attributes: {
+          include: [
+            [
+              Sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM "review_likes" AS rl
+              WHERE rl.reply_id = "ReviewReply".id
+            )`),
+              'likes_count',
+            ],
+            [
+              Sequelize.literal(`(
+              CASE WHEN EXISTS (
+                SELECT 1
+                FROM "review_likes" AS rl2
+                WHERE rl2.reply_id = "ReviewReply".id
+                  AND rl2.user_id = ${userId || 0}
+              )
+              THEN true ELSE false END
+            )`),
+              'is_liked',
+            ],
+          ],
+        },
         order: [['createdAt', 'ASC']],
         limit,
         offset,
@@ -632,5 +682,93 @@ export class ReviewsService {
         pages_count: Math.ceil(count / limit),
       },
     };
+  }
+
+  /**
+   * Toggle like on a review or reply
+   * If user already liked it, removes the like
+   * If user hasn't liked it, adds a like
+   */
+  async toggleLike(
+    toggleLikeDto: ToggleLikeDto,
+    userId: number,
+  ): Promise<{ message: string; liked: boolean }> {
+    const { review_id, reply_id } = toggleLikeDto;
+
+    // Validate that either review_id or reply_id is provided, but not both
+    if ((!review_id && !reply_id) || (review_id && reply_id)) {
+      throw new BadRequestException(
+        'Either review_id or reply_id must be provided, but not both',
+      );
+    }
+
+    // Validate that the review or reply exists
+    if (review_id) {
+      const review = await this.reviewModel.findByPk(review_id);
+      if (!review) {
+        throw new NotFoundException('Review not found');
+      }
+    } else if (reply_id) {
+      const reply = await this.reviewReplyModel.findByPk(reply_id);
+      if (!reply) {
+        throw new NotFoundException('Reply not found');
+      }
+    }
+
+    // Find existing like
+    const whereCondition: any = { user_id: userId };
+    if (review_id) {
+      whereCondition.review_id = review_id;
+    } else {
+      whereCondition.reply_id = reply_id;
+    }
+
+    const existingLike = await this.reviewLikeModel.findOne({
+      where: whereCondition,
+    });
+
+    if (existingLike) {
+      // If the user already liked it, remove the like
+      await existingLike.destroy();
+      return {
+        message: 'Like removed',
+        liked: false,
+      };
+    } else {
+      // Create new like
+      await this.reviewLikeModel.create({
+        user_id: userId,
+        review_id: review_id || null,
+        reply_id: reply_id || null,
+      });
+      return {
+        message: 'Like added',
+        liked: true,
+      };
+    }
+  }
+
+  /**
+   * Check if user has liked a review or reply
+   */
+  async hasUserLiked(
+    userId: number,
+    reviewId?: number,
+    replyId?: number,
+  ): Promise<boolean> {
+    const whereCondition: any = { user_id: userId };
+    if (reviewId) {
+      whereCondition.review_id = reviewId;
+    } else if (replyId) {
+      whereCondition.reply_id = replyId;
+    } else {
+      return false;
+    }
+
+    const like = await this.reviewLikeModel.findOne({
+      where: whereCondition,
+    });
+
+    return !!like;
   }
 }

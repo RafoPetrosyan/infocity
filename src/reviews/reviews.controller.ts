@@ -17,7 +17,9 @@ import { UpdateReviewDto } from './dto/update-review.dto';
 import { GetMyReviewsDto } from './dto/query-review.dto';
 import { CreateReviewReplyDto } from './dto/create-review-reply.dto';
 import { UpdateReviewReplyDto } from './dto/update-review-reply.dto';
+import { ToggleLikeDto } from './dto/toggle-like.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { I18nLang } from 'nestjs-i18n';
@@ -47,26 +49,38 @@ export class ReviewsController {
   }
 
   @Get('/:reviewId/replies')
+  @UseGuards(OptionalJwtAuthGuard)
   getRepliesByReview(
     @Param('reviewId', ParseIntPipe) reviewId: number,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Req() req?: any,
   ) {
-    return this.reviewsService.getRepliesByReview(reviewId, page, limit);
+    const userId = req?.user?.sub;
+    return this.reviewsService.getRepliesByReview(
+      reviewId,
+      page,
+      limit,
+      userId,
+    );
   }
 
   @Get('/:entityId/:entityType')
+  @UseGuards(OptionalJwtAuthGuard)
   getReviewsByEntity(
     @Param('entityId', ParseIntPipe) entityId: number,
     @Param('entityType') entityType: 'place' | 'event',
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Req() req?: any,
   ) {
+    const userId = req?.user?.sub;
     return this.reviewsService.getReviewsByEntity(
       entityId,
       entityType,
       page,
       limit,
+      userId,
     );
   }
 
@@ -119,5 +133,14 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard)
   removeReply(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.reviewsService.removeReply(id, req.user.sub);
+  }
+
+  // Like Endpoints
+
+  @Post('like')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  toggleLike(@Body() toggleLikeDto: ToggleLikeDto, @Req() req: any) {
+    return this.reviewsService.toggleLike(toggleLikeDto, req.user.sub);
   }
 }
