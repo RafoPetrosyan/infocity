@@ -15,6 +15,8 @@ import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { GetMyReviewsDto } from './dto/query-review.dto';
+import { CreateReviewReplyDto } from './dto/create-review-reply.dto';
+import { UpdateReviewReplyDto } from './dto/update-review-reply.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -42,6 +44,15 @@ export class ReviewsController {
   ) {
     const userId = req.user.sub;
     return this.reviewsService.getUserReviews(userId, query, lang);
+  }
+
+  @Get('/:reviewId/replies')
+  getRepliesByReview(
+    @Param('reviewId', ParseIntPipe) reviewId: number,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.reviewsService.getRepliesByReview(reviewId, page, limit);
   }
 
   @Get('/:entityId/:entityType')
@@ -82,5 +93,31 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard)
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.reviewsService.remove(id, req.user.sub);
+  }
+
+  // Review Reply Endpoints
+
+  @Post('replies')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  createReply(@Body() createReplyDto: CreateReviewReplyDto, @Req() req: any) {
+    return this.reviewsService.createReply(createReplyDto, req.user.sub);
+  }
+
+  @Put('replies/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  updateReply(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateReplyDto: UpdateReviewReplyDto,
+    @Req() req: any,
+  ) {
+    return this.reviewsService.updateReply(id, updateReplyDto, req.user.sub);
+  }
+
+  @Delete('replies/:id')
+  @UseGuards(JwtAuthGuard)
+  removeReply(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.reviewsService.removeReply(id, req.user.sub);
   }
 }
