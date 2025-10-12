@@ -4,6 +4,7 @@ import { ReviewsService } from './reviews.service';
 import { ReviewsController } from './reviews.controller';
 import { Review } from './models/review.model';
 import { ReviewEmotions } from './models/review-emotions.model';
+import { ReviewReply } from './models/review-reply.model';
 import { EntityEmotionCounts } from './models/entity-emotion-counts.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { User } from '../users/models/user.model';
@@ -17,6 +18,7 @@ import { EventTranslation } from '../events/models/events-translation.model';
     SequelizeModule.forFeature([
       Review,
       ReviewEmotions,
+      ReviewReply,
       EntityEmotionCounts,
       EmotionsModel,
       User,
