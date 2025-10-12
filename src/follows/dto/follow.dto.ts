@@ -26,3 +26,4 @@ export class GetFollowsDto {
   type?: 'place' | 'event';
 }
 
+
