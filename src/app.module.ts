@@ -16,6 +16,7 @@ import { EventsModule } from './events/events.module';
 import { EventCategoriesModule } from './events/event-categories.module';
 import { FollowsModule } from './follows/follows.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { ContactsModule } from './contacts/contacts.module';
 import * as path from 'node:path';
 
 @Module({
@@ -56,6 +57,7 @@ import * as path from 'node:path';
     EventCategoriesModule,
     FollowsModule,
     ReviewsModule,
+    ContactsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

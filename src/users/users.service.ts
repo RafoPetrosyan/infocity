@@ -19,6 +19,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { unlink } from 'fs/promises';
+import { trim } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -36,7 +37,77 @@ export class UsersService {
     private readonly mailService: MailService,
   ) {}
 
-  async getAll(query: { page?: number; limit?: number; search?: string }) {
+  async getAll(
+    query: { page?: number; limit?: number; search?: string },
+    userId: number,
+  ) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const whereCondition = query.search
+      ? {
+          [Op.or]: [
+            { email: { [Op.iLike]: `%${query.search}%` } },
+            { phone_number: { [Op.iLike]: `%${query.search}%` } },
+            { first_name: { [Op.iLike]: `%${query.search}%` } },
+            { last_name: { [Op.iLike]: `%${query.search}%` } },
+            Sequelize.where(
+              Sequelize.fn(
+                'concat',
+                Sequelize.col('first_name'),
+                ' ',
+                Sequelize.col('last_name'),
+              ),
+              {
+                [Op.iLike]: `%${query.search}%`,
+              },
+            ),
+          ],
+        }
+      : {};
+
+    const { rows: users, count: total } = await this.userModel.findAndCountAll({
+      where: {
+        ...whereCondition,
+        role: 'user',
+        id: { [Op.ne]: userId },
+        email_verified: true,
+      },
+      attributes: [
+        'id',
+        'first_name',
+        'last_name',
+        'avatar',
+        'email',
+        [
+          Sequelize.literal(`(
+            SELECT status 
+            FROM user_contacts 
+            WHERE (user_id = ${userId} AND contact_id = "User"."id")
+               OR (user_id = "User"."id" AND contact_id = ${userId})
+            LIMIT 1
+          )`),
+          'contact_status',
+        ],
+      ],
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+    });
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getAllAdmin(query: { page?: number; limit?: number; search?: string }) {
     const page = query.page || 1;
     const limit = query.limit || 10;
     const offset = (page - 1) * limit;
