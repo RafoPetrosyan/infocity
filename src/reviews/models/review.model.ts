@@ -11,6 +11,7 @@ import { User } from '../../users/models/user.model';
 import { Place } from '../../places/models/places.model';
 import { Event } from '../../events/models/events.model';
 import { ReviewEmotions } from './review-emotions.model';
+import { ReviewReply } from './review-reply.model';
 
 @Table({ tableName: 'reviews' })
 export class Review extends Model {
@@ -47,4 +48,7 @@ export class Review extends Model {
 
   @HasMany(() => ReviewEmotions)
   declare emotions: ReviewEmotions[];
+
+  @HasMany(() => ReviewReply)
+  declare replies: ReviewReply[];
 }

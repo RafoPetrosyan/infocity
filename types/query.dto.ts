@@ -64,4 +64,16 @@ export class QueryDto {
   @Type(() => Number)
   @IsInt()
   event_category_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  emotion_id?: number;
+
+  @IsOptional()
+  @IsString()
+  sort_field?: string;
+
+  @IsOptional()
+  @IsString()
+  sort_order?: string;
 }
