@@ -31,11 +31,19 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  get(@Query() params: GetUsersDto, @Req() req: any) {
+    const userId = req?.user?.sub;
+    return this.usersService.getAll(params, userId);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  getAll(@Query() params: GetUsersDto) {
-    return this.usersService.getAll(params);
+  getAllAdmin(@Query() params: GetUsersDto) {
+    return this.usersService.getAllAdmin(params);
   }
 
   @Get('/current-user')
