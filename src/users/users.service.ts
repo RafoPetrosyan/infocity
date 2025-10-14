@@ -19,6 +19,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { unlink } from 'fs/promises';
+import { trim } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -67,8 +68,29 @@ export class UsersService {
       : {};
 
     const { rows: users, count: total } = await this.userModel.findAndCountAll({
-      where: { ...whereCondition, role: 'user' },
-      attributes: ['id', 'first_name', 'last_name', 'avatar', 'email'],
+      where: {
+        ...whereCondition,
+        role: 'user',
+        id: { [Op.ne]: userId },
+        email_verified: true,
+      },
+      attributes: [
+        'id',
+        'first_name',
+        'last_name',
+        'avatar',
+        'email',
+        [
+          Sequelize.literal(`(
+            SELECT status 
+            FROM user_contacts 
+            WHERE (user_id = ${userId} AND contact_id = "User"."id")
+               OR (user_id = "User"."id" AND contact_id = ${userId})
+            LIMIT 1
+          )`),
+          'contact_status',
+        ],
+      ],
       limit,
       offset,
       order: [['createdAt', 'DESC']],
