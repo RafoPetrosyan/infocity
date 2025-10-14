@@ -6,6 +6,9 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Review } from './models/review.model';
 import { ReviewEmotions } from './models/review-emotions.model';
+import { EntityEmotionCounts } from './models/entity-emotion-counts.model';
+import { ReviewReply } from './models/review-reply.model';
+import { ReviewLike } from './models/review-like.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { User } from '../users/models/user.model';
 import { Place } from '../places/models/places.model';
@@ -13,6 +16,9 @@ import { Event } from '../events/models/events.model';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { GetMyReviewsDto } from './dto/query-review.dto';
+import { CreateReviewReplyDto } from './dto/create-review-reply.dto';
+import { UpdateReviewReplyDto } from './dto/update-review-reply.dto';
+import { ToggleLikeDto } from './dto/toggle-like.dto';
 import { Op } from 'sequelize';
 import { LanguageEnum } from '../../types';
 import { Sequelize } from 'sequelize-typescript';
@@ -26,6 +32,12 @@ export class ReviewsService {
     private reviewModel: typeof Review,
     @InjectModel(ReviewEmotions)
     private reviewEmotionsModel: typeof ReviewEmotions,
+    @InjectModel(EntityEmotionCounts)
+    private entityEmotionCountsModel: typeof EntityEmotionCounts,
+    @InjectModel(ReviewReply)
+    private reviewReplyModel: typeof ReviewReply,
+    @InjectModel(ReviewLike)
+    private reviewLikeModel: typeof ReviewLike,
     @InjectModel(EmotionsModel)
     private emotionsModel: typeof EmotionsModel,
     @InjectModel(Place)
@@ -44,19 +56,6 @@ export class ReviewsService {
       createReviewDto.entity_type,
     );
 
-    // Check if user already has a review for this entity
-    const existingReview = await this.reviewModel.findOne({
-      where: {
-        entity_id: createReviewDto.entity_id,
-        entity_type: createReviewDto.entity_type,
-        user_id: userId,
-      },
-    });
-
-    if (existingReview) {
-      throw new BadRequestException('You have already reviewed this item');
-    }
-
     // Validate emotions if provided
     if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
       await this.validateEmotions(createReviewDto.emotion_ids);
@@ -70,6 +69,12 @@ export class ReviewsService {
     // Add emotions if provided
     if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
       await this.addEmotionsToReview(review.id, createReviewDto.emotion_ids);
+      // Update emotion counts for the entity
+      await this.incrementEmotionCounts(
+        createReviewDto.entity_id,
+        createReviewDto.entity_type,
+        createReviewDto.emotion_ids,
+      );
     }
 
     return this.findOne(review.id);
@@ -97,9 +102,15 @@ export class ReviewsService {
     const plainReview = review.toJSON();
     delete plainReview.emotions;
 
+    // Get total reply count
+    const replyCount = await this.reviewReplyModel.count({
+      where: { review_id: id },
+    });
+
     return {
       ...plainReview,
       emotion_ids,
+      reply_count: replyCount,
     };
   }
 
@@ -127,6 +138,13 @@ export class ReviewsService {
 
     // Update emotions if provided
     if (updateReviewDto.emotion_ids !== undefined) {
+      // Get current emotions before updating
+      const currentEmotions = await this.reviewEmotionsModel.findAll({
+        where: { review_id: id },
+        attributes: ['emotion_id'],
+      });
+      const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+
       // Remove existing emotions
       await this.reviewEmotionsModel.destroy({
         where: { review_id: id },
@@ -136,6 +154,14 @@ export class ReviewsService {
       if (updateReviewDto.emotion_ids.length > 0) {
         await this.addEmotionsToReview(id, updateReviewDto.emotion_ids);
       }
+
+      // Update emotion counts for the entity
+      await this.updateEmotionCounts(
+        review.entity_id,
+        review.entity_type,
+        currentEmotionIds,
+        updateReviewDto.emotion_ids || [],
+      );
     }
 
     return this.findOne(id);
@@ -152,10 +178,26 @@ export class ReviewsService {
       );
     }
 
+    // Get current emotions before removing
+    const currentEmotions = await this.reviewEmotionsModel.findAll({
+      where: { review_id: id },
+      attributes: ['emotion_id'],
+    });
+    const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+
     // Remove associated emotions first
     await this.reviewEmotionsModel.destroy({
       where: { review_id: id },
     });
+
+    // Update emotion counts for the entity (decrement)
+    if (currentEmotionIds.length > 0) {
+      await this.decrementEmotionCounts(
+        review.entity_id,
+        review.entity_type,
+        currentEmotionIds,
+      );
+    }
 
     await review.destroy();
   }
@@ -165,6 +207,7 @@ export class ReviewsService {
     entityType: 'place' | 'event',
     page = 1,
     limit = 10,
+    userId?: number,
   ) {
     const offset = (page - 1) * limit;
 
@@ -183,25 +226,46 @@ export class ReviewsService {
           attributes: ['emotion_id'],
         },
       ],
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+          SELECT COUNT(*)
+          FROM "review_replies" AS rr
+          WHERE rr.review_id = "Review".id
+        )`),
+            'replies_count',
+          ],
+          [
+            Sequelize.literal(`(
+          SELECT COUNT(*)
+          FROM "review_likes" AS rl
+          WHERE rl.review_id = "Review".id
+        )`),
+            'likes_count',
+          ],
+          [
+            Sequelize.literal(`(
+          CASE WHEN EXISTS (
+            SELECT 1
+            FROM "review_likes" AS rl2
+            WHERE rl2.review_id = "Review".id
+              AND rl2.user_id = ${userId || 0}
+          )
+          THEN true ELSE false END
+        )`),
+            'is_liked',
+          ],
+        ],
+      },
       distinct: true,
       order: [['createdAt', 'DESC']],
       limit,
       offset,
     });
 
-    const transformedReviews = reviews.map((review) => {
-      const emotion_ids = review.emotions?.map((re) => re.emotion_id) ?? [];
-      const plain = review.toJSON();
-      delete plain.emotions;
-
-      return {
-        ...plain,
-        emotion_ids,
-      };
-    });
-
     return {
-      reviews: transformedReviews,
+      reviews,
       meta: {
         total: count,
         page,
@@ -247,6 +311,134 @@ export class ReviewsService {
     }));
 
     await this.reviewEmotionsModel.bulkCreate(reviewEmotions);
+  }
+
+  /**
+   * Updates emotion counts for an entity when emotions are added
+   */
+  private async incrementEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+    emotionIds: number[],
+  ): Promise<void> {
+    if (emotionIds.length === 0) return;
+
+    for (const emotionId of emotionIds) {
+      // Use findOrCreate to either find existing record or create new one
+      const [emotionCount, created] =
+        await this.entityEmotionCountsModel.findOrCreate({
+          where: {
+            entity_id: entityId,
+            entity_type: entityType,
+            emotion_id: emotionId,
+          },
+          defaults: {
+            entity_id: entityId,
+            entity_type: entityType,
+            emotion_id: emotionId,
+            count: 1,
+          },
+        });
+
+      // If the record already exists, increment the count
+      if (!created) {
+        await emotionCount.increment('count');
+      }
+    }
+  }
+
+  /**
+   * Updates emotion counts for an entity when emotions are removed
+   */
+  private async decrementEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+    emotionIds: number[],
+  ): Promise<void> {
+    if (emotionIds.length === 0) return;
+
+    for (const emotionId of emotionIds) {
+      const emotionCount = await this.entityEmotionCountsModel.findOne({
+        where: {
+          entity_id: entityId,
+          entity_type: entityType,
+          emotion_id: emotionId,
+        },
+      });
+
+      if (emotionCount) {
+        if (emotionCount.count > 1) {
+          // Decrement the count
+          await emotionCount.decrement('count');
+        } else {
+          // Remove the record if count is 1
+          await emotionCount.destroy();
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates emotion counts when emotions are changed (for update operations)
+   */
+  private async updateEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+    oldEmotionIds: number[],
+    newEmotionIds: number[],
+  ): Promise<void> {
+    // Find emotions to add and remove
+    const emotionsToAdd = newEmotionIds.filter(
+      (id) => !oldEmotionIds.includes(id),
+    );
+    const emotionsToRemove = oldEmotionIds.filter(
+      (id) => !newEmotionIds.includes(id),
+    );
+
+    // Remove old emotions
+    if (emotionsToRemove.length > 0) {
+      await this.decrementEmotionCounts(entityId, entityType, emotionsToRemove);
+    }
+
+    // Add new emotions
+    if (emotionsToAdd.length > 0) {
+      await this.incrementEmotionCounts(entityId, entityType, emotionsToAdd);
+    }
+  }
+
+  /**
+   * Gets emotion counts for a specific entity
+   * Returns all emotions with their counts, including 0 for emotions with no reviews
+   */
+  async getEmotionCounts(
+    entityId: number,
+    entityType: 'place' | 'event',
+  ): Promise<Array<{ emotion_id: number; count: number }>> {
+    // Get all available emotions
+    const allEmotions = await this.emotionsModel.findAll({
+      attributes: ['id'],
+      order: [['id', 'ASC']],
+    });
+
+    // Get existing emotion counts for this entity
+    const existingCounts = await this.entityEmotionCountsModel.findAll({
+      where: {
+        entity_id: entityId,
+        entity_type: entityType,
+      },
+      attributes: ['emotion_id', 'count'],
+    });
+
+    // Create a map of existing counts for quick lookup
+    const countMap = new Map(
+      existingCounts.map((ec) => [ec.emotion_id, ec.count]),
+    );
+
+    // Return all emotions with their counts (0 if not found)
+    return allEmotions.map((emotion) => ({
+      emotion_id: emotion.id,
+      count: countMap.get(emotion.id) || 0,
+    }));
   }
 
   async getUserReviews(
@@ -356,5 +548,227 @@ export class ReviewsService {
         pages_count: Math.ceil(count / limit),
       },
     };
+  }
+
+  // Review Reply Methods
+
+  async createReply(
+    createReplyDto: CreateReviewReplyDto,
+    userId: number,
+  ): Promise<ReviewReply> {
+    // Validate that the review exists
+    const review = await this.reviewModel.findByPk(createReplyDto.review_id);
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    const reply = await this.reviewReplyModel.create({
+      ...createReplyDto,
+      user_id: userId,
+    });
+
+    return this.findReplyById(reply.id);
+  }
+
+  async findReplyById(id: number): Promise<ReviewReply> {
+    const reply = await this.reviewReplyModel.findByPk(id, {
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'first_name', 'last_name', 'avatar'],
+        },
+      ],
+    });
+
+    if (!reply) {
+      throw new NotFoundException('Reply not found');
+    }
+
+    return reply;
+  }
+
+  async updateReply(
+    id: number,
+    updateReplyDto: UpdateReviewReplyDto,
+    userId: number,
+  ): Promise<ReviewReply> {
+    const reply = await this.reviewReplyModel.findOne({
+      where: { id, user_id: userId },
+    });
+
+    if (!reply) {
+      throw new NotFoundException(
+        'Reply not found or you do not have permission to update it',
+      );
+    }
+
+    await reply.update(updateReplyDto);
+    return this.findReplyById(id);
+  }
+
+  async removeReply(id: number, userId: number): Promise<void> {
+    const reply = await this.reviewReplyModel.findOne({
+      where: { id, user_id: userId },
+    });
+
+    if (!reply) {
+      throw new NotFoundException(
+        'Reply not found or you do not have permission to delete it',
+      );
+    }
+
+    await reply.destroy();
+  }
+
+  async getRepliesByReview(
+    reviewId: number,
+    page = 1,
+    limit = 10,
+    userId?: number,
+  ): Promise<any> {
+    const offset = (page - 1) * limit;
+
+    // Validate that the review exists
+    const review = await this.reviewModel.findByPk(reviewId);
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    const { rows: replies, count } =
+      await this.reviewReplyModel.findAndCountAll({
+        where: { review_id: reviewId },
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'first_name', 'last_name', 'avatar'],
+          },
+        ],
+        attributes: {
+          include: [
+            [
+              Sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM "review_likes" AS rl
+              WHERE rl.reply_id = "ReviewReply".id
+            )`),
+              'likes_count',
+            ],
+            [
+              Sequelize.literal(`(
+              CASE WHEN EXISTS (
+                SELECT 1
+                FROM "review_likes" AS rl2
+                WHERE rl2.reply_id = "ReviewReply".id
+                  AND rl2.user_id = ${userId || 0}
+              )
+              THEN true ELSE false END
+            )`),
+              'is_liked',
+            ],
+          ],
+        },
+        order: [['createdAt', 'ASC']],
+        limit,
+        offset,
+        distinct: true,
+      });
+
+    return {
+      replies,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
+    };
+  }
+
+  /**
+   * Toggle like on a review or reply
+   * If user already liked it, removes the like
+   * If user hasn't liked it, adds a like
+   */
+  async toggleLike(
+    toggleLikeDto: ToggleLikeDto,
+    userId: number,
+  ): Promise<{ message: string; liked: boolean }> {
+    const { review_id, reply_id } = toggleLikeDto;
+
+    // Validate that either review_id or reply_id is provided, but not both
+    if ((!review_id && !reply_id) || (review_id && reply_id)) {
+      throw new BadRequestException(
+        'Either review_id or reply_id must be provided, but not both',
+      );
+    }
+
+    // Validate that the review or reply exists
+    if (review_id) {
+      const review = await this.reviewModel.findByPk(review_id);
+      if (!review) {
+        throw new NotFoundException('Review not found');
+      }
+    } else if (reply_id) {
+      const reply = await this.reviewReplyModel.findByPk(reply_id);
+      if (!reply) {
+        throw new NotFoundException('Reply not found');
+      }
+    }
+
+    // Find existing like
+    const whereCondition: any = { user_id: userId };
+    if (review_id) {
+      whereCondition.review_id = review_id;
+    } else {
+      whereCondition.reply_id = reply_id;
+    }
+
+    const existingLike = await this.reviewLikeModel.findOne({
+      where: whereCondition,
+    });
+
+    if (existingLike) {
+      // If the user already liked it, remove the like
+      await existingLike.destroy();
+      return {
+        message: 'Like removed',
+        liked: false,
+      };
+    } else {
+      // Create new like
+      await this.reviewLikeModel.create({
+        user_id: userId,
+        review_id: review_id || null,
+        reply_id: reply_id || null,
+      });
+      return {
+        message: 'Like added',
+        liked: true,
+      };
+    }
+  }
+
+  /**
+   * Check if user has liked a review or reply
+   */
+  async hasUserLiked(
+    userId: number,
+    reviewId?: number,
+    replyId?: number,
+  ): Promise<boolean> {
+    const whereCondition: any = { user_id: userId };
+    if (reviewId) {
+      whereCondition.review_id = reviewId;
+    } else if (replyId) {
+      whereCondition.reply_id = replyId;
+    } else {
+      return false;
+    }
+
+    const like = await this.reviewLikeModel.findOne({
+      where: whereCondition,
+    });
+
+    return !!like;
   }
 }
