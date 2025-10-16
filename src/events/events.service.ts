@@ -26,6 +26,7 @@ import { DOMAIN_URL } from '../../constants';
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 import { User } from '../users/models/user.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
+import { EventGoing } from './models/event-going.model';
 
 @Injectable()
 export class EventsService {
@@ -65,6 +66,9 @@ export class EventsService {
 
     @InjectModel(EmotionsModel)
     private emotionsModel: typeof EmotionsModel,
+
+    @InjectModel(EventGoing)
+    private eventGoingModel: typeof EventGoing,
 
     @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
@@ -118,9 +122,27 @@ export class EventsService {
       )`),
         'is_followed',
       ]);
+      attributes.push([
+        Sequelize.literal(`EXISTS (
+        SELECT 1 FROM "event_goings" eg
+        WHERE eg.event_id = "Event"."id"
+          AND eg.user_id = ${userId}
+      )`),
+        'is_going',
+      ]);
     } else {
       attributes.push([Sequelize.literal('false'), 'is_followed']);
+      attributes.push([Sequelize.literal('false'), 'is_going']);
     }
+
+    // Add going count
+    attributes.push([
+      Sequelize.literal(`(
+        SELECT COUNT(*) FROM "event_goings" eg
+        WHERE eg.event_id = "Event"."id"
+      )`),
+      'going_count',
+    ]);
 
     const event = await this.eventModel.findByPk(id, {
       attributes,
@@ -226,7 +248,6 @@ export class EventsService {
     return event;
   }
 
-  /** Get Events list **/
   /** Get Events list **/
   async getAll(query: QueryDto, lang: LanguageEnum, userId?: number) {
     const page = query.page || 1;
@@ -746,5 +767,169 @@ export class EventsService {
     await event.destroy();
 
     return { message: 'Success' };
+  }
+
+  /** Toggle going to event **/
+  async toggleGoing(
+    userId: number,
+    eventId: number,
+  ): Promise<{ message: string; going: boolean }> {
+    // Check if event exists
+    const event = await this.eventModel.findByPk(eventId, {
+      attributes: ['id'],
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // Check if user is already going
+    const existingGoing = await this.eventGoingModel.findOne({
+      where: {
+        user_id: userId,
+        event_id: eventId,
+      },
+    });
+
+    if (existingGoing) {
+      await existingGoing.destroy();
+      return { message: 'Successfully removed from going list', going: false };
+    }
+
+    // Add user to going list
+    await this.eventGoingModel.create({
+      user_id: userId,
+      event_id: eventId,
+    });
+
+    return { message: 'Successfully added to going list', going: true };
+  }
+
+  /** Get users going to an event **/
+  async getEventGoings(eventId: number, query: QueryDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const search = query.search;
+    const offset = (page - 1) * limit;
+
+    // Add search condition if provided
+    let userWhereConditions: any = {};
+    if (search) {
+      userWhereConditions = {
+        [Op.or]: [
+          { first_name: { [Op.iLike]: `%${search}%` } },
+          { last_name: { [Op.iLike]: `%${search}%` } },
+          Sequelize.where(
+            Sequelize.fn(
+              'concat',
+              Sequelize.col('first_name'),
+              ' ',
+              Sequelize.col('last_name'),
+            ),
+            {
+              [Op.iLike]: `%${query.search}%`,
+            },
+          ),
+        ],
+      };
+    }
+
+    const { count, rows } = await this.eventGoingModel.findAndCountAll({
+      where: {
+        event_id: eventId,
+      },
+      limit,
+      offset,
+      attributes: ['id', 'createdAt'],
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: this.usersModel,
+          attributes: ['id', 'first_name', 'last_name', 'avatar'],
+          where: userWhereConditions,
+          required: true,
+        },
+      ],
+    });
+
+    return {
+      data: rows,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
+    };
+  }
+
+  /** Get users going to an event **/
+  async getMyGoings(userId: number, query: QueryDto, lang: LanguageEnum) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const search = query.search;
+    const offset = (page - 1) * limit;
+
+    // Add search condition if provided
+    let eventWhereConditions: any = {};
+    if (search) {
+      eventWhereConditions = {
+        [Op.or]: [
+          { '$event->translation.name$': { [Op.iLike]: `%${search}%` } },
+        ],
+      };
+    }
+
+    const { count, rows } = await this.eventGoingModel.findAndCountAll({
+      where: {
+        user_id: userId,
+        ...eventWhereConditions,
+      },
+      limit,
+      offset,
+      attributes: [
+        'id',
+        'createdAt',
+        [Sequelize.col('event->translation.name'), 'name'],
+        [Sequelize.col('event->translation.description'), 'description'],
+        [Sequelize.col('event.slug'), 'slug'],
+        [Sequelize.col('event.id'), 'event_id'],
+        [
+          Sequelize.fn(
+            'concat',
+            `${DOMAIN_URL}/uploads/events/`,
+            Sequelize.col('event.image'),
+          ),
+          'image',
+        ],
+      ],
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: this.eventModel,
+          as: 'event',
+          attributes: [],
+          required: true,
+          include: [
+            {
+              model: this.eventTranslationModel,
+              as: 'translation',
+              attributes: [],
+              where: { language: lang },
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      data: rows,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
+    };
   }
 }

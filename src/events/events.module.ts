@@ -14,6 +14,7 @@ import { EventCategory } from './models/event-category.model';
 import { EventCategoryTranslation } from './models/event-category-translation.model';
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
+import { EventGoing } from './models/event-going.model';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { EmotionsModel } from '../emotions/models/emotions.model';
       User,
       EntityEmotionCounts,
       EmotionsModel,
+      EventGoing,
     ]),
   ],
   providers: [EventsService],
