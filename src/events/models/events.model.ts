@@ -17,6 +17,7 @@ import { User } from '../../users/models/user.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
 import { Review } from '../../reviews/models/review.model';
 import { EntityEmotionCounts } from '../../reviews/models/entity-emotion-counts.model';
+import { EventGoing } from './event-going.model';
 
 @Table({ tableName: 'events' })
 export class Event extends Model {
@@ -133,4 +134,7 @@ export class Event extends Model {
     },
   })
   declare emotions: EntityEmotionCounts[];
+
+  @HasMany(() => EventGoing)
+  declare goings: EventGoing[];
 }

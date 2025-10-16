@@ -18,6 +18,7 @@ import { DOMAIN_URL } from '../../../constants';
 import { Place } from '../../places/models/places.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
 import { UserContact } from '../../contacts/models/user-contact.model';
+import { EventGoing } from '../../events/models/event-going.model';
 
 @Table({ tableName: 'users' })
 export class User extends Model {
@@ -106,6 +107,9 @@ export class User extends Model {
 
   @HasMany(() => UserContact, { foreignKey: 'user_id' })
   declare contacts: UserContact[];
+
+  @HasMany(() => EventGoing)
+  declare eventGoings: EventGoing[];
 
   @BeforeCreate
   @BeforeUpdate

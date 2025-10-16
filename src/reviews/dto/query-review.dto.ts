@@ -42,3 +42,4 @@ export class GetMyReviewsDto {
   @IsEnum(['place', 'event'])
   type?: 'place' | 'event';
 }
+

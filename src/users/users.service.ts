@@ -19,7 +19,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { unlink } from 'fs/promises';
-import { trim } from 'lodash';
 
 @Injectable()
 export class UsersService {

@@ -40,6 +40,18 @@ export class EventsController {
     return this.eventsService.getAll(params, lang, userId);
   }
 
+  @Get('goings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async getMyGoings(
+    @Query() query: QueryDto,
+    @Req() req: any,
+    @I18nLang() lang: LanguageEnum,
+  ) {
+    const userId = req.user.sub;
+    return this.eventsService.getMyGoings(userId, query, lang);
+  }
+
   @Get('/:id')
   @UseGuards(OptionalJwtAuthGuard)
   getById(
@@ -168,5 +180,18 @@ export class EventsController {
   @Get(':id/gallery')
   async getGallery(@Param('id') id: number) {
     return this.eventsService.getImages(id);
+  }
+
+  @Post(':id/going')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async toggleGoing(@Req() req: any, @Param('id') eventId: number) {
+    const userId = req.user.sub;
+    return this.eventsService.toggleGoing(userId, eventId);
+  }
+
+  @Get(':id/goings')
+  async getEventGoings(@Param('id') eventId: number, @Query() query: QueryDto) {
+    return this.eventsService.getEventGoings(eventId, query);
   }
 }
