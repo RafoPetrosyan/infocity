@@ -44,6 +44,14 @@ export class PlacesController {
     return this.placesService.getAll(params, lang, userId);
   }
 
+  @Get('/admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super-admin', 'admin')
+  getAllForAdmin(@Query() params: QueryDto, @Req() req: any) {
+    const userId = req?.user?.sub;
+    return this.placesService.getAllForAdmin(params);
+  }
+
   @Get('/attractions')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')

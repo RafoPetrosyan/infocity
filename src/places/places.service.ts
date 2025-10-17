@@ -362,6 +362,68 @@ export class PlacesService {
     };
   }
 
+  async getAllForAdmin(query: QueryDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+    const search = query.search ? query.search.trim() : null;
+
+    const { count, rows } = await this.placeModel.findAndCountAll({
+      attributes: [
+        'id',
+        'logo',
+        'image',
+        'slug',
+        'latitude',
+        'longitude',
+        'email',
+        'phone_number',
+        'address',
+        [Sequelize.col('translation.name'), 'name'],
+        [Sequelize.col('translation.description'), 'description'],
+        [Sequelize.col('translation.about'), 'about'],
+      ],
+      include: [
+        {
+          model: this.placeTranslationModel,
+          as: 'translation',
+          attributes: [],
+          where: {
+            language: 'en',
+            ...(search && {
+              name: {
+                [Op.iLike]: `%${search}%`,
+              },
+            }),
+          },
+        },
+        {
+          model: this.usersModel,
+          as: 'owner',
+          attributes: [
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+          ],
+        },
+      ],
+      limit,
+      offset,
+    });
+
+    return {
+      data: rows,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
+    };
+  }
+
   /** Get an Attractions list for admin **/
   async getAttractionsForAdmin(query: {
     page?: number;
