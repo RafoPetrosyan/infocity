@@ -47,8 +47,7 @@ export class PlacesController {
   @Get('/admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  getAllForAdmin(@Query() params: QueryDto, @Req() req: any) {
-    const userId = req?.user?.sub;
+  getAllForAdmin(@Query() params: QueryDto) {
     return this.placesService.getAllForAdmin(params);
   }
 
@@ -78,7 +77,8 @@ export class PlacesController {
     @Req() req: any,
   ) {
     const userId = req?.user?.sub;
-    return this.placesService.getPlaceByIdAllData(id, userId, lang);
+    const userRole = req?.user?.role;
+    return this.placesService.getPlaceByIdAllData(id, userId, userRole, lang);
   }
 
   @Post()
@@ -168,18 +168,25 @@ export class PlacesController {
     },
   ) {
     const userId = req.user.sub;
+    const role = req.user.role;
 
     const cover: any = files?.image?.[0];
     const logo: any = files?.logo?.[0];
 
-    return this.placesService.update(userId, body, id, {
-      coverOriginalName: cover?.filename,
-      coverOriginalPath: cover?.path,
-      coverThumbName: cover?.thumbFilename,
-      coverThumbPath: cover?.thumbPath,
-      logoFileName: logo?.filename,
-      logoFilePath: logo?.path,
-    });
+    return this.placesService.update(
+      userId,
+      body,
+      id,
+      {
+        coverOriginalName: cover?.filename,
+        coverOriginalPath: cover?.path,
+        coverThumbName: cover?.thumbFilename,
+        coverThumbPath: cover?.thumbPath,
+        logoFileName: logo?.filename,
+        logoFilePath: logo?.path,
+      },
+      role,
+    );
   }
 
   @Put(':id/working-times')
@@ -242,8 +249,9 @@ export class PlacesController {
     @Param('imageId') imageId: number,
   ) {
     const userId = req.user.sub;
+    const role = req.user.role;
 
-    return this.placesService.deleteImage(userId, id, imageId);
+    return this.placesService.deleteImage(userId, id, imageId, role);
   }
 
   @Delete(':id')
@@ -251,8 +259,9 @@ export class PlacesController {
   @Roles('user', 'super-admin', 'admin')
   async delete(@Req() req: any, @Param('id') id: number) {
     const userId = req.user.sub;
+    const role = req.user.role;
 
-    return this.placesService.delete(userId, id);
+    return this.placesService.delete(userId, id, role);
   }
 
   @Get(':id/gallery')
