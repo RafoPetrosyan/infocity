@@ -179,6 +179,7 @@ export class PlacesService {
   async getPlaceByIdAllData(
     id: number,
     user_id: number,
+    user_role?: string,
     lang: LanguageEnum = LanguageEnum.EN,
   ) {
     const place = await this.placeModel.findByPk(id, {
@@ -221,9 +222,13 @@ export class PlacesService {
       ],
     });
 
-    if (place && place?.user_id !== user_id) {
-      throw new NotAcceptableException(`Only allowed to owner`);
+    const isUser = user_role === 'user';
+    const isOwner = place?.user_id === user_id;
+
+    if (isUser && !isOwner) {
+      throw new NotAcceptableException('Only allowed to owner');
     }
+
     return place;
   }
 
@@ -409,6 +414,7 @@ export class PlacesService {
           ],
         },
       ],
+      order: [['createdAt', 'DESC']],
       limit,
       offset,
     });
@@ -631,6 +637,7 @@ export class PlacesService {
       logoFileName: string | undefined;
       logoFilePath: string | undefined;
     },
+    role?: string,
   ) {
     const place = await this.placeModel.findByPk(id, {
       attributes: ['user_id', 'image_original', 'image', 'logo'],
@@ -640,8 +647,11 @@ export class PlacesService {
       throw new NotFoundException(`Place with id ${id} not found`);
     }
 
-    if (place.user_id !== userId) {
-      throw new NotAcceptableException(`Only allowed to owner`);
+    const isUser = role === 'user';
+    const isOwner = place?.user_id === userId;
+
+    if (isUser && !isOwner) {
+      throw new NotAcceptableException('Only allowed to owner');
     }
 
     const updateData: any = {};
@@ -908,7 +918,12 @@ export class PlacesService {
   }
 
   /** Delete image **/
-  async deleteImage(userId: number, place_id: number, image_id: number) {
+  async deleteImage(
+    userId: number,
+    place_id: number,
+    image_id: number,
+    role?: string,
+  ) {
     const place = await this.placeModel.findByPk(place_id, {
       attributes: ['user_id'],
     });
@@ -917,8 +932,11 @@ export class PlacesService {
       throw new NotFoundException(`Place with id ${place_id} not found`);
     }
 
-    if (place.user_id !== userId) {
-      throw new NotAcceptableException(`Only allowed to owner`);
+    const isUser = role === 'user';
+    const isOwner = place?.user_id === userId;
+
+    if (isUser && !isOwner) {
+      throw new NotAcceptableException('Only allowed to owner');
     }
 
     const image = await this.placeImages.findOne({
@@ -963,7 +981,7 @@ export class PlacesService {
   }
 
   /** Delete place **/
-  async delete(userId: number, place_id: number) {
+  async delete(userId: number, place_id: number, role?: string) {
     const place = await this.placeModel.findByPk(place_id, {
       attributes: ['user_id', 'logo', 'image', 'image_original', 'id'],
     });
@@ -972,8 +990,11 @@ export class PlacesService {
       throw new NotFoundException(`Place with id ${place_id} not found`);
     }
 
-    if (place.user_id !== userId) {
-      throw new NotAcceptableException(`Only allowed to owner`);
+    const isUser = role === 'user';
+    const isOwner = place?.user_id === userId;
+
+    if (isUser && !isOwner) {
+      throw new NotAcceptableException('Only allowed to owner');
     }
 
     const images = await this.placeImages.findAll({
