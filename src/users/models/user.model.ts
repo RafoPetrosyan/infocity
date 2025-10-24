@@ -63,6 +63,9 @@ export class User extends Model {
   })
   declare login_type: 'email' | 'google' | 'facebook' | 'apple' | 'phone';
 
+  @Column({ type: DataType.STRING, allowNull: true, unique: true })
+  declare provider_id: string;
+
   @Column({
     type: DataType.ENUM('user', 'admin', 'super-admin'),
     defaultValue: 'user',
