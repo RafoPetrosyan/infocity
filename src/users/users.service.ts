@@ -6,6 +6,7 @@ import {
 import { Op, Sequelize } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { JwtService } from '@nestjs/jwt';
+import { OAuth2Client } from 'google-auth-library';
 import { SignUpDto } from './dto/sign-up.dto';
 import { User } from './models/user.model';
 import { Verification } from './models/verification.model';
@@ -17,8 +18,10 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { GoogleSignInDto } from './dto/google-sign-in.dto';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { unlink } from 'fs/promises';
+import * as process from 'node:process';
 
 @Injectable()
 export class UsersService {
@@ -284,6 +287,98 @@ export class UsersService {
       access_token,
       refresh_token,
     };
+  }
+
+  async googleSignIn(body: GoogleSignInDto) {
+    try {
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+      // Verify the Google ID token
+      const ticket = await client.verifyIdToken({
+        idToken: body.token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        throw new BadRequestException({
+          message: 'Invalid google token',
+        });
+      }
+
+      const {
+        sub: googleId,
+        email,
+        given_name,
+        family_name,
+        picture,
+      } = payload;
+
+      // Check if user exists with this Google ID
+      let user = await this.userModel.findOne({
+        where: { provider_id: googleId },
+      });
+
+      // If not found by provider_id, check by email
+      if (!user) {
+        user = await this.userModel.findOne({
+          where: { email },
+        });
+      }
+
+      if (user) {
+        // User exists - update login type and provider_id if needed
+        await user.update({
+          login_type: 'google',
+          provider_id: googleId,
+          email_verified: true,
+          ...(picture && { avatar: picture }),
+        });
+      } else {
+        // Create new user
+        const [firstName, ...lastNameParts] = given_name?.split(' ') || [
+          'User',
+        ];
+        const lastName = family_name || lastNameParts.join(' ') || '';
+
+        user = await this.userModel.create({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          login_type: 'google',
+          provider_id: googleId,
+          email_verified: true,
+          avatar: picture || null,
+        });
+      }
+
+      // Generate JWT tokens
+      const userData = user.toJSON();
+      const tokenPayload = { sub: userData.id, role: userData.role };
+
+      const access_token = this.jwtService.sign(tokenPayload, {
+        expiresIn: '3d',
+      });
+
+      const refresh_token = this.jwtService.sign(tokenPayload, {
+        expiresIn: '15d',
+      });
+
+      await user.update({ refresh_token });
+
+      const userResponse = await this.getUserById(tokenPayload.sub);
+
+      return {
+        user: userResponse,
+        access_token,
+        refresh_token,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        message: 'Invalid google token',
+      });
+    }
   }
 
   async refreshToken(oldRefreshToken: string) {
