@@ -7,6 +7,7 @@ import { Op, Sequelize } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
+import axios from 'axios';
 import { SignUpDto } from './dto/sign-up.dto';
 import { User } from './models/user.model';
 import { Verification } from './models/verification.model';
@@ -18,10 +19,11 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { GoogleSignInDto } from './dto/google-sign-in.dto';
+import { SocialSignInDto } from './dto/social-sign-in.dto';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { unlink } from 'fs/promises';
 import * as process from 'node:process';
+import { trim } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -289,7 +291,7 @@ export class UsersService {
     };
   }
 
-  async googleSignIn(body: GoogleSignInDto) {
+  async googleSignIn(body: SocialSignInDto) {
     try {
       const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -377,6 +379,91 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException({
         message: 'Invalid google token',
+      });
+    }
+  }
+
+  async facebookSignIn(body: SocialSignInDto) {
+    try {
+      // Verify the Facebook access token and get user data
+      const response = await axios.get(
+        `https://graph.facebook.com/me?fields=id,email,first_name,last_name,picture&access_token=${body.token}`,
+      );
+
+      if (!response.data || !response.data.id) {
+        throw new BadRequestException({
+          message: 'Invalid facebook token',
+        });
+      }
+
+      const {
+        id: facebookId,
+        email,
+        first_name,
+        last_name,
+        picture,
+      } = response.data;
+
+      // Check if user exists with this Facebook ID
+      let user = await this.userModel.findOne({
+        where: { provider_id: facebookId },
+      });
+
+      // If not found by provider_id, check by email
+      if (!user && email) {
+        user = await this.userModel.findOne({
+          where: { email },
+        });
+      }
+
+      if (user) {
+        // User exists - update login type and provider_id if needed
+        await user.update({
+          login_type: 'facebook',
+          provider_id: facebookId,
+          email_verified: true,
+          ...(picture?.data?.url && { avatar: picture.data.url }),
+        });
+      } else {
+        // Create new user
+        const firstName = first_name || 'User';
+        const lastName = last_name || '';
+
+        user = await this.userModel.create({
+          first_name: firstName,
+          last_name: lastName,
+          email: email || `${facebookId}@facebook.com`, // Fallback email if not provided
+          login_type: 'facebook',
+          provider_id: facebookId,
+          email_verified: true, // Only verified if email is provided
+          avatar: picture?.data?.url || null,
+        });
+      }
+
+      // Generate JWT tokens
+      const userData = user.toJSON();
+      const tokenPayload = { sub: userData.id, role: userData.role };
+
+      const access_token = this.jwtService.sign(tokenPayload, {
+        expiresIn: '3d',
+      });
+
+      const refresh_token = this.jwtService.sign(tokenPayload, {
+        expiresIn: '15d',
+      });
+
+      await user.update({ refresh_token });
+
+      const userResponse = await this.getUserById(tokenPayload.sub);
+
+      return {
+        user: userResponse,
+        access_token,
+        refresh_token,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        message: 'Invalid facebook token',
       });
     }
   }
