@@ -26,7 +26,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { GoogleSignInDto } from './dto/google-sign-in.dto';
+import { SocialSignInDto } from './dto/social-sign-in.dto';
 
 @Controller('users')
 export class UsersController {
@@ -61,8 +61,13 @@ export class UsersController {
   }
 
   @Post('google-sign-in')
-  async googleSignIn(@Body() body: GoogleSignInDto) {
+  async googleSignIn(@Body() body: SocialSignInDto) {
     return await this.usersService.googleSignIn(body);
+  }
+
+  @Post('facebook-sign-in')
+  async facebookSignIn(@Body() body: SocialSignInDto) {
+    return await this.usersService.facebookSignIn(body);
   }
 
   @Post('refresh-token')

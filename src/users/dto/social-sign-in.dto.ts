@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class GoogleSignInDto {
+export class SocialSignInDto {
   @IsNotEmpty()
   @IsString()
   token: string;
