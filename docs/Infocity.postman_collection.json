@@ -1,0 +1,3050 @@
+{
+  "info": {
+    "_postman_id": "f638c2b0-434a-4864-8081-a42dd2bc970a",
+    "name": "Infocity",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20632698",
+    "_collection_link": "https://go.postman.co/collection/20632698-f638c2b0-434a-4864-8081-a42dd2bc970a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Mobile app versions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/mobile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "mobile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign In",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "petrosyanrafo0@gmail.com",
+              "type": "text",
+              "uuid": "cbd5dc03-1963-447b-8600-4c08530d8a3e"
+            },
+            {
+              "key": "password",
+              "value": "123123",
+              "type": "text",
+              "uuid": "fac9dcea-b640-419f-83d5-53c60215f89d"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/sign-in",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "sign-in"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Google sign in",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg4NDg5MjEyMmUyOTM5ZmQxZjMxMzc1YjJiMzYzZWM4MTU3MjNiYmIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI5NDQ4MTI3Njk1MTAta3FkdXBuZGs5ZzFxczNqdXRsdG85N21hMjR0YjNiYzYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5NDQ4MTI3Njk1MTAta3FkdXBuZGs5ZzFxczNqdXRsdG85N21hMjR0YjNiYzYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTQzODg1NDQ4ODk3NTA2NDA4MjMiLCJlbWFpbCI6ImRldmVsb3BtZW50LmtzdnNoaW5AZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiIyU29NYXF2aTFMX3JkTDVSWThpZzV3IiwibmFtZSI6IktTViBTaGluIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0tCQW1KVlNXdEdNSzRVbW5BaGJjYzJxcVVRQmU2azZmVFpQbzVrdVczc0ZVYXdCUT1zOTYtYyIsImdpdmVuX25hbWUiOiJLU1YiLCJmYW1pbHlfbmFtZSI6IlNoaW4iLCJpYXQiOjE3NjE0MTYxNDEsImV4cCI6MTc2MTQxOTc0MX0.2VcAjRsJ-zVO2zoG-E1RaE6Tgw3srqvlaSGsrhjvj96JPx7oiyDyin3SRLB23JCKlSP1HFTG1Ww9zS12xoMPQWhft1GpQeOwKtgjpCRKiF8N4vftEk4VnUBmgfuXQ-LT6MY3M1aZbDuK2ZILHWVTxC5mexo08SRKbBJBpuNblfi6m3bSSr7wgWNQ4StV12okx7b6ycUMuaVg6AHrooozF-70OWCTCnrf_KnuW0ch8fa_vuud1qyOntzqSptEFrlbgD8c2JNMYs3YPUnzrrwmyad77PnL2Jcs1dtgbsH3sAjZE5cjn78FGOosZO4xMYD3o9rtfPq9-pZxFGbDlt3MSg",
+              "type": "text",
+              "uuid": "c1363d4e-1e3e-4c8e-92d7-e3e802222d0a"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/google-sign-in",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "google-sign-in"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Facebook sign in",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "token",
+              "value": "EAAcmU7axG8MBPZBsfuQR73n5OUXDOeBMaLD40HNFbLESKNGv2X7vM1BEQHEhiddROrRbxBY7WtFxUWoF7JHOG0YSm9wNo5pqoHuHf8Wi1DlDcZA45eKHj8mkZBeFH9MkRezUtv9mTw0DwvubeYA7vbwd3xvBscCZCKwPeaBgznxZB98UsZCfZCV2uplXNRYZBe59jXmIMGTszCFzgFdlwY5ylr2miYvenZCb41SKYOH3lfDYsDzDtYIeKrrlZAzEmY",
+              "type": "text",
+              "uuid": "b28cb168-3bbf-48cb-a003-1641cc2896cb"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/facebook-sign-in",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "facebook-sign-in"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign Up",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "petrosyanrafo0@gmail.com",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "123123",
+              "type": "text"
+            },
+            {
+              "key": "first_name",
+              "value": "Rafo",
+              "type": "text"
+            },
+            {
+              "key": "last_name",
+              "value": "Petrosyan",
+              "type": "text"
+            },
+            {
+              "key": "locale",
+              "value": "hy",
+              "type": "text",
+              "description": "optional (hy, en, ru)"
+            },
+            {
+              "key": "fcm_token",
+              "value": "",
+              "description": "optional (Firebase device token)",
+              "type": "text",
+              "uuid": "5c5196ba-23c4-4320-8b55-3429693e638d"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/sign-up",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "sign-up"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify email",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImlhdCI6MTc2MDQyOTI4MSwiZXhwIjoxNzYwNDcyNDgxfQ.nzqip2aQehx0EMBZEwhi4iKBnVnrS0X4w6o8vNE2b9k",
+              "type": "text",
+              "uuid": "85447826-1f56-435a-9e70-2abb81deb2a9"
+            },
+            {
+              "key": "code",
+              "value": "160455",
+              "type": "text",
+              "uuid": "73dadcc5-0088-4ca3-bd3a-1a4975a1595a"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/verify-email",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "verify-email"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Resend code",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE2LCJpYXQiOjE3NTY2NTk4MzIsImV4cCI6MTc1NjcwMzAzMn0.c_rc_K5znHngxm9AVkzSGsLc7ZExzFQbBXs_Wc39AVw",
+              "type": "text",
+              "uuid": "93aad45b-53a7-48d7-95b1-a90c199a5d32"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/resend-email-code",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "resend-email-code"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get new token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "refresh_token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJyb2xlIjoidXNlciIsImlhdCI6MTc1NjY2MzU2MywiZXhwIjoxNzU3OTU5NTYzfQ.zQ6wIeBetSs9FY-F9HMnfMYcT1-yhpFHzojBgw-Li98",
+              "type": "text",
+              "uuid": "4c3b4b06-a0b4-494c-a470-5a43be2f1284"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/refresh-token",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "refresh-token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Forgot password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "petrosyanrafo0@gmail.com",
+              "type": "text",
+              "uuid": "548a7bda-e037-4f3b-ab5c-bc3e316ff6b5"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/forgot-password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "forgot-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check forgot password code",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "code",
+              "value": "714438",
+              "type": "text",
+              "uuid": "cbd1d221-f1cc-45b4-bb00-e60a481f7ae4"
+            },
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJpYXQiOjE3NTY3NDkwNzksImV4cCI6MTc1Njc5MjI3OX0.FTwCx3-8RIlicoDEjS4j99aXGGydUWJu1ywKaXfAGtk",
+              "type": "text",
+              "uuid": "ca6523f0-c675-4414-9c97-5d153010e33e"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/verify-forgot-password-code",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "verify-forgot-password-code"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reset password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJpYXQiOjE3NTY3NDkwNzksImV4cCI6MTc1Njc5MjI3OX0.FTwCx3-8RIlicoDEjS4j99aXGGydUWJu1ywKaXfAGtk",
+              "type": "text",
+              "uuid": "fba99c6c-64e2-4548-b988-d891f10a8b6f"
+            },
+            {
+              "key": "password",
+              "value": "123123",
+              "type": "text",
+              "uuid": "237ebe62-24de-4bc9-9219-06da92d14295"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/reset-password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "reset-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change password",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJyb2xlIjoidXNlciIsImlhdCI6MTc1Njc0OTkyNywiZXhwIjoxNzU3MDA5MTI3fQ.DZRUv7mNg2yuh0gURD7BKOisOfGqVTJkL0I3cHeeVMw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "old_password",
+              "value": "123124",
+              "type": "text",
+              "uuid": "a6e039f3-e6cc-42de-9960-24cb38111cb4"
+            },
+            {
+              "key": "password",
+              "value": "123123",
+              "type": "text",
+              "uuid": "74da1d07-7484-4d6f-a354-3b88786faccb"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/change-password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "change-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update profile",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "first_name",
+              "value": "Rafo",
+              "type": "text",
+              "uuid": "cee10a61-f699-49c3-87b8-d5eb350a7dab"
+            },
+            {
+              "key": "last_name",
+              "value": "Petrosyan",
+              "type": "text",
+              "uuid": "dfa70020-d0ec-4946-8c51-ee8737edc7dd"
+            },
+            {
+              "key": "phone_number",
+              "value": "+37493112094",
+              "type": "text",
+              "uuid": "95297697-323a-4478-8256-4fe3c25fae0f"
+            },
+            {
+              "key": "fcm_token",
+              "value": "",
+              "description": "Firebase device token, Optional",
+              "type": "text",
+              "uuid": "17be5bb0-0a81-4bd0-9073-7337cb4f607d"
+            },
+            {
+              "key": "locale",
+              "value": "hy",
+              "description": "hy | en | ru, (for notifications), Optional",
+              "type": "text",
+              "uuid": "3d099bf5-6d94-4341-bf14-021bf772176c"
+            },
+            {
+              "key": "latitude",
+              "value": "40.78509473145574",
+              "type": "text",
+              "uuid": "ca5e1536-47a2-48a8-acd5-8d2063a13162"
+            },
+            {
+              "key": "longitude",
+              "value": "43.84314848331972",
+              "type": "text",
+              "uuid": "8855226a-3a4b-4a1e-8343-a63c8fd1a7aa"
+            },
+            {
+              "key": "city_id",
+              "value": "1",
+              "type": "text",
+              "uuid": "e7521b43-11de-4c43-be51-5b0fa5b910d8"
+            },
+            {
+              "key": "emotion_ids",
+              "value": "1,3",
+              "type": "text",
+              "uuid": "68c39427-93b3-4aa8-8074-c41583d47b10"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/update-profile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "update-profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update profile image",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMwLCJyb2xlIjoidXNlciIsImlhdCI6MTc1NjkyMzc3NCwiZXhwIjoxNzU3MTgyOTc0fQ.BNRXIgyzbFuA9tiH2EmwN4PyTksOPikbHf11C7kFCeE",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "ed1aab00-e2b4-422e-9a48-8446dfeebc70",
+              "src": "/Users/rafopetrosyan/Desktop/download.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/users/update-profile-image",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "update-profile-image"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get current user",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMwLCJyb2xlIjoidXNlciIsImlhdCI6MTc1NjkyMzc3NCwiZXhwIjoxNzU3MTgyOTc0fQ.BNRXIgyzbFuA9tiH2EmwN4PyTksOPikbHf11C7kFCeE",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/current-user",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "current-user"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get users",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/list?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "search",
+              "value": "test",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Categories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Emotions",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/emotions",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "emotions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Cities",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept-Language",
+            "value": "hy",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/cities",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cities"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Places",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept-Language",
+            "value": "hy",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/places",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "kitchen",
+              "description": "min 3 characters",
+              "disabled": true
+            },
+            {
+              "key": "page",
+              "value": "147",
+              "description": "default 1",
+              "disabled": true
+            },
+            {
+              "key": "category_id",
+              "value": "22",
+              "description": "integer",
+              "disabled": true
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "disabled": true
+            },
+            {
+              "key": "emotion_id",
+              "value": "3",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get place by id",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTg0NjU0LCJleHAiOjE3NjA0NDM4NTR9.XKVUPs-fKuFYDxDngUMS87leXvrUI9tf7VWGaYRwZWE",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/6000",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "6000"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Place Detail (for only owner)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/4/detail",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "detail"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create place / company",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "city_id",
+              "value": "1",
+              "type": "text",
+              "uuid": "6445de8c-0314-425b-bbb3-b08202c7463e"
+            },
+            {
+              "key": "category_id",
+              "value": "1",
+              "type": "text",
+              "uuid": "ea3137e4-a511-4ab9-8ac7-7fcf24ebda02"
+            },
+            {
+              "key": "email",
+              "value": "petrosyanrafo0@gmail.com",
+              "type": "text",
+              "uuid": "b5e80ca8-7833-4c7d-967c-4040dd4970ba"
+            },
+            {
+              "key": "phone_number",
+              "value": "+37493112094",
+              "type": "text",
+              "uuid": "72ef3a16-ceb3-4113-8b11-b9fd233f2f56"
+            },
+            {
+              "key": "latitude",
+              "value": "40.78509473145574",
+              "type": "text",
+              "uuid": "d78e1a5a-f4f6-4785-a0da-05a16f4b399f"
+            },
+            {
+              "key": "longitude",
+              "value": "43.84314848331972",
+              "type": "text",
+              "uuid": "7dc85b04-ae96-4028-8a36-21fbcf3205d5"
+            },
+            {
+              "key": "address",
+              "value": "Address",
+              "type": "text",
+              "uuid": "6052e240-e9bf-476a-884e-38fd5e5fcfcf"
+            },
+            {
+              "key": "en",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text",
+              "uuid": "7e5deb75-9332-4404-903d-8c14029ff3bc"
+            },
+            {
+              "key": "hy",
+              "value": "{ \"name\": \"attraction HY\", \"description\": \"Desc HY\", \"about\": \"About HY\" }",
+              "type": "text",
+              "uuid": "53315e6f-52df-40c8-ad1c-07a8c0134909"
+            },
+            {
+              "key": "ru",
+              "value": "{ \"name\": \"666889 RU\", \"description\": \"Desc RU\", \"about\": \"About RU\" }",
+              "type": "text",
+              "uuid": "560aa9a4-0432-410f-888e-da0eb09eedfc"
+            },
+            {
+              "key": "social_links",
+              "value": "[{ \"platform\": \"facebook\", \"url\": \"https://www.facebook.com/\" }]",
+              "type": "text",
+              "uuid": "c3c56ced-3aca-4166-8f0e-9aa6a53f1532"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "53bfe8ac-80fe-442b-9779-e57eb4c7dc5b",
+              "src": "/Users/rafopetrosyan/Desktop/images.jpeg"
+            },
+            {
+              "key": "logo",
+              "type": "file",
+              "uuid": "1bdaa487-abe1-4ff5-a354-1dbf44ff24e1",
+              "src": "/Users/rafopetrosyan/Desktop/images (2).jpeg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/places",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delet Place / Company",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4MzU4MDg0LCJleHAiOjE3NTg2MTcyODR9.LtB0O6ioYtMV-hQeejoGHf3EMauDldAOjmScdJMrn7A",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/3",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update place /company",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU3NzQ2NDU4LCJleHAiOjE3NTgwMDU2NTh9.AOhjGXZDivLcSAed3S4iJkG6D8Cp39CwpS9ekt2i6ug",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "city_id",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "category_id",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "email",
+              "value": "petrosyanrafo0@gmail.com",
+              "type": "text"
+            },
+            {
+              "key": "phone_number",
+              "value": "+37493112094",
+              "type": "text"
+            },
+            {
+              "key": "latitude",
+              "value": "40.78509473145574",
+              "type": "text"
+            },
+            {
+              "key": "longitude",
+              "value": "43.84314848331972",
+              "type": "text"
+            },
+            {
+              "key": "en",
+              "value": "{ \"name\": \"Name EN\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text"
+            },
+            {
+              "key": "hy",
+              "value": "{ \"name\": \"Name HY\", \"description\": \"Desc HY\", \"about\": \"About HY\" }",
+              "type": "text"
+            },
+            {
+              "key": "ru",
+              "value": "{ \"name\": \"Name RU\", \"description\": \"Desc RU\", \"about\": \"About RU\" }",
+              "type": "text"
+            },
+            {
+              "key": "social_links",
+              "value": "[{ \"platform\": \"facebook\", \"url\": \"https://www.facebook.com/\" }]",
+              "type": "text"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "aa0940f3-56f6-45d3-b929-153ffa41eb27",
+              "src": "/Users/rafopetrosyan/Desktop/gonnago_app/src/assets/images/concert1.png"
+            },
+            {
+              "key": "logo",
+              "type": "file",
+              "uuid": "7c576c34-7df4-4eb6-a912-c793b0788e78",
+              "src": "/Users/rafopetrosyan/Desktop/gonnago_app/src/assets/images/filStar.png"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/places/3",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create / Update working times",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU3NzQ2NDU4LCJleHAiOjE3NTgwMDU2NTh9.AOhjGXZDivLcSAed3S4iJkG6D8Cp39CwpS9ekt2i6ug",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"working_times\": [\n    {\n      \"weekday\": \"monday\",\n      \"start_time\": \"08:00\",\n      \"end_time\": \"14:00\",\n      \"is_working_day\": true,\n      \"breaks\": [\n        { \"start\": \"12:00\", \"end\": \"13:00\" }\n      ]\n    },\n    {\n      \"weekday\": \"tuesday\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"17:00\",\n      \"is_working_day\": true,\n      \"breaks\": []\n    },\n    {\n      \"weekday\": \"wednesday\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"17:00\",\n      \"is_working_day\": true,\n      \"breaks\": []\n    },\n    {\n      \"weekday\": \"thursday\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"17:00\",\n      \"is_working_day\": true,\n      \"breaks\": []\n    },\n    {\n      \"weekday\": \"friday\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"17:00\",\n      \"is_working_day\": true,\n      \"breaks\": []\n    },\n    {\n      \"weekday\": \"saturday\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"17:00\",\n      \"is_working_day\": true,\n      \"breaks\": []\n    },\n    {\n      \"weekday\": \"sunday\",\n      \"start_time\": \"10:00\",\n      \"end_time\": \"17:00\",\n      \"is_working_day\": true,\n      \"breaks\": []\n    }\n  ]\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/places/3/working-times",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "3",
+            "working-times"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update working time",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU3NzQ2NDU4LCJleHAiOjE3NTgwMDU2NTh9.AOhjGXZDivLcSAed3S4iJkG6D8Cp39CwpS9ekt2i6ug",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"weekday\": \"monday\",\n    \"start_time\": \"08:00:00\",\n    \"end_time\": \"15:00:00\",\n    \"is_working_day\": true,\n    \"breaks\": [\n        {\n            \"start\": \"12:00\",\n            \"end\": \"13:00\"\n        }\n    ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/places/3/working-times/22",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "3",
+            "working-times",
+            "22"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get gallery",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/20/gallery",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "20",
+            "gallery"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload images",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4MzU4MDg0LCJleHAiOjE3NTg2MTcyODR9.LtB0O6ioYtMV-hQeejoGHf3EMauDldAOjmScdJMrn7A",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "images",
+              "type": "file",
+              "uuid": "70dcab64-5e5d-42de-8309-839adb613576",
+              "src": [
+                "/Users/rafopetrosyan/Desktop/gonnago_app/src/assets/images/concert1.png",
+                "/Users/rafopetrosyan/Desktop/gonnago_app/src/assets/images/connectScreenImg.png"
+              ]
+            },
+            {
+              "key": "// multiple upload, max 15",
+              "value": "",
+              "type": "text",
+              "uuid": "f65467ca-b8bf-4cfe-871b-3ec82ee72034",
+              "disabled": true
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/places/19/gallery",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "19",
+            "gallery"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete gallery",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU3NjE0ODA3LCJleHAiOjE3NTc4NzQwMDd9.qyB48seYwaK3No_aHmde7Ec5YVpZru7lTK8eHmA6zuA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/3/gallery/31",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "3",
+            "gallery",
+            "31"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get place sections",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/4/place-sections",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "place-sections"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create place section",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"is_active\": true,\n  \"en\": {\n    \"title\": \"Main Menu\",\n    \"description\": \"Our delicious main menu featuring traditional and modern dishes\"\n  },\n  \"hy\": {\n    \"title\": \"Գլխավոր Մենյու\",\n    \"description\": \"Մեր համեղ գլխավոր մենյուն, որը ներառում է ավանդական և ժամանակակից ուտեստներ\"\n  },\n  \"ru\": {\n    \"title\": \"Основное Меню\",\n    \"description\": \"Наше вкусное основное меню с традиционными и современными блюдами\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/places/4/place-sections",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "place-sections"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update place section",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"is_active\": true,\n  \"en\": {\n    \"title\": \"Main Menu\",\n    \"description\": \"Our delicious main menu featuring traditional and modern dishes\"\n  },\n  \"hy\": {\n    \"title\": \"Գլխավոր Մենյու\",\n    \"description\": \"Մեր համեղ գլխավոր մենյուն, որը ներառում է ավանդական և ժամանակակից ուտեստներ\"\n  },\n  \"ru\": {\n    \"title\": \"Основное Меню\",\n    \"description\": \"Наше вкусное основное меню с традиционными и современными блюдами\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/places/4/place-sections/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "place-sections",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete place section",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"is_active\": true,\n  \"en\": {\n    \"title\": \"Main Menu\",\n    \"description\": \"Our delicious main menu featuring traditional and modern dishes\"\n  },\n  \"hy\": {\n    \"title\": \"Գլխավոր Մենյու\",\n    \"description\": \"Մեր համեղ գլխավոր մենյուն, որը ներառում է ավանդական և ժամանակակից ուտեստներ\"\n  },\n  \"ru\": {\n    \"title\": \"Основное Меню\",\n    \"description\": \"Наше вкусное основное меню с традиционными и современными блюдами\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/places/4/place-sections/2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "place-sections",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get place items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/4/items?section_id=1&page=1&limit=10&search=produc",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items"
+          ],
+          "query": [
+            {
+              "key": "section_id",
+              "value": "1"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "search",
+              "value": "produc"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get item by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/4/items/10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items",
+            "10"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create place item",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "place_section_id",
+              "value": "1",
+              "type": "text",
+              "uuid": "84a9ba0c-11c1-4a67-993f-7b395ea8bb25"
+            },
+            {
+              "key": "en",
+              "value": "{ \"title\": \"produc\", \"description\": \"Desc EN\"}",
+              "type": "text",
+              "uuid": "521c3a8c-0bf7-4cdc-9647-62944a696441"
+            },
+            {
+              "key": "hy",
+              "value": "{ \"title\": \"product\", \"description\": \"Desc EN\"}",
+              "type": "text",
+              "uuid": "70f031e2-396d-444d-a803-2cfff7719cc6"
+            },
+            {
+              "key": "ru",
+              "value": "{ \"title\": \"prokduct\", \"description\": \"Desc EN\"}",
+              "type": "text",
+              "uuid": "f5a86fc3-0a9b-4ad6-9e09-ee171111a465"
+            },
+            {
+              "key": "currency",
+              "value": "AMD",
+              "type": "text",
+              "uuid": "42046598-b2bf-42d9-b6df-bd034c0609dd"
+            },
+            {
+              "key": "price",
+              "value": "2000",
+              "type": "text",
+              "uuid": "16e8dec9-05cd-489a-95ed-463b751bc384"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "8377508e-a781-47e7-ae31-b2061e7b817c",
+              "src": "/Users/rafopetrosyan/Desktop/2Z6A0881-2880x1920-640w.webp"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/places/4/items",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update item",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "place_section_id",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "en",
+              "value": "{ \"title\": \"produc\", \"description\": \"Desc EN\"}",
+              "type": "text"
+            },
+            {
+              "key": "hy",
+              "value": "{ \"title\": \"product\", \"description\": \"Desc EN\"}",
+              "type": "text"
+            },
+            {
+              "key": "ru",
+              "value": "{ \"title\": \"prokduct\", \"description\": \"Desc EN\"}",
+              "type": "text"
+            },
+            {
+              "key": "currency",
+              "value": "AMD",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "2000",
+              "type": "text"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "137d4b56-e942-44fb-bbd1-0d7b6cc84e39",
+              "src": "/Users/rafopetrosyan/Desktop/black-fortress-1.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/places/4/items/10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items",
+            "10"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delet item",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/4/items/11",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items",
+            "11"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload item images",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "images",
+              "type": "file",
+              "uuid": "3940416e-5ccc-4630-9067-1e6e4f23c1f0",
+              "src": [
+                "/Users/rafopetrosyan/Desktop/black-fortress-1.jpg",
+                "/Users/rafopetrosyan/Desktop/2Z6A0881-2880x1920-640w.webp"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/places/4/items/10/images",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items",
+            "10",
+            "images"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete item image",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU4OTU3ODE0LCJleHAiOjE3NTkyMTcwMTR9.8vEuGD6rs8Bf2Jkt_cKHqAZUnAhU48RJ3YZ4avSQ9Wo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/places/4/items/10/images/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "places",
+            "4",
+            "items",
+            "10",
+            "images",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get event categories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/event-categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "event-categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Events",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNjAzOTA3LCJleHAiOjE3NjA4NjMxMDd9.L3EBctzBkpl0LyzO49TZm9MeJ7qoZX--dE_zSkaWhR0",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events"
+          ],
+          "query": [
+            {
+              "key": "place_id",
+              "value": "2",
+              "disabled": true
+            },
+            {
+              "key": "event_category_id",
+              "value": "2",
+              "disabled": true
+            },
+            {
+              "key": "start_date",
+              "value": "2024-07-15T18:00:00.000Z",
+              "disabled": true
+            },
+            {
+              "key": "end_date",
+              "value": "2024-07-30T18:00:00.000Z",
+              "disabled": true
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "disabled": true
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get event by ID",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNjAzOTA3LCJleHAiOjE3NjA4NjMxMDd9.L3EBctzBkpl0LyzO49TZm9MeJ7qoZX--dE_zSkaWhR0",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Gev event detail for only owner",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU5MDc0ODk5LCJleHAiOjE3NTkzMzQwOTl9.5bTAqpoAvX78q24geZzvSOX1bKqNX-esQu-Rehqlv3c",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/3/detail",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "3",
+            "detail"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create event",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "en",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text",
+              "uuid": "987351bd-fedf-4292-9af0-7184cb383d4a"
+            },
+            {
+              "key": "hy",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text",
+              "uuid": "4a4501de-cae6-451a-b005-de7307f911e5"
+            },
+            {
+              "key": "ru",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text",
+              "uuid": "1d093fbf-034b-4edd-a762-6b62f06727eb"
+            },
+            {
+              "key": "start_date",
+              "value": "2024-07-15T18:00:00.000Z",
+              "type": "text",
+              "uuid": "08379c6e-0ba0-4229-8aae-f13716d2a93e"
+            },
+            {
+              "key": "end_date",
+              "value": "2024-07-15T23:00:00.000Z",
+              "type": "text",
+              "uuid": "3d1adafd-6189-434e-a25e-5c89292856a4"
+            },
+            {
+              "key": "place_id",
+              "value": "3",
+              "type": "text",
+              "uuid": "613ffcb3-822d-43b3-87af-f69b152967e3"
+            },
+            {
+              "key": "event_category_id",
+              "value": "2",
+              "type": "text",
+              "uuid": "c10842b5-5729-4ae1-a9b6-6153869ff338"
+            },
+            {
+              "key": "latitude",
+              "value": "40.1776",
+              "type": "text",
+              "uuid": "82c1cf66-2fe8-4b34-b228-d07529dbc5aa"
+            },
+            {
+              "key": "longitude",
+              "value": "44.5126",
+              "type": "text",
+              "uuid": "18fa78d3-738c-4ee0-9b6f-d5cde5d37556"
+            },
+            {
+              "key": "email",
+              "value": "contact@summerfestival.com",
+              "type": "text",
+              "uuid": "6f0cf289-7db7-4c57-8247-47e4b836e527"
+            },
+            {
+              "key": "phone_number",
+              "value": "+374-10-123456",
+              "type": "text",
+              "uuid": "e46cb7cf-6809-4b5c-9c45-68b12c11107b"
+            },
+            {
+              "key": "address",
+              "value": "Republic Square, Yerevan, Armenia",
+              "type": "text",
+              "uuid": "b4170e60-1f1d-4fa1-b101-860dabcbddf9"
+            },
+            {
+              "key": "price",
+              "value": "2500",
+              "type": "text",
+              "uuid": "a939d067-e4d8-4329-8412-8c00a8413a2e"
+            },
+            {
+              "key": "max_attendees",
+              "value": "500",
+              "type": "text",
+              "uuid": "8101489b-14ac-4bfa-9372-80206ba3891d"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "2e251819-74dc-4a0e-93da-d08b07ca091e",
+              "src": "/Users/rafopetrosyan/Desktop/images.jpeg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update event",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU5MDc0ODk5LCJleHAiOjE3NTkzMzQwOTl9.5bTAqpoAvX78q24geZzvSOX1bKqNX-esQu-Rehqlv3c",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "en",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text"
+            },
+            {
+              "key": "hy",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text"
+            },
+            {
+              "key": "ru",
+              "value": "{ \"name\": \"attraction\", \"description\": \"Desc EN\", \"about\": \"About EN\" }",
+              "type": "text"
+            },
+            {
+              "key": "start_date",
+              "value": "2024-07-15T18:00:00.000Z",
+              "type": "text"
+            },
+            {
+              "key": "end_date",
+              "value": "2024-07-15T23:00:00.000Z",
+              "type": "text"
+            },
+            {
+              "key": "place_id",
+              "value": "2",
+              "type": "text"
+            },
+            {
+              "key": "event_category_id",
+              "value": "2",
+              "type": "text"
+            },
+            {
+              "key": "latitude",
+              "value": "40.1776",
+              "type": "text"
+            },
+            {
+              "key": "longitude",
+              "value": "44.5126",
+              "type": "text"
+            },
+            {
+              "key": "email",
+              "value": "contact@summerfestival.com",
+              "type": "text"
+            },
+            {
+              "key": "phone_number",
+              "value": "+374-10-123456",
+              "type": "text"
+            },
+            {
+              "key": "address",
+              "value": "Republic Square, Yerevan, Armenia",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "2500",
+              "type": "text"
+            },
+            {
+              "key": "max_attendees",
+              "value": "500",
+              "type": "text"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "uuid": "285cac49-9233-4101-ab3d-352e516d7388",
+              "src": "/Users/rafopetrosyan/Desktop/black-fortress-2.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/events/3",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get event image",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/3/gallery",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "3",
+            "gallery"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload event images",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU5MDc0ODk5LCJleHAiOjE3NTkzMzQwOTl9.5bTAqpoAvX78q24geZzvSOX1bKqNX-esQu-Rehqlv3c",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "images",
+              "type": "file",
+              "uuid": "7777eefc-1da2-4ad9-8aa6-df49d9b1758b",
+              "src": [
+                "/Users/rafopetrosyan/Desktop/black-fortress-1.jpg",
+                "/Users/rafopetrosyan/Desktop/black-fortress-2.jpg"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/events/3/gallery",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "3",
+            "gallery"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete event image",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU5MDc0ODk5LCJleHAiOjE3NTkzMzQwOTl9.5bTAqpoAvX78q24geZzvSOX1bKqNX-esQu-Rehqlv3c",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/3/gallery/2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "3",
+            "gallery",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Going",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNjAzOTA3LCJleHAiOjE3NjA4NjMxMDd9.L3EBctzBkpl0LyzO49TZm9MeJ7qoZX--dE_zSkaWhR0",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/1/going",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "1",
+            "going"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get event goings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/1/goings?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "1",
+            "goings"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "search",
+              "value": "Test",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get my goings",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNjAzOTA3LCJleHAiOjE3NjA4NjMxMDd9.L3EBctzBkpl0LyzO49TZm9MeJ7qoZX--dE_zSkaWhR0",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/goings?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "goings"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "search",
+              "value": "attrac",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Follow \\ Unfollow",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "type",
+              "value": "event",
+              "description": "place | event",
+              "type": "text",
+              "uuid": "eed68e62-3801-4470-8c13-fa9eea5bf38b"
+            },
+            {
+              "key": "id",
+              "value": "3",
+              "type": "text",
+              "uuid": "cd55914a-fc03-4da6-a4e9-db43bf33d67f"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/follows",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "follows"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get favorites",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMDc2MTIzLCJleHAiOjE3NjAzMzUzMjN9.Hg2Kwgq2Wd_157k6ZrKCGr6QBldwYRrc0gM7kxvWpY0",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/follows?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "follows"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add review",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTg0NjU0LCJleHAiOjE3NjA0NDM4NTR9.XKVUPs-fKuFYDxDngUMS87leXvrUI9tf7VWGaYRwZWE",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "text",
+              "value": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
+              "description": "Optional",
+              "type": "text",
+              "uuid": "ca36321e-1a43-4009-9c15-d74ebf015941"
+            },
+            {
+              "key": "entity_id",
+              "value": "105177",
+              "type": "text",
+              "uuid": "b3e5d322-1851-4cb0-bca2-7d4591323066"
+            },
+            {
+              "key": "entity_type",
+              "value": "place",
+              "description": "place | event",
+              "type": "text",
+              "uuid": "1fde399a-d88b-40fd-99bd-360d45b46967"
+            },
+            {
+              "key": "emotion_ids",
+              "value": "1,2",
+              "type": "text",
+              "uuid": "3cd5b5ea-379b-4c3c-a23d-82b0ca115129"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/reviews",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update review",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTEyNjIwLCJleHAiOjE3NjAzNzE4MjB9.GqWn7zfxKDGDL2dVCJW4MpR-p2B3iH9rLHWk5hu46vU",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "text",
+              "value": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
+              "type": "text"
+            },
+            {
+              "key": "emotion_ids",
+              "value": "1,2",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/reviews/17",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "17"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete review",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTEyNjIwLCJleHAiOjE3NjAzNzE4MjB9.GqWn7zfxKDGDL2dVCJW4MpR-p2B3iH9rLHWk5hu46vU",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/reviews/17",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "17"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get place reviews",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/reviews/105177/place?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "105177",
+            "place"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get event reviews",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/reviews/3/event?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "3",
+            "event"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get my reviews",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTEyNjIwLCJleHAiOjE3NjAzNzE4MjB9.GqWn7zfxKDGDL2dVCJW4MpR-p2B3iH9rLHWk5hu46vU",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/reviews/my?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "my"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reply review",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "review_id",
+              "value": "20",
+              "type": "text",
+              "uuid": "e94e1201-5076-4a40-abe8-049283eb54a0"
+            },
+            {
+              "key": "text",
+              "value": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
+              "type": "text",
+              "uuid": "df1396fd-1438-4027-bcbc-a2f203385867"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/reviews/replies",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "replies"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reply review update",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "text",
+              "value": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
+              "type": "text",
+              "uuid": "ca2ba152-d208-4a49-b777-b3f6cfe0ab0f"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/reviews/replies/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "replies",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reply review delete",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/reviews/replies/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "replies",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get review replies",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/reviews/20/replies?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "20",
+            "replies"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Like review",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "review_id",
+              "value": "24",
+              "type": "text",
+              "uuid": "aad34bf0-ebb9-4e07-973a-4073d5a48034"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/reviews/like",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "like"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Like replied review",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "reply_id",
+              "value": "3",
+              "type": "text",
+              "uuid": "0631cb7d-3f42-4865-90a8-d5799a5b6cec"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/reviews/like",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "reviews",
+            "like"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send contact request",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "receiver_id",
+              "value": "3",
+              "type": "text",
+              "uuid": "a5b78ab6-88ff-46a7-a991-725724b9f40a"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/contacts/request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts",
+            "request"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Accept contact request",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDI5MzE2LCJleHAiOjE3NjA2ODg1MTZ9.CgXR3c--cBfeuLEL7cRepEok9CI8pwhljvgKeDf6zQg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "request_id",
+              "value": "1",
+              "type": "text",
+              "uuid": "a0915f52-e4e5-4a5c-b8d2-8c845a5f1987"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/contacts/accept",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts",
+            "accept"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reject contact request",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "request_id",
+              "value": "1",
+              "type": "text",
+              "uuid": "1fd0d506-bbae-49d8-92f7-cf89d51b7fb7"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/contacts/reject",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts",
+            "reject"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete contact",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/contacts/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get my contacts",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/contacts?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "search",
+              "value": "test",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get pending contact requests",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/contacts/pending?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts",
+            "pending"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get sent contact requets",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/contacts/sent?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "contacts",
+            "sent"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
