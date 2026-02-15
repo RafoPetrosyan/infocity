@@ -14,6 +14,7 @@ import { Item } from './items.model';
 import { DOMAIN_URL } from '../../../constants';
 import { CityModel } from '../../cities/models/city.model';
 import { Category } from '../../categories/models/category.model';
+import { SubCategory } from '../../categories/models/sub-category.model';
 import { PlaceImages } from './places-images.model';
 import { PlaceWorkingTimes } from './places-working-times.model';
 import { User } from '../../users/models/user.model';
@@ -76,6 +77,10 @@ export class Place extends Model {
   @Column({ type: DataType.INTEGER, allowNull: true })
   declare category_id: number;
 
+  @ForeignKey(() => SubCategory)
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  declare sub_category_id: number;
+
   @ForeignKey(() => User)
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare user_id: number;
@@ -91,6 +96,9 @@ export class Place extends Model {
 
   @BelongsTo(() => Category)
   declare category: Category;
+
+  @BelongsTo(() => SubCategory)
+  declare sub_category: SubCategory;
 
   @HasMany(() => PlaceTranslation)
   declare translations: PlaceTranslation[];

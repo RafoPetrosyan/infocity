@@ -634,6 +634,170 @@
       "response": []
     },
     {
+      "name": "Get Sub-categories",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept-Language",
+            "value": "hy",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/sub-categories",
+          "host": ["{{base_url}}"],
+          "path": ["sub-categories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sub-categories (Admin)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sub-categories/admin?category_id=1",
+          "host": ["{{base_url}}"],
+          "path": ["sub-categories", "admin"],
+          "query": [
+            {
+              "key": "category_id",
+              "value": "1",
+              "description": "optional, filter by category"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Sub-category",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "slug", "value": "restaurants", "type": "text"},
+            {"key": "category_id", "value": "1", "description": "optional", "type": "text"},
+            {"key": "translations", "value": "[{\"language\":\"en\",\"name\":\"Restaurants\"},{\"language\":\"hy\",\"name\":\"Ռեստորաններ\"},{\"language\":\"ru\",\"name\":\"Рестораны\"}]", "type": "text"},
+            {"key": "image", "type": "file", "src": "/Users/rafopetrosyan/Desktop/images.jpeg"}
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/sub-categories",
+          "host": ["{{base_url}}"],
+          "path": ["sub-categories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Sub-category",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "slug", "value": "restaurants", "type": "text"},
+            {"key": "category_id", "value": "1", "description": "optional", "type": "text"},
+            {"key": "translations", "value": "[{\"language\":\"en\",\"name\":\"Restaurants\"},{\"language\":\"hy\",\"name\":\"Ռեստորաններ\"},{\"language\":\"ru\",\"name\":\"Рестораны\"}]", "type": "text"},
+            {"key": "image", "type": "file", "src": "/Users/rafopetrosyan/Desktop/images.jpeg"}
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/sub-categories/1",
+          "host": ["{{base_url}}"],
+          "path": ["sub-categories", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Sub-categories order",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    { \"id\": 1, \"order\": 0 },\n    { \"id\": 2, \"order\": 1 }\n  ]\n}",
+          "options": {"raw": {"language": "json"}}
+        },
+        "url": {
+          "raw": "{{base_url}}/sub-categories/order",
+          "host": ["{{base_url}}"],
+          "path": ["sub-categories", "order"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Sub-category",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sub-categories/1",
+          "host": ["{{base_url}}"],
+          "path": ["sub-categories", "1"]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Emotions",
       "request": {
         "auth": {
@@ -722,6 +886,12 @@
               "key": "category_id",
               "value": "22",
               "description": "integer",
+              "disabled": true
+            },
+            {
+              "key": "sub_category_id",
+              "value": "1",
+              "description": "integer, filter by sub-category",
               "disabled": true
             },
             {
@@ -826,6 +996,13 @@
               "value": "1",
               "type": "text",
               "uuid": "ea3137e4-a511-4ab9-8ac7-7fcf24ebda02"
+            },
+            {
+              "key": "sub_category_id",
+              "value": "1",
+              "description": "optional",
+              "type": "text",
+              "uuid": "f638c2b0-434a-4864-8081-a42dd2bc970b"
             },
             {
               "key": "email",
@@ -961,6 +1138,12 @@
             {
               "key": "category_id",
               "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "sub_category_id",
+              "value": "1",
+              "description": "optional",
               "type": "text"
             },
             {

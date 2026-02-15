@@ -144,6 +144,11 @@ export class UpdatePlaceDto {
   category_id: number;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  sub_category_id?: number;
+
+  @IsOptional()
   @IsEmail({}, { message: 'validation.invalid_email_format' })
   email: string;
 

@@ -10,6 +10,8 @@ import {
 } from './dto/create-category.dto';
 import { Category } from './models/category.model';
 import { CategoryTranslation } from './models/category-translation.model';
+import { SubCategory } from './models/sub-category.model';
+import { SubCategoryTranslation } from './models/sub-category-translation.model';
 import { Sequelize } from 'sequelize-typescript';
 import { unlink } from 'fs/promises';
 import { Place } from '../places/models/places.model';
@@ -22,6 +24,12 @@ export class CategoriesService {
 
     @InjectModel(CategoryTranslation)
     private categoryTranslationModel: typeof CategoryTranslation,
+
+    @InjectModel(SubCategory)
+    private subCategoryModel: typeof SubCategory,
+
+    @InjectModel(SubCategoryTranslation)
+    private subCategoryTranslationModel: typeof SubCategoryTranslation,
 
     @InjectModel(Place)
     private placeModel: typeof Place,
@@ -43,6 +51,29 @@ export class CategoriesService {
           model: this.placeModel,
           as: 'places',
           attributes: [],
+        },
+        {
+          model: this.subCategoryModel,
+          as: 'sub_categories',
+          required: false,
+          separate: true,
+          order: [['order', 'ASC']],
+          include: [
+            {
+              model: this.subCategoryTranslationModel,
+              as: 'translation',
+              where: { language: lang },
+              required: true,
+              attributes: [],
+            },
+          ],
+          attributes: [
+            'id',
+            'slug',
+            'image',
+            'order',
+            [Sequelize.col('translation.name'), 'name'],
+          ],
         },
       ],
       attributes: [

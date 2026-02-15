@@ -12,6 +12,7 @@ import { CreatePlaceDto } from './dto/create-place.dto';
 import slugify from 'slugify';
 import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
+import { SubCategory } from '../categories/models/sub-category.model';
 import { unlinkFiles } from '../../utils/unlink-files';
 import {
   CreateWorkingTimeDto,
@@ -50,6 +51,9 @@ export class PlacesService {
 
     @InjectModel(Category)
     private categoryModel: typeof Category,
+
+    @InjectModel(SubCategory)
+    private subCategoryModel: typeof SubCategory,
 
     @InjectModel(PlaceWorkingTimes)
     private workingTimes: typeof PlaceWorkingTimes,
@@ -196,6 +200,7 @@ export class PlacesService {
         'social_links',
         'logo',
         'category_id',
+        'sub_category_id',
         'city_id',
         'address',
         [Sequelize.col('city->translation.name'), 'city_name'],
@@ -249,6 +254,11 @@ export class PlacesService {
     if (query.category_id) {
       where.push(`p.category_id = :category_id`);
       replacements.category_id = query.category_id;
+    }
+
+    if (query.sub_category_id) {
+      where.push(`p.sub_category_id = :sub_category_id`);
+      replacements.sub_category_id = query.sub_category_id;
     }
 
     if (query.search) {
@@ -311,6 +321,7 @@ export class PlacesService {
         pt.name,
         pt.description,
         c.slug AS category_slug,
+        sc.slug AS sub_category_slug,
         ${isFollowedCondition},
         ${emotionCondition},
         COALESCE(
@@ -326,10 +337,11 @@ export class PlacesService {
              JOIN place_translations pt
                   ON pt.place_id = p.id AND pt.language = :lang
              LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN sub_categories sc ON sc.id = p.sub_category_id
              LEFT JOIN entity_emotion_counts eec
                        ON eec.entity_type = 'place' AND eec.entity_id = p.id
         ${whereClause}
-      GROUP BY p.id, pt.name, pt.description, c.slug
+      GROUP BY p.id, pt.name, pt.description, c.slug, sc.slug
       ORDER BY has_user_emotion DESC, p.id DESC
         LIMIT :limit OFFSET :offset
     `;
@@ -531,6 +543,23 @@ export class PlacesService {
       throw new NotFoundException(`Category does not exist`);
     }
 
+    let subCategoryId: number | null = null;
+    if (dto.sub_category_id) {
+      const subCategory = await this.subCategoryModel.findByPk(
+        dto.sub_category_id,
+        { attributes: ['id'] },
+      );
+      if (!subCategory) {
+        await unlinkFiles([
+          files.logoFilePath,
+          files.coverOriginalPath,
+          files.coverThumbPath,
+        ]);
+        throw new NotFoundException(`Sub-category does not exist`);
+      }
+      subCategoryId = subCategory.id;
+    }
+
     let baseSlug = slugify(dto.en.name, { lower: true, strict: true });
     const existBaseSlug = await this.placeModel.findOne({
       where: { slug: baseSlug },
@@ -543,6 +572,7 @@ export class PlacesService {
       image_original: files.coverOriginalName,
       city_id: city.id,
       category_id: category.id,
+      sub_category_id: subCategoryId,
       email: dto.email || null,
       address: dto.address || null,
       phone_number: dto.phone_number || null,
@@ -686,6 +716,22 @@ export class PlacesService {
       }
 
       updateData.category_id = category.id;
+    }
+
+    if (dto.sub_category_id) {
+      const subCategory = await this.subCategoryModel.findByPk(
+        dto.sub_category_id,
+        { attributes: ['id'] },
+      );
+      if (!subCategory) {
+        await unlinkFiles([
+          files.logoFilePath,
+          files.coverOriginalPath,
+          files.coverThumbPath,
+        ]);
+        throw new NotFoundException(`Sub-category does not exist`);
+      }
+      updateData.sub_category_id = subCategory.id;
     }
 
     if (dto.social_links) updateData.social_links = dto.social_links;
