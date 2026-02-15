@@ -497,6 +497,26 @@ export class EventsService {
     ];
     await this.eventTranslationModel.bulkCreate(languages);
 
+    // Save selected emotions from the body (creator's initial emotions for the event)
+    const emotionIds = dto.emotion_ids?.filter((id) => id > 0) ?? [];
+    if (emotionIds.length > 0) {
+      const existingEmotions = await this.emotionsModel.findAll({
+        where: { id: emotionIds },
+        attributes: ['id'],
+      });
+      const validIds = existingEmotions.map((e) => e.id);
+      if (validIds.length > 0) {
+        await this.entityEmotionCountsModel.bulkCreate(
+          validIds.map((emotionId) => ({
+            entity_type: 'event' as const,
+            entity_id: event.id,
+            emotion_id: emotionId,
+            count: 1,
+          })),
+        );
+      }
+    }
+
     const eventResponse = await this.getEventByIdAllData(event.id, userId);
     return { message: 'Event created successfully.', event: eventResponse };
   }
