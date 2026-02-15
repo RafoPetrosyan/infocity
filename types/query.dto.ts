@@ -35,6 +35,10 @@ export class QueryDto {
 
   @IsOptional()
   @IsInt()
+  sub_category_id?: number;
+
+  @IsOptional()
+  @IsInt()
   section_id?: number;
 
   @IsOptional()

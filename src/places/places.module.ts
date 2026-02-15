@@ -8,6 +8,8 @@ import { PlaceImages } from './models/places-images.model';
 import { PlaceWorkingTimes } from './models/places-working-times.model';
 import { CityModel } from '../cities/models/city.model';
 import { Category } from '../categories/models/category.model';
+import { SubCategory } from '../categories/models/sub-category.model';
+import { SubCategoryTranslation } from '../categories/models/sub-category-translation.model';
 import { User } from '../users/models/user.model';
 import { CityTranslation } from '../cities/models/city-translation.model';
 import { CategoryTranslation } from '../categories/models/category-translation.model';
@@ -40,6 +42,8 @@ import { UserFollow } from '../follows/models/user-follow.model';
       ItemImages,
       CityModel,
       Category,
+      SubCategory,
+      SubCategoryTranslation,
       User,
       CityTranslation,
       CategoryTranslation,

@@ -49,6 +49,16 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
+      sub_category_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'sub_categories',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -75,11 +85,13 @@ module.exports = {
 
     await queryInterface.addIndex('places', ['city_id']);
     await queryInterface.addIndex('places', ['category_id']);
+    await queryInterface.addIndex('places', ['sub_category_id']);
   },
 
   async down(queryInterface) {
     await queryInterface.removeIndex('places', ['city_id']);
     await queryInterface.removeIndex('places', ['category_id']);
+    await queryInterface.removeIndex('places', ['sub_category_id']);
     await queryInterface.dropTable('places');
   },
 };
