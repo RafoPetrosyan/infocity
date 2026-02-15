@@ -10,6 +10,7 @@ import {
   ValidateNested,
   IsDateString,
   IsBoolean,
+  IsArray,
 } from 'class-validator';
 import { plainToInstance, Transform, Type } from 'class-transformer';
 
@@ -139,4 +140,23 @@ export class CreateEventDto {
   @IsOptional()
   @IsBoolean()
   is_featured: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Type(() => Number)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    if (Array.isArray(value)) return value.map(Number).filter((n) => !Number.isNaN(n));
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(Number).filter((n) => !Number.isNaN(n)) : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
+  })
+  emotion_ids?: number[];
 }

@@ -514,6 +514,22 @@ export class PlacesService {
       logoFilePath?: string | undefined;
     },
   ) {
+    const MAX_COMPANIES_PER_USER = 3;
+    const userPlacesCount = await this.placeModel.count({
+      where: { user_id: userId },
+    });
+    if (userPlacesCount >= MAX_COMPANIES_PER_USER) {
+      await unlinkFiles([
+        files.logoFilePath,
+        files.coverOriginalPath,
+        files.coverThumbPath,
+      ]);
+
+      throw new BadRequestException(
+        `You can create a maximum of ${MAX_COMPANIES_PER_USER} companies.`,
+      );
+    }
+
     if (!files.coverOriginalName) {
       if (files.logoFilePath) await unlink(files.logoFilePath);
       throw new NotFoundException(`Cover image is required`);
