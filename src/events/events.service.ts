@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotAcceptableException,
   NotFoundException,
@@ -27,6 +28,10 @@ import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.mod
 import { User } from '../users/models/user.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { EventGoing } from './models/event-going.model';
+import { EventInvitation } from './models/event-invitation.model';
+import { UserContact } from '../contacts/models/user-contact.model';
+import { NotificationsService } from '../notifications/notifications.service';
+import { InviteToEventDto } from './dto/invite-to-event.dto';
 
 @Injectable()
 export class EventsService {
@@ -69,6 +74,14 @@ export class EventsService {
 
     @InjectModel(EventGoing)
     private eventGoingModel: typeof EventGoing,
+
+    @InjectModel(EventInvitation)
+    private eventInvitationModel: typeof EventInvitation,
+
+    @InjectModel(UserContact)
+    private userContactModel: typeof UserContact,
+
+    private notificationsService: NotificationsService,
 
     @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
@@ -951,5 +964,195 @@ export class EventsService {
         pages_count: Math.ceil(count / limit),
       },
     };
+  }
+
+  /** Send event invitation to a contact **/
+  async sendInvitation(
+    userId: number,
+    eventId: number,
+    dto: InviteToEventDto,
+  ): Promise<{ message: string }> {
+    const { invitee_id } = dto;
+
+    const event = await this.eventModel.findByPk(eventId, {
+      attributes: ['id', 'user_id', 'start_date'],
+    });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    if (event.user_id !== userId) {
+      throw new NotAcceptableException('Only the event owner can invite');
+    }
+
+    if (invitee_id === userId) {
+      throw new BadRequestException('Cannot invite yourself');
+    }
+
+    const invitee = await this.usersModel.findByPk(invitee_id, {
+      attributes: ['id'],
+    });
+    if (!invitee) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isContact = await this.userContactModel.findOne({
+      where: {
+        user_id: userId,
+        contact_id: invitee_id,
+        status: 'accepted',
+      },
+    });
+    if (!isContact) {
+      throw new BadRequestException('You can only invite your contacts');
+    }
+
+    let invitation = await this.eventInvitationModel.findOne({
+      where: { event_id: eventId, invitee_id },
+    });
+    if (invitation) {
+      if (invitation.status === 'pending') {
+        throw new ConflictException('Invitation already sent');
+      }
+      if (invitation.status === 'accepted') {
+        throw new ConflictException('Invitation already accepted');
+      }
+      invitation.status = 'pending';
+      await invitation.save();
+    } else {
+      invitation = await this.eventInvitationModel.create({
+        inviter_id: userId,
+        invitee_id,
+        event_id: eventId,
+        status: 'pending',
+      });
+    }
+
+    await this.notificationsService.create({
+      user_id: invitee_id,
+      type: 'event_invitation',
+      reference_type: 'event_invitation',
+      reference_id: invitation.id,
+      title: 'Event invitation',
+      body: `You have been invited to an event`,
+    });
+
+    return { message: 'Invitation sent successfully' };
+  }
+
+  /** Get my invitations (only for events whose date has not yet passed) **/
+  async getMyInvitations(userId: number, query: QueryDto, lang: LanguageEnum) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+    const now = new Date();
+
+    const { count, rows } = await this.eventInvitationModel.findAndCountAll({
+      where: {
+        invitee_id: userId,
+        status: 'pending',
+      },
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: this.eventModel,
+          as: 'event',
+          required: true,
+          where: {
+            start_date: { [Op.gt]: now },
+          },
+          attributes: ['id', 'slug', 'start_date', 'end_date', 'image'],
+          include: [
+            {
+              model: this.eventTranslationModel,
+              as: 'translation',
+              attributes: ['name', 'description'],
+              where: { language: lang },
+            },
+          ],
+        },
+        {
+          model: this.usersModel,
+          as: 'inviter',
+          attributes: ['id', 'first_name', 'last_name', 'avatar'],
+        },
+      ],
+    });
+
+    const data = rows.map((row: any) => {
+      const invitation = row.toJSON();
+      const event = invitation.event;
+      if (event?.image && !event.image.startsWith('http')) {
+        event.image = `${DOMAIN_URL}/uploads/events/${event.image}`;
+      }
+      return invitation;
+    });
+
+    return {
+      data,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pages_count: Math.ceil(count / limit),
+      },
+    };
+  }
+
+  /** Accept event invitation (adds user to goings) **/
+  async acceptInvitation(
+    userId: number,
+    invitationId: number,
+  ): Promise<{ message: string }> {
+    const invitation = await this.eventInvitationModel.findByPk(invitationId, {
+      include: [{ model: this.eventModel, as: 'event', attributes: ['id', 'start_date'] }],
+    });
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+    if (invitation.invitee_id !== userId) {
+      throw new NotAcceptableException('Unauthorized to accept this invitation');
+    }
+    if (invitation.status !== 'pending') {
+      throw new ConflictException('Invitation already processed');
+    }
+
+    const event = invitation.event as any;
+    if (event && new Date(event.start_date) <= new Date()) {
+      throw new BadRequestException('Event has already started or ended');
+    }
+
+    invitation.status = 'accepted';
+    await invitation.save();
+
+    await this.eventGoingModel.findOrCreate({
+      where: { user_id: userId, event_id: invitation.event_id },
+      defaults: { user_id: userId, event_id: invitation.event_id },
+    });
+
+    return { message: 'Invitation accepted. You have been added to the event.' };
+  }
+
+  /** Reject event invitation **/
+  async rejectInvitation(
+    userId: number,
+    invitationId: number,
+  ): Promise<{ message: string }> {
+    const invitation = await this.eventInvitationModel.findByPk(invitationId);
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+    if (invitation.invitee_id !== userId) {
+      throw new NotAcceptableException('Unauthorized to reject this invitation');
+    }
+    if (invitation.status !== 'pending') {
+      throw new ConflictException('Invitation already processed');
+    }
+
+    invitation.status = 'rejected';
+    await invitation.save();
+
+    return { message: 'Invitation rejected' };
   }
 }

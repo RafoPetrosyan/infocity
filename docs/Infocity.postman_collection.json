@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "f638c2b0-434a-4864-8081-a42dd2bc970a",
-    "name": "Infocity",
+    "_postman_id": "b9e4e4c5-f732-4733-b4b7-b2503cfa799e",
+    "name": "Infocity Copy",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "20632698",
-    "_collection_link": "https://go.postman.co/collection/20632698-f638c2b0-434a-4864-8081-a42dd2bc970a?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/20632698-b9e4e4c5-f732-4733-b4b7-b2503cfa799e?source=collection_link"
   },
   "item": [
     {
@@ -186,13 +186,13 @@
           "urlencoded": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImlhdCI6MTc2MDQyOTI4MSwiZXhwIjoxNzYwNDcyNDgxfQ.nzqip2aQehx0EMBZEwhi4iKBnVnrS0X4w6o8vNE2b9k",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJpYXQiOjE3NzEyNTk0NjUsImV4cCI6MTc3MTMwMjY2NX0.IRG6ithSDNevA6MLnVBfSsaXUKC6nrVa6n7FlWT39rU",
               "type": "text",
               "uuid": "85447826-1f56-435a-9e70-2abb81deb2a9"
             },
             {
               "key": "code",
-              "value": "160455",
+              "value": "206400",
               "type": "text",
               "uuid": "73dadcc5-0088-4ca3-bd3a-1a4975a1595a"
             }
@@ -250,7 +250,7 @@
           "urlencoded": [
             {
               "key": "refresh_token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJyb2xlIjoidXNlciIsImlhdCI6MTc1NjY2MzU2MywiZXhwIjoxNzU3OTU5NTYzfQ.zQ6wIeBetSs9FY-F9HMnfMYcT1-yhpFHzojBgw-Li98",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTI1OTUwNCwiZXhwIjoxNzcyNTU1NTA0fQ.c5HHzYg2V_xI54vu_E_zTXsiSj_306p758G9KNcD5wA",
               "type": "text",
               "uuid": "4c3b4b06-a0b4-494c-a470-5a43be2f1284"
             }
@@ -646,153 +646,12 @@
         ],
         "url": {
           "raw": "{{base_url}}/sub-categories",
-          "host": ["{{base_url}}"],
-          "path": ["sub-categories"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Sub-categories (Admin)",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
-              "type": "string"
-            }
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sub-categories"
           ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/sub-categories/admin?category_id=1",
-          "host": ["{{base_url}}"],
-          "path": ["sub-categories", "admin"],
-          "query": [
-            {
-              "key": "category_id",
-              "value": "1",
-              "description": "optional, filter by category"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Create Sub-category",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            {"key": "slug", "value": "restaurants", "type": "text"},
-            {"key": "category_id", "value": "1", "description": "optional", "type": "text"},
-            {"key": "translations", "value": "[{\"language\":\"en\",\"name\":\"Restaurants\"},{\"language\":\"hy\",\"name\":\"Ռեստորաններ\"},{\"language\":\"ru\",\"name\":\"Рестораны\"}]", "type": "text"},
-            {"key": "image", "type": "file", "src": "/Users/rafopetrosyan/Desktop/images.jpeg"}
-          ]
-        },
-        "url": {
-          "raw": "{{base_url}}/sub-categories",
-          "host": ["{{base_url}}"],
-          "path": ["sub-categories"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Update Sub-category",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "PUT",
-        "header": [],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            {"key": "slug", "value": "restaurants", "type": "text"},
-            {"key": "category_id", "value": "1", "description": "optional", "type": "text"},
-            {"key": "translations", "value": "[{\"language\":\"en\",\"name\":\"Restaurants\"},{\"language\":\"hy\",\"name\":\"Ռեստորաններ\"},{\"language\":\"ru\",\"name\":\"Рестораны\"}]", "type": "text"},
-            {"key": "image", "type": "file", "src": "/Users/rafopetrosyan/Desktop/images.jpeg"}
-          ]
-        },
-        "url": {
-          "raw": "{{base_url}}/sub-categories/1",
-          "host": ["{{base_url}}"],
-          "path": ["sub-categories", "1"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Update Sub-categories order",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"items\": [\n    { \"id\": 1, \"order\": 0 },\n    { \"id\": 2, \"order\": 1 }\n  ]\n}",
-          "options": {"raw": {"language": "json"}}
-        },
-        "url": {
-          "raw": "{{base_url}}/sub-categories/order",
-          "host": ["{{base_url}}"],
-          "path": ["sub-categories", "order"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Delete Sub-category",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/sub-categories/1",
-          "host": ["{{base_url}}"],
-          "path": ["sub-categories", "1"]
         }
       },
       "response": []
@@ -1858,7 +1717,7 @@
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNjAzOTA3LCJleHAiOjE3NjA4NjMxMDd9.L3EBctzBkpl0LyzO49TZm9MeJ7qoZX--dE_zSkaWhR0",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTI2MDI3MCwiZXhwIjoxNzcxNTE5NDcwfQ.v17Tp9-WyKxGtcssCq6rNk4jokKkbgJWhmxpvG_bLxs",
               "type": "string"
             }
           ]
@@ -1974,7 +1833,7 @@
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwMTk3ODkzLCJleHAiOjE3NjA0NTcwOTN9.Qpiju6TKTOlJJ2wTErqvmWmOlfbqbjPcUYtDd8XgegI",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTI2MDI3MCwiZXhwIjoxNzcxNTE5NDcwfQ.v17Tp9-WyKxGtcssCq6rNk4jokKkbgJWhmxpvG_bLxs",
               "type": "string"
             }
           ]
@@ -2072,7 +1931,13 @@
               "key": "image",
               "type": "file",
               "uuid": "2e251819-74dc-4a0e-93da-d08b07ca091e",
-              "src": "/Users/rafopetrosyan/Desktop/images.jpeg"
+              "src": "/Users/rafopetrosyan/Desktop/650cd8528bfbb1780b31c876_opengraph.jpg"
+            },
+            {
+              "key": "emotion_ids",
+              "value": "1,2",
+              "type": "text",
+              "uuid": "b4e9e193-9832-44f1-8a7b-91af9e726081"
             }
           ]
         },
@@ -3195,6 +3060,272 @@
               "key": "limit",
               "value": "10"
             }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send event invitation",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "invitee_id",
+              "value": "3",
+              "type": "text",
+              "description": "Contact user ID to invite"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/events/1/invite",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "1",
+            "invite"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get my event invitations",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/invitations?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "invitations"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Accept event invitation",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDI5MzE2LCJleHAiOjE3NjA2ODg1MTZ9.CgXR3c--cBfeuLEL7cRepEok9CI8pwhljvgKeDf6zQg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/invitations/1/accept",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "invitations",
+            "1",
+            "accept"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reject event invitation",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDI5MzE2LCJleHAiOjE3NjA2ODg1MTZ9.CgXR3c--cBfeuLEL7cRepEok9CI8pwhljvgKeDf6zQg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/events/invitations/1/reject",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "events",
+            "invitations",
+            "1",
+            "reject"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get notifications",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "notifications"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "read",
+              "value": "false",
+              "description": "Filter by read status (true/false)",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get notifications unread count",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/unread-count",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "notifications",
+            "unread-count"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mark notification as read",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/1/read",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "notifications",
+            "1",
+            "read"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mark all notifications as read",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYwNDIyNTg5LCJleHAiOjE3NjA2ODE3ODl9.0FK8-OZGqRoBL6J5pTP6Q6Zm1Y9ZkEq4PUb1eYrsStw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/read-all",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "notifications",
+            "read-all"
           ]
         }
       },
