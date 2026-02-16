@@ -15,6 +15,9 @@ import { EventCategoryTranslation } from './models/event-category-translation.mo
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { EventGoing } from './models/event-going.model';
+import { EventInvitation } from './models/event-invitation.model';
+import { UserContact } from '../contacts/models/user-contact.model';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -32,7 +35,10 @@ import { EventGoing } from './models/event-going.model';
       EntityEmotionCounts,
       EmotionsModel,
       EventGoing,
+      EventInvitation,
+      UserContact,
     ]),
+    NotificationsModule,
   ],
   providers: [EventsService],
   controllers: [EventsController],

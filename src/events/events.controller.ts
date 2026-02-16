@@ -23,6 +23,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { QueryDto } from '../../types/query.dto';
 import { LanguageEnum } from '../../types';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
+import { InviteToEventDto } from './dto/invite-to-event.dto';
 
 @Controller('events')
 export class EventsController {
@@ -50,6 +51,18 @@ export class EventsController {
   ) {
     const userId = req.user.sub;
     return this.eventsService.getMyGoings(userId, query, lang);
+  }
+
+  @Get('invitations')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async getMyInvitations(
+    @Query() query: QueryDto,
+    @Req() req: any,
+    @I18nLang() lang: LanguageEnum,
+  ) {
+    const userId = req.user.sub;
+    return this.eventsService.getMyInvitations(userId, query, lang);
   }
 
   @Get('/:id')
@@ -182,12 +195,46 @@ export class EventsController {
     return this.eventsService.getImages(id);
   }
 
+  @Post(':id/invite')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async inviteToEvent(
+    @Req() req: any,
+    @Param('id') eventId: number,
+    @Body() dto: InviteToEventDto,
+  ) {
+    const userId = req.user.sub;
+    return this.eventsService.sendInvitation(userId, eventId, dto);
+  }
+
   @Post(':id/going')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async toggleGoing(@Req() req: any, @Param('id') eventId: number) {
     const userId = req.user.sub;
     return this.eventsService.toggleGoing(userId, eventId);
+  }
+
+  @Post('invitations/:invitationId/accept')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async acceptInvitation(
+    @Req() req: any,
+    @Param('invitationId') invitationId: number,
+  ) {
+    const userId = req.user.sub;
+    return this.eventsService.acceptInvitation(userId, invitationId);
+  }
+
+  @Post('invitations/:invitationId/reject')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async rejectInvitation(
+    @Req() req: any,
+    @Param('invitationId') invitationId: number,
+  ) {
+    const userId = req.user.sub;
+    return this.eventsService.rejectInvitation(userId, invitationId);
   }
 
   @Get(':id/goings')

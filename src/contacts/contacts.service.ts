@@ -11,6 +11,7 @@ import { User } from '../users/models/user.model';
 import { SendContactRequestDto } from './dto/send-contact-request.dto';
 import { AcceptContactRequestDto } from './dto/accept-contact-request.dto';
 import { QueryContactsDto } from './dto/query-contacts.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ContactsService {
@@ -20,6 +21,8 @@ export class ContactsService {
 
     @InjectModel(User)
     private userModel: typeof User,
+
+    private notificationsService: NotificationsService,
   ) {}
 
   async sendContactRequest(
@@ -90,10 +93,19 @@ export class ContactsService {
     }
 
     // Create new contact request (pending)
-    await this.userContactModel.create({
+    const request = await this.userContactModel.create({
       user_id: senderId,
       contact_id: receiver_id,
       status: 'pending',
+    });
+
+    await this.notificationsService.create({
+      user_id: receiver_id,
+      type: 'contact_request',
+      reference_type: 'contact_request',
+      reference_id: request.id,
+      title: 'Contact request',
+      body: 'Someone wants to add you as a contact',
     });
 
     return { message: 'Contact request sent successfully' };
