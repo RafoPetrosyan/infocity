@@ -77,6 +77,16 @@ export class ReviewsService {
         createReviewDto.entity_type,
       );
 
+      // User cannot leave another review for the same entity within 24 hours
+      await this.validateReviewCooldown(
+        userId,
+        createReviewDto.entity_id,
+        createReviewDto.entity_type,
+      );
+
+      // User can rate at most 3 places and 3 events per day
+      await this.validateDailyReviewLimit(userId, createReviewDto.entity_type);
+
       // Validate emotions if provided
       if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
         await this.validateEmotions(createReviewDto.emotion_ids);
@@ -464,6 +474,60 @@ export class ReviewsService {
 
     if (!entity) {
       throw new NotFoundException(`${entityType} not found`);
+    }
+  }
+
+  private readonly REVIEW_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+  private async validateReviewCooldown(
+    userId: number,
+    entityId: number,
+    entityType: 'place' | 'event',
+  ): Promise<void> {
+    const lastReview = await this.reviewModel.findOne({
+      where: {
+        user_id: userId,
+        entity_id: entityId,
+        entity_type: entityType,
+      },
+      order: [['createdAt', 'DESC']],
+      attributes: ['createdAt'],
+    });
+
+    if (!lastReview) return;
+
+    const elapsed = Date.now() - new Date(lastReview.createdAt).getTime();
+    if (elapsed < this.REVIEW_COOLDOWN_MS) {
+      const hoursLeft = Math.ceil(
+        (this.REVIEW_COOLDOWN_MS - elapsed) / (60 * 60 * 1000),
+      );
+      throw new BadRequestException(
+        `You can only leave one review per ${entityType} every 24 hours. Please try again in ${hoursLeft} hour(s).`,
+      );
+    }
+  }
+
+  private readonly MAX_REVIEWS_PER_DAY = 3;
+
+  private async validateDailyReviewLimit(
+    userId: number,
+    entityType: 'place' | 'event',
+  ): Promise<void> {
+    const startOfToday = new Date();
+    startOfToday.setUTCHours(0, 0, 0, 0);
+
+    const count = await this.reviewModel.count({
+      where: {
+        user_id: userId,
+        entity_type: entityType,
+        createdAt: { [Op.gte]: startOfToday },
+      },
+    });
+
+    if (count >= this.MAX_REVIEWS_PER_DAY) {
+      throw new BadRequestException(
+        `You can rate a maximum of ${this.MAX_REVIEWS_PER_DAY} ${entityType}s per day. Try again tomorrow.`,
+      );
     }
   }
 
