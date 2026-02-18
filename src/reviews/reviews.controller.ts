@@ -10,6 +10,8 @@ import {
   UseGuards,
   ParseIntPipe,
   Req,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -24,6 +26,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { I18nLang } from 'nestjs-i18n';
 import { LanguageEnum } from '../../types';
+import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -32,8 +35,19 @@ export class ReviewsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
-  create(@Body() createReviewDto: CreateReviewDto, @Req() req: any) {
-    return this.reviewsService.create(createReviewDto, req.user.sub);
+  @UseInterceptors(
+    UploadAndOptimizeImages(
+      [{ name: 'images', maxCount: 3, withThumb: true }],
+      { folder: './uploads/reviews' },
+    ),
+  )
+  create(
+    @Body() createReviewDto: CreateReviewDto,
+    @Req() req: any,
+    @UploadedFiles() files: { images?: any[] },
+  ) {
+    const images = files?.images ?? [];
+    return this.reviewsService.create(createReviewDto, req.user.sub, images);
   }
 
   @Get('my')
@@ -63,6 +77,22 @@ export class ReviewsController {
       limit,
       userId,
     );
+  }
+
+  @Get(':id/images')
+  @UseGuards(OptionalJwtAuthGuard)
+  getReviewImages(@Param('id', ParseIntPipe) id: number) {
+    return this.reviewsService.getReviewImages(id);
+  }
+
+  @Delete(':id/images/:imageId')
+  @UseGuards(JwtAuthGuard)
+  deleteReviewImage(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('imageId', ParseIntPipe) imageId: number,
+    @Req() req: any,
+  ) {
+    return this.reviewsService.deleteReviewImage(id, imageId, req.user.sub);
   }
 
   @Get('/:entityId/:entityType')
@@ -95,12 +125,25 @@ export class ReviewsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
+  @UseInterceptors(
+    UploadAndOptimizeImages(
+      [{ name: 'images', maxCount: 3, withThumb: true }],
+      { folder: './uploads/reviews' },
+    ),
+  )
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateReviewDto: UpdateReviewDto,
     @Req() req: any,
+    @UploadedFiles() files: { images?: any[] },
   ) {
-    return this.reviewsService.update(id, updateReviewDto, req.user.sub);
+    const images = files?.images ?? [];
+    return this.reviewsService.update(
+      id,
+      updateReviewDto,
+      req.user.sub,
+      images,
+    );
   }
 
   @Delete(':id')
