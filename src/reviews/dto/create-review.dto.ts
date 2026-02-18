@@ -1,5 +1,14 @@
-import { IsOptional, IsString, IsArray, IsInt, IsEnum } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsArray,
+  IsInt,
+  IsEnum,
+  ArrayMaxSize,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+
+const MAX_EMOTIONS = 3;
 
 export class CreateReviewDto {
   @IsOptional()
@@ -16,6 +25,9 @@ export class CreateReviewDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
+  @ArrayMaxSize(MAX_EMOTIONS, {
+    message: `You can add a maximum of ${MAX_EMOTIONS} emotions`,
+  })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       return value.split(',').map((v) => Number(v.trim()));

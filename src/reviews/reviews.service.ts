@@ -2,14 +2,17 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  NotAcceptableException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Review } from './models/review.model';
 import { ReviewEmotions } from './models/review-emotions.model';
+import { ReviewImages } from './models/review-images.model';
 import { EntityEmotionCounts } from './models/entity-emotion-counts.model';
 import { ReviewReply } from './models/review-reply.model';
 import { ReviewLike } from './models/review-like.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
+import { unlinkFiles } from '../../utils/unlink-files';
 import { User } from '../users/models/user.model';
 import { Place } from '../places/models/places.model';
 import { Event } from '../events/models/events.model';
@@ -32,6 +35,8 @@ export class ReviewsService {
     private reviewModel: typeof Review,
     @InjectModel(ReviewEmotions)
     private reviewEmotionsModel: typeof ReviewEmotions,
+    @InjectModel(ReviewImages)
+    private reviewImagesModel: typeof ReviewImages,
     @InjectModel(EntityEmotionCounts)
     private entityEmotionCountsModel: typeof EntityEmotionCounts,
     @InjectModel(ReviewReply)
@@ -49,35 +54,62 @@ export class ReviewsService {
   async create(
     createReviewDto: CreateReviewDto,
     userId: number,
+    images: Array<{
+      path: string;
+      filename: string;
+      thumbPath: string;
+      thumbFilename: string;
+    }> = [],
   ): Promise<Review> {
-    // Validate that the entity exists
-    await this.validateEntity(
-      createReviewDto.entity_id,
-      createReviewDto.entity_type,
-    );
+    const imagePaths =
+      images.length > 0
+        ? images.reduce<string[]>((acc, item) => {
+            acc.push(item.path);
+            acc.push(item.thumbPath);
+            return acc;
+          }, [])
+        : [];
 
-    // Validate emotions if provided
-    if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
-      await this.validateEmotions(createReviewDto.emotion_ids);
-    }
-
-    const review = await this.reviewModel.create({
-      ...createReviewDto,
-      user_id: userId,
-    });
-
-    // Add emotions if provided
-    if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
-      await this.addEmotionsToReview(review.id, createReviewDto.emotion_ids);
-      // Update emotion counts for the entity
-      await this.incrementEmotionCounts(
+    try {
+      // Validate that the entity exists
+      await this.validateEntity(
         createReviewDto.entity_id,
         createReviewDto.entity_type,
-        createReviewDto.emotion_ids,
       );
-    }
 
-    return this.findOne(review.id);
+      // Validate emotions if provided
+      if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
+        await this.validateEmotions(createReviewDto.emotion_ids);
+      }
+
+      const review = await this.reviewModel.create({
+        ...createReviewDto,
+        user_id: userId,
+      });
+
+      // Add emotions if provided
+      if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
+        await this.addEmotionsToReview(review.id, createReviewDto.emotion_ids);
+        // Update emotion counts for the entity
+        await this.incrementEmotionCounts(
+          createReviewDto.entity_id,
+          createReviewDto.entity_type,
+          createReviewDto.emotion_ids,
+        );
+      }
+
+      // Add images if provided (max 3)
+      if (images.length > 0) {
+        await this.addImagesToReview(review.id, userId, images);
+      }
+
+      return this.findOne(review.id);
+    } catch (error) {
+      if (imagePaths.length > 0) {
+        await unlinkFiles(imagePaths);
+      }
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<Review> {
@@ -90,6 +122,10 @@ export class ReviewsService {
         {
           model: ReviewEmotions,
           attributes: ['emotion_id'],
+        },
+        {
+          model: ReviewImages,
+          attributes: ['id', 'original', 'thumbnail'],
         },
       ],
     });
@@ -118,53 +154,80 @@ export class ReviewsService {
     id: number,
     updateReviewDto: UpdateReviewDto,
     userId: number,
+    images: Array<{
+      path: string;
+      filename: string;
+      thumbPath: string;
+      thumbFilename: string;
+    }> = [],
   ): Promise<Review> {
-    const review = await this.reviewModel.findOne({
-      where: { id, user_id: userId },
-    });
+    const imagePaths =
+      images.length > 0
+        ? images.reduce<string[]>((acc, item) => {
+            acc.push(item.path);
+            acc.push(item.thumbPath);
+            return acc;
+          }, [])
+        : [];
 
-    if (!review) {
-      throw new NotFoundException(
-        'Review not found or you do not have permission to update it',
-      );
-    }
-
-    // Validate emotions if provided
-    if (updateReviewDto.emotion_ids && updateReviewDto.emotion_ids.length > 0) {
-      await this.validateEmotions(updateReviewDto.emotion_ids);
-    }
-
-    await review.update(updateReviewDto);
-
-    // Update emotions if provided
-    if (updateReviewDto.emotion_ids !== undefined) {
-      // Get current emotions before updating
-      const currentEmotions = await this.reviewEmotionsModel.findAll({
-        where: { review_id: id },
-        attributes: ['emotion_id'],
-      });
-      const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
-
-      // Remove existing emotions
-      await this.reviewEmotionsModel.destroy({
-        where: { review_id: id },
+    try {
+      const review = await this.reviewModel.findOne({
+        where: { id, user_id: userId },
       });
 
-      // Add new emotions
-      if (updateReviewDto.emotion_ids.length > 0) {
-        await this.addEmotionsToReview(id, updateReviewDto.emotion_ids);
+      if (!review) {
+        throw new NotFoundException(
+          'Review not found or you do not have permission to update it',
+        );
       }
 
-      // Update emotion counts for the entity
-      await this.updateEmotionCounts(
-        review.entity_id,
-        review.entity_type,
-        currentEmotionIds,
-        updateReviewDto.emotion_ids || [],
-      );
-    }
+      // Validate emotions if provided
+      if (updateReviewDto.emotion_ids && updateReviewDto.emotion_ids.length > 0) {
+        await this.validateEmotions(updateReviewDto.emotion_ids);
+      }
 
-    return this.findOne(id);
+      await review.update(updateReviewDto);
+
+      // Update emotions if provided
+      if (updateReviewDto.emotion_ids !== undefined) {
+        // Get current emotions before updating
+        const currentEmotions = await this.reviewEmotionsModel.findAll({
+          where: { review_id: id },
+          attributes: ['emotion_id'],
+        });
+        const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+
+        // Remove existing emotions
+        await this.reviewEmotionsModel.destroy({
+          where: { review_id: id },
+        });
+
+        // Add new emotions
+        if (updateReviewDto.emotion_ids.length > 0) {
+          await this.addEmotionsToReview(id, updateReviewDto.emotion_ids);
+        }
+
+        // Update emotion counts for the entity
+        await this.updateEmotionCounts(
+          review.entity_id,
+          review.entity_type,
+          currentEmotionIds,
+          updateReviewDto.emotion_ids || [],
+        );
+      }
+
+      // Add images if provided (total per review still max 3)
+      if (images.length > 0) {
+        await this.addImagesToReview(id, userId, images);
+      }
+
+      return this.findOne(id);
+    } catch (error) {
+      if (imagePaths.length > 0) {
+        await unlinkFiles(imagePaths);
+      }
+      throw error;
+    }
   }
 
   async remove(id: number, userId: number): Promise<void> {
@@ -199,7 +262,116 @@ export class ReviewsService {
       );
     }
 
+    // Remove review images from disk and DB
+    const reviewImages = await this.reviewImagesModel.findAll({
+      where: { review_id: id },
+      attributes: ['original', 'thumbnail'],
+    });
+    const imagePaths = reviewImages.flatMap((img) => [
+      `uploads/reviews/${(img as any).getDataValue('original')}`,
+      `uploads/reviews/${(img as any).getDataValue('thumbnail')}`,
+    ]);
+    await unlinkFiles(imagePaths);
+    await this.reviewImagesModel.destroy({ where: { review_id: id } });
+
     await review.destroy();
+  }
+
+  private readonly MAX_REVIEW_IMAGES = 3;
+
+  /**
+   * Adds uploaded images to a review. Caller (create/update) is responsible for
+   * cleaning up image files on disk if this method or any prior step throws.
+   */
+  private async addImagesToReview(
+    reviewId: number,
+    userId: number,
+    images: Array<{
+      path: string;
+      filename: string;
+      thumbPath: string;
+      thumbFilename: string;
+    }>,
+  ): Promise<void> {
+    const review = await this.reviewModel.findByPk(reviewId, {
+      attributes: ['id', 'user_id'],
+    });
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    if (review.user_id !== userId) {
+      throw new NotAcceptableException(
+        'You can only add images to your own review',
+      );
+    }
+
+    const existingCount = await this.reviewImagesModel.count({
+      where: { review_id: reviewId },
+    });
+    if (existingCount + images.length > this.MAX_REVIEW_IMAGES) {
+      throw new BadRequestException(
+        `You can upload a maximum of ${this.MAX_REVIEW_IMAGES} images per review`,
+      );
+    }
+
+    const insertData = images.map((image) => ({
+      review_id: reviewId,
+      original: image.filename,
+      thumbnail: image.thumbFilename,
+    }));
+    await this.reviewImagesModel.bulkCreate(insertData);
+  }
+
+  async deleteReviewImage(
+    reviewId: number,
+    imageId: number,
+    userId: number,
+  ): Promise<{ message: string }> {
+    const review = await this.reviewModel.findByPk(reviewId, {
+      attributes: ['user_id'],
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.user_id !== userId) {
+      throw new NotAcceptableException(
+        'You can only delete images from your own review',
+      );
+    }
+
+    const image = await this.reviewImagesModel.findOne({
+      where: { id: imageId, review_id: reviewId },
+      attributes: ['id', 'original', 'thumbnail'],
+    });
+
+    if (!image) {
+      throw new NotFoundException('Review image not found');
+    }
+
+    const imagePaths = [
+      `uploads/reviews/${(image as any).getDataValue('original')}`,
+      `uploads/reviews/${(image as any).getDataValue('thumbnail')}`,
+    ];
+    await unlinkFiles(imagePaths);
+    await image.destroy();
+
+    return { message: 'Image deleted successfully' };
+  }
+
+  async getReviewImages(reviewId: number): Promise<{ images: ReviewImages[] }> {
+    const review = await this.reviewModel.findByPk(reviewId, {
+      attributes: ['id'],
+    });
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    const images = await this.reviewImagesModel.findAll({
+      where: { review_id: reviewId },
+      attributes: ['id', 'original', 'thumbnail'],
+    });
+    return { images };
   }
 
   async getReviewsByEntity(
@@ -224,6 +396,10 @@ export class ReviewsService {
         {
           model: ReviewEmotions,
           attributes: ['emotion_id'],
+        },
+        {
+          model: ReviewImages,
+          attributes: ['id', 'original', 'thumbnail'],
         },
       ],
       attributes: {
@@ -291,7 +467,15 @@ export class ReviewsService {
     }
   }
 
+  private readonly MAX_EMOTIONS = 3;
+
   private async validateEmotions(emotionIds: number[]): Promise<void> {
+    if (emotionIds.length > this.MAX_EMOTIONS) {
+      throw new BadRequestException(
+        `You can add a maximum of ${this.MAX_EMOTIONS} emotions`,
+      );
+    }
+
     const emotions = await this.emotionsModel.findAll({
       where: { id: { [Op.in]: emotionIds } },
     });
@@ -472,6 +656,10 @@ export class ReviewsService {
         {
           model: ReviewEmotions,
           attributes: ['emotion_id'],
+        },
+        {
+          model: ReviewImages,
+          attributes: ['id', 'original', 'thumbnail'],
         },
         {
           model: Place,
