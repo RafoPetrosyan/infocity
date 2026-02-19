@@ -22,7 +22,7 @@ import { GetMyReviewsDto } from './dto/query-review.dto';
 import { CreateReviewReplyDto } from './dto/create-review-reply.dto';
 import { UpdateReviewReplyDto } from './dto/update-review-reply.dto';
 import { ToggleLikeDto } from './dto/toggle-like.dto';
-import { Op } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 import { LanguageEnum } from '../../types';
 import { Sequelize } from 'sequelize-typescript';
 import { PlaceTranslation } from '../places/models/places-translation.model';
@@ -77,6 +77,14 @@ export class ReviewsService {
         createReviewDto.entity_type,
       );
 
+      // User must be within 50m of the place/event to leave a review
+      await this.validateLocationProximity(
+        createReviewDto.entity_id,
+        createReviewDto.entity_type,
+        createReviewDto.user_latitude,
+        createReviewDto.user_longitude,
+      );
+
       // User cannot leave another review for the same entity within 24 hours
       await this.validateReviewCooldown(
         userId,
@@ -88,17 +96,24 @@ export class ReviewsService {
       await this.validateDailyReviewLimit(userId, createReviewDto.entity_type);
 
       // Validate emotions if provided
-      if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
+      if (
+        createReviewDto.emotion_ids &&
+        createReviewDto.emotion_ids.length > 0
+      ) {
         await this.validateEmotions(createReviewDto.emotion_ids);
       }
 
+      const { user_latitude, user_longitude, ...reviewData } = createReviewDto;
       const review = await this.reviewModel.create({
-        ...createReviewDto,
+        ...reviewData,
         user_id: userId,
       });
 
       // Add emotions if provided
-      if (createReviewDto.emotion_ids && createReviewDto.emotion_ids.length > 0) {
+      if (
+        createReviewDto.emotion_ids &&
+        createReviewDto.emotion_ids.length > 0
+      ) {
         await this.addEmotionsToReview(review.id, createReviewDto.emotion_ids);
         // Update emotion counts for the entity
         await this.incrementEmotionCounts(
@@ -192,7 +207,10 @@ export class ReviewsService {
       }
 
       // Validate emotions if provided
-      if (updateReviewDto.emotion_ids && updateReviewDto.emotion_ids.length > 0) {
+      if (
+        updateReviewDto.emotion_ids &&
+        updateReviewDto.emotion_ids.length > 0
+      ) {
         await this.validateEmotions(updateReviewDto.emotion_ids);
       }
 
@@ -474,6 +492,69 @@ export class ReviewsService {
 
     if (!entity) {
       throw new NotFoundException(`${entityType} not found`);
+    }
+  }
+
+  private readonly MAX_PROXIMITY_METERS = 50;
+
+  /**
+   * Validates user is within 50m of the place/event using PostGIS ST_Distance.
+   * Uses the `location` column (GEOMETRY) when available, otherwise latitude/longitude.
+   */
+  private async validateLocationProximity(
+    entityId: number,
+    entityType: 'place' | 'event',
+    userLatitude?: number,
+    userLongitude?: number,
+  ): Promise<void> {
+    if (
+      userLatitude == null ||
+      userLongitude == null ||
+      isNaN(userLatitude) ||
+      isNaN(userLongitude)
+    ) {
+      throw new BadRequestException(
+        'Your location (user_latitude, user_longitude) is required to confirm you are at this place or event.',
+      );
+    }
+
+    const table = entityType === 'place' ? 'places' : 'events';
+    const sequelize = this.placeModel.sequelize;
+
+    const [result] = await sequelize!.query<{ distance: number | null }>(
+      `
+      SELECT ST_Distance(
+        COALESCE(
+          location::geography,
+          ST_SetSRID(ST_MakePoint(longitude::double precision, latitude::double precision), 4326)::geography
+        ),
+        ST_SetSRID(ST_MakePoint(:userLng, :userLat), 4326)::geography
+      ) as distance
+      FROM ${table}
+      WHERE id = :entityId
+        AND (location IS NOT NULL OR (latitude IS NOT NULL AND longitude IS NOT NULL))
+      `,
+      {
+        replacements: {
+          userLat: userLatitude,
+          userLng: userLongitude,
+          entityId,
+        },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    if (!result || result.distance == null) {
+      throw new BadRequestException(
+        `Location verification is not available for this ${entityType}.`,
+      );
+    }
+
+    const distance = Number(result.distance);
+    if (distance > this.MAX_PROXIMITY_METERS) {
+      throw new BadRequestException(
+        `You must be within ${this.MAX_PROXIMITY_METERS} meters of this ${entityType} to leave a review. You are approximately ${Math.round(distance)}m away.`,
+      );
     }
   }
 

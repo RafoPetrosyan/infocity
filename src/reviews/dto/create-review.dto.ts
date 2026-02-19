@@ -5,6 +5,9 @@ import {
   IsInt,
   IsEnum,
   ArrayMaxSize,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -21,6 +24,20 @@ export class CreateReviewDto {
 
   @IsEnum(['place', 'event'])
   entity_type: 'place' | 'event';
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  @Type(() => Number)
+  user_latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  @Type(() => Number)
+  user_longitude?: number;
 
   @IsOptional()
   @IsArray()
