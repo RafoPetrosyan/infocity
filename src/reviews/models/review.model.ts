@@ -28,6 +28,13 @@ export class Review extends Model {
   })
   declare entity_type: 'place' | 'event';
 
+  @Column({
+    type: DataType.ENUM('public', 'private', 'removed'),
+    allowNull: false,
+    defaultValue: 'public',
+  })
+  declare status: 'public' | 'private' | 'removed';
+
   @ForeignKey(() => User)
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare user_id: number;

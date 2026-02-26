@@ -152,6 +152,16 @@ export class ReviewsController {
     return this.reviewsService.remove(id, req.user.sub);
   }
 
+  @Delete(':id/remove-as-owner')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  removeAsOwner(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.reviewsService.removeAsOwner(id, req.user.sub);
+  }
+
   // Review Reply Endpoints
 
   @Post('replies')
