@@ -103,10 +103,13 @@ export class ReviewsService {
         await this.validateEmotions(createReviewDto.emotion_ids);
       }
 
-      const { user_latitude, user_longitude, ...reviewData } = createReviewDto;
+      const { user_latitude, user_longitude, is_public, ...reviewData } =
+        createReviewDto;
+      const status = is_public === false ? 'private' : 'public';
       const review = await this.reviewModel.create({
         ...reviewData,
         user_id: userId,
+        status,
       });
 
       // Add emotions if provided
@@ -115,12 +118,14 @@ export class ReviewsService {
         createReviewDto.emotion_ids.length > 0
       ) {
         await this.addEmotionsToReview(review.id, createReviewDto.emotion_ids);
-        // Update emotion counts for the entity
-        await this.incrementEmotionCounts(
-          createReviewDto.entity_id,
-          createReviewDto.entity_type,
-          createReviewDto.emotion_ids,
-        );
+        // Update emotion counts only for public reviews
+        if (status === 'public') {
+          await this.incrementEmotionCounts(
+            createReviewDto.entity_id,
+            createReviewDto.entity_type,
+            createReviewDto.emotion_ids,
+          );
+        }
       }
 
       // Add images if provided (max 3)
@@ -128,7 +133,7 @@ export class ReviewsService {
         await this.addImagesToReview(review.id, userId, images);
       }
 
-      return this.findOne(review.id);
+      return this.findOne(review.id, userId);
     } catch (error) {
       if (imagePaths.length > 0) {
         await unlinkFiles(imagePaths);
@@ -137,7 +142,7 @@ export class ReviewsService {
     }
   }
 
-  async findOne(id: number): Promise<Review> {
+  async findOne(id: number, userId?: number): Promise<Review> {
     const review = await this.reviewModel.findByPk(id, {
       include: [
         {
@@ -156,6 +161,15 @@ export class ReviewsService {
     });
 
     if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    // Private/removed reviews only visible to the author
+    const isAuthor = userId && review.user_id === userId;
+    if (
+      !isAuthor &&
+      (review.status === 'private' || review.status === 'removed')
+    ) {
       throw new NotFoundException('Review not found');
     }
 
@@ -206,6 +220,12 @@ export class ReviewsService {
         );
       }
 
+      if (review.status === 'removed') {
+        throw new BadRequestException(
+          'Cannot update a review that has been removed by the owner',
+        );
+      }
+
       // Validate emotions if provided
       if (
         updateReviewDto.emotion_ids &&
@@ -214,7 +234,38 @@ export class ReviewsService {
         await this.validateEmotions(updateReviewDto.emotion_ids);
       }
 
-      await review.update(updateReviewDto);
+      const { is_public, ...updateData } = updateReviewDto as any;
+      const updatePayload = { ...updateData };
+
+      if (is_public !== undefined) {
+        const newStatus = is_public ? 'public' : 'private';
+        if (newStatus !== review.status) {
+          updatePayload.status = newStatus;
+          if (updateReviewDto.emotion_ids === undefined) {
+            const currentEmotions = await this.reviewEmotionsModel.findAll({
+              where: { review_id: id },
+              attributes: ['emotion_id'],
+            });
+            const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+            if (review.status === 'public' && newStatus === 'private') {
+              await this.decrementEmotionCounts(
+                review.entity_id,
+                review.entity_type,
+                currentEmotionIds,
+              );
+            } else if (review.status === 'private' && newStatus === 'public') {
+              await this.incrementEmotionCounts(
+                review.entity_id,
+                review.entity_type,
+                currentEmotionIds,
+              );
+            }
+          }
+        }
+      }
+
+      const wasPublic = review.status === 'public';
+      await review.update(updatePayload);
 
       // Update emotions if provided
       if (updateReviewDto.emotion_ids !== undefined) {
@@ -235,13 +286,15 @@ export class ReviewsService {
           await this.addEmotionsToReview(id, updateReviewDto.emotion_ids);
         }
 
-        // Update emotion counts for the entity
-        await this.updateEmotionCounts(
-          review.entity_id,
-          review.entity_type,
-          currentEmotionIds,
-          updateReviewDto.emotion_ids || [],
-        );
+        // Update emotion counts only for public reviews
+        if (wasPublic || review.status === 'public') {
+          await this.updateEmotionCounts(
+            review.entity_id,
+            review.entity_type,
+            wasPublic ? currentEmotionIds : [],
+            review.status === 'public' ? updateReviewDto.emotion_ids || [] : [],
+          );
+        }
       }
 
       // Add images if provided (total per review still max 3)
@@ -249,7 +302,7 @@ export class ReviewsService {
         await this.addImagesToReview(id, userId, images);
       }
 
-      return this.findOne(id);
+      return this.findOne(id, userId);
     } catch (error) {
       if (imagePaths.length > 0) {
         await unlinkFiles(imagePaths);
@@ -261,6 +314,7 @@ export class ReviewsService {
   async remove(id: number, userId: number): Promise<void> {
     const review = await this.reviewModel.findOne({
       where: { id, user_id: userId },
+      attributes: ['id', 'entity_id', 'entity_type', 'status'],
     });
 
     if (!review) {
@@ -281,8 +335,8 @@ export class ReviewsService {
       where: { review_id: id },
     });
 
-    // Update emotion counts for the entity (decrement)
-    if (currentEmotionIds.length > 0) {
+    // Update emotion counts only for public reviews (decrement)
+    if (review.status === 'public' && currentEmotionIds.length > 0) {
       await this.decrementEmotionCounts(
         review.entity_id,
         review.entity_type,
@@ -303,6 +357,69 @@ export class ReviewsService {
     await this.reviewImagesModel.destroy({ where: { review_id: id } });
 
     await review.destroy();
+  }
+
+  /**
+   * Place/event owner removes an inappropriate review.
+   * Sets status to 'removed' - review stays in DB but is hidden from entity listing.
+   * The reviewer can still see it in "My Reviews" with status 'removed'.
+   */
+  async removeAsOwner(
+    reviewId: number,
+    userId: number,
+  ): Promise<{ message: string }> {
+    const review = await this.reviewModel.findByPk(reviewId, {
+      attributes: ['id', 'entity_id', 'entity_type', 'user_id', 'status'],
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.status === 'removed') {
+      throw new BadRequestException('Review has already been removed');
+    }
+
+    const isPlaceOwner =
+      review.entity_type === 'place' &&
+      (await this.placeModel.findOne({
+        where: { id: review.entity_id, user_id: userId },
+        attributes: ['id'],
+      }));
+    const isEventOwner =
+      review.entity_type === 'event' &&
+      (await this.eventModel.findOne({
+        where: { id: review.entity_id, user_id: userId },
+        attributes: ['id'],
+      }));
+
+    if (!isPlaceOwner && !isEventOwner) {
+      throw new NotAcceptableException(
+        'Only the place or event owner can remove this review',
+      );
+    }
+
+    const wasPublic = review.status === 'public';
+
+    await review.update({ status: 'removed' });
+
+    // Decrement emotion counts if the review was public
+    if (wasPublic) {
+      const currentEmotions = await this.reviewEmotionsModel.findAll({
+        where: { review_id: reviewId },
+        attributes: ['emotion_id'],
+      });
+      const currentEmotionIds = currentEmotions.map((re) => re.emotion_id);
+      if (currentEmotionIds.length > 0) {
+        await this.decrementEmotionCounts(
+          review.entity_id,
+          review.entity_type,
+          currentEmotionIds,
+        );
+      }
+    }
+
+    return { message: 'Review removed successfully' };
   }
 
   private readonly MAX_REVIEW_IMAGES = 3;
@@ -415,6 +532,7 @@ export class ReviewsService {
       where: {
         entity_id: entityId,
         entity_type: entityType,
+        status: 'public',
       },
       include: [
         {
@@ -793,6 +911,7 @@ export class ReviewsService {
         'entity_id',
         'entity_type',
         'user_id',
+        'status',
         'createdAt',
         'updatedAt',
       ],
@@ -889,10 +1008,17 @@ export class ReviewsService {
     createReplyDto: CreateReviewReplyDto,
     userId: number,
   ): Promise<ReviewReply> {
-    // Validate that the review exists
-    const review = await this.reviewModel.findByPk(createReplyDto.review_id);
+    // Validate that the review exists and is public (replies only on public reviews)
+    const review = await this.reviewModel.findByPk(createReplyDto.review_id, {
+      attributes: ['id', 'status'],
+    });
     if (!review) {
       throw new NotFoundException('Review not found');
+    }
+    if (review.status !== 'public') {
+      throw new BadRequestException(
+        'Cannot reply to a private or removed review',
+      );
     }
 
     const reply = await this.reviewReplyModel.create({

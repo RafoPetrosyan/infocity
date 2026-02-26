@@ -4,6 +4,7 @@ import {
   IsArray,
   IsInt,
   IsEnum,
+  IsBoolean,
   ArrayMaxSize,
   IsNumber,
   Min,
@@ -24,6 +25,15 @@ export class CreateReviewDto {
 
   @IsEnum(['place', 'event'])
   entity_type: 'place' | 'event';
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true) return true;
+    if (value === 'false' || value === false) return false;
+    return undefined;
+  })
+  is_public?: boolean;
 
   @IsOptional()
   @IsNumber()
