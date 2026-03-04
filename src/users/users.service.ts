@@ -24,6 +24,12 @@ import { EmotionsModel } from '../emotions/models/emotions.model';
 import { unlink } from 'fs/promises';
 import * as process from 'node:process';
 import { trim } from 'lodash';
+import {
+  ACCESS_TOKEN_EXPIRATION,
+  REFRESH_TOKEN_EXPIRATION,
+  VERIFICATION_TOKEN_EXPIRATION,
+  VERIFICATION_CODE_EXPIRATION_MS,
+} from '../../constants';
 
 @Injectable()
 export class UsersService {
@@ -243,12 +249,12 @@ export class UsersService {
       await this.verificationModel.create({
         user_id: user.id,
         code: verificationCode,
-        expires_at: new Date(Date.now() + 5 * 60 * 1000),
+        expires_at: new Date(Date.now() + VERIFICATION_CODE_EXPIRATION_MS),
       });
 
       const verification_token = this.jwtService.sign(
         { sub: user.id },
-        { expiresIn: '12h' },
+        { expiresIn: VERIFICATION_TOKEN_EXPIRATION },
       );
 
       try {
@@ -273,11 +279,11 @@ export class UsersService {
     const payload = { sub: userData.id, role: userData.role };
 
     const access_token = this.jwtService.sign(payload, {
-      expiresIn: '3d',
+      expiresIn: ACCESS_TOKEN_EXPIRATION,
     });
 
     const refresh_token = this.jwtService.sign(payload, {
-      expiresIn: '15d',
+      expiresIn: REFRESH_TOKEN_EXPIRATION,
     });
 
     await user.update({ refresh_token });
@@ -360,11 +366,11 @@ export class UsersService {
       const tokenPayload = { sub: userData.id, role: userData.role };
 
       const access_token = this.jwtService.sign(tokenPayload, {
-        expiresIn: '3d',
+        expiresIn: ACCESS_TOKEN_EXPIRATION,
       });
 
       const refresh_token = this.jwtService.sign(tokenPayload, {
-        expiresIn: '15d',
+        expiresIn: REFRESH_TOKEN_EXPIRATION,
       });
 
       await user.update({ refresh_token });
@@ -445,11 +451,11 @@ export class UsersService {
       const tokenPayload = { sub: userData.id, role: userData.role };
 
       const access_token = this.jwtService.sign(tokenPayload, {
-        expiresIn: '3d',
+        expiresIn: ACCESS_TOKEN_EXPIRATION,
       });
 
       const refresh_token = this.jwtService.sign(tokenPayload, {
-        expiresIn: '15d',
+        expiresIn: REFRESH_TOKEN_EXPIRATION,
       });
 
       await user.update({ refresh_token });
@@ -479,11 +485,11 @@ export class UsersService {
       const payload = { sub: userData.id, role: userData.role };
 
       const newAccessToken = this.jwtService.sign(payload, {
-        expiresIn: '3d',
+        expiresIn: ACCESS_TOKEN_EXPIRATION,
       });
 
       const newRefreshToken = this.jwtService.sign(payload, {
-        expiresIn: '15d',
+        expiresIn: REFRESH_TOKEN_EXPIRATION,
       });
 
       await user.update({ refresh_token: newRefreshToken });
@@ -526,12 +532,12 @@ export class UsersService {
     await this.verificationModel.create({
       user_id: newUser.id,
       code: verificationCode,
-      expires_at: new Date(Date.now() + 5 * 60 * 1000),
+      expires_at: new Date(Date.now() + VERIFICATION_CODE_EXPIRATION_MS),
     });
 
     const verification_token = this.jwtService.sign(
       { sub: newUser.id },
-      { expiresIn: '12h' },
+      { expiresIn: VERIFICATION_TOKEN_EXPIRATION },
     );
 
     try {
@@ -591,11 +597,11 @@ export class UsersService {
 
     const accessToken = this.jwtService.sign(
       { sub: user.id, role: user.role },
-      { expiresIn: '3d' },
+      { expiresIn: ACCESS_TOKEN_EXPIRATION },
     );
     const refreshToken = this.jwtService.sign(
       { sub: user.id, role: user.role },
-      { expiresIn: '15d' },
+      { expiresIn: REFRESH_TOKEN_EXPIRATION },
     );
 
     await user.update({ email_verified: true, refresh_token: refreshToken });
@@ -637,7 +643,7 @@ export class UsersService {
     await this.verificationModel.create({
       user_id: user.id,
       code: verificationCode,
-      expires_at: new Date(Date.now() + 5 * 60 * 1000),
+      expires_at: new Date(Date.now() + VERIFICATION_CODE_EXPIRATION_MS),
     });
 
     try {
@@ -675,13 +681,13 @@ export class UsersService {
     await this.verificationModel.create({
       user_id: existingUser.id,
       code: verificationCode,
-      expires_at: new Date(Date.now() + 5 * 60 * 1000),
+      expires_at: new Date(Date.now() + VERIFICATION_CODE_EXPIRATION_MS),
       is_forgot_password: true,
     });
 
     const verification_token = this.jwtService.sign(
       { sub: existingUser.id },
-      { expiresIn: '12h' },
+      { expiresIn: VERIFICATION_TOKEN_EXPIRATION },
     );
 
     try {
@@ -739,11 +745,11 @@ export class UsersService {
 
     const accessToken = this.jwtService.sign(
       { sub: user.id, role: user.role },
-      { expiresIn: '3d' },
+      { expiresIn: ACCESS_TOKEN_EXPIRATION },
     );
     const refreshToken = this.jwtService.sign(
       { sub: user.id, role: user.role },
-      { expiresIn: '15d' },
+      { expiresIn: REFRESH_TOKEN_EXPIRATION },
     );
 
     await user.update({
