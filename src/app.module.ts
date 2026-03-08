@@ -32,7 +32,7 @@ import * as path from 'node:path';
         watch: true,
       },
       resolvers: [
-        { use: QueryResolver, options: ['lang', 'locale'] },
+        { use: QueryResolver, options: ['lang', 'locale', 'x-language-code'] },
         AcceptLanguageResolver,
       ],
     }),
