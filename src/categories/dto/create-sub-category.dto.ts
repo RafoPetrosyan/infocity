@@ -16,6 +16,11 @@ export class CreateSubCategoryDto {
   @Length(1, 50)
   slug: string;
 
+  @IsString()
+  @IsOptional()
+  @Length(1, 50)
+  icon?: string;
+
   @IsOptional()
   @Type(() => Number)
   category_id?: number;

@@ -11,7 +11,6 @@ import {
 import { SubCategory } from './models/sub-category.model';
 import { SubCategoryTranslation } from './models/sub-category-translation.model';
 import { Sequelize } from 'sequelize-typescript';
-import { unlink } from 'fs/promises';
 import { Place } from '../places/models/places.model';
 import { Category } from './models/category.model';
 
@@ -52,7 +51,7 @@ export class SubcategoriesService {
       attributes: [
         'id',
         'slug',
-        'image',
+        'icon',
         'category_id',
         [
           this.sequelize.fn('COUNT', this.sequelize.col('places.id')),
@@ -88,15 +87,12 @@ export class SubcategoriesService {
   async create(
     dto: CreateSubCategoryDto,
     translations: SubCategoryTranslationDto[],
-    image?: string,
-    pathname?: string,
   ) {
     const existSlug = await this.subCategoryModel.findOne({
       where: { slug: dto.slug },
     });
 
     if (existSlug) {
-      if (pathname) await unlink(pathname);
       throw new BadRequestException({
         message: `Sub-category with slug ${dto.slug} already exists`,
       });
@@ -105,7 +101,6 @@ export class SubcategoriesService {
     if (dto.category_id) {
       const category = await this.categoryModel.findByPk(dto.category_id);
       if (!category) {
-        if (pathname) await unlink(pathname);
         throw new BadRequestException({
           message: `Category with id ${dto.category_id} not found`,
         });
@@ -114,7 +109,7 @@ export class SubcategoriesService {
 
     const subCategory = await this.subCategoryModel.create({
       slug: dto.slug,
-      image: image || null,
+      icon: dto.icon || null,
       category_id: dto.category_id || null,
     });
 
@@ -132,8 +127,6 @@ export class SubcategoriesService {
     id: number,
     dto: CreateSubCategoryDto,
     translations: SubCategoryTranslationDto[],
-    image?: string,
-    pathname?: string,
   ) {
     const subCategory = await this.subCategoryModel.findByPk(id, {
       include: [
@@ -142,27 +135,21 @@ export class SubcategoriesService {
     });
 
     if (!subCategory) {
-      if (pathname) await unlink(pathname);
       throw new NotFoundException(`Sub-category with id ${id} not found`);
     }
 
     if (dto.category_id) {
       const category = await this.categoryModel.findByPk(dto.category_id);
       if (!category) {
-        if (pathname) await unlink(pathname);
         throw new BadRequestException({
           message: `Category with id ${dto.category_id} not found`,
         });
       }
     }
 
-    if (image && subCategory.dataValues.image) {
-      await unlink(`uploads/sub-categories/${subCategory.dataValues.image}`);
-    }
-
     await subCategory.update({
       slug: dto.slug,
-      image: image || subCategory.image,
+      icon: dto.icon !== undefined ? dto.icon : subCategory.icon,
       category_id: dto.category_id ?? subCategory.category_id,
     });
 
@@ -211,10 +198,6 @@ export class SubcategoriesService {
 
     if (!subCategory) {
       throw new NotFoundException(`Sub-category with id ${id} not found`);
-    }
-
-    if (subCategory.dataValues.image) {
-      await unlink(`uploads/sub-categories/${subCategory.dataValues.image}`);
     }
 
     await subCategory.destroy();

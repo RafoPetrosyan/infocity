@@ -7,8 +7,6 @@ import {
   Put,
   Param,
   Delete,
-  UseInterceptors,
-  UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
@@ -21,8 +19,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { BulkUpdateOrderDto } from '../emotions/dto/update-order.dto';
-import { unlink } from 'fs/promises';
-import { UploadFile } from '../../utils/upload.helper';
 
 @Controller('categories')
 export class CategoriesController {
@@ -43,53 +39,34 @@ export class CategoriesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  @UseInterceptors(UploadFile('image', './uploads/categories', false))
-  async create(
-    @Body() dto: CreateCategoryDto,
-    @UploadedFile() image: Express.Multer.File,
-  ) {
+  async create(@Body() dto: CreateCategoryDto) {
     let translations: CategoryTranslationDto[] = [];
 
     try {
       translations = JSON.parse(dto.translations);
     } catch (e) {
-      if (image) await unlink(image.path);
       throw new BadRequestException('Invalid translations format');
     }
 
-    return this.categoriesService.create(
-      dto,
-      translations,
-      image?.filename,
-      image?.path,
-    );
+    return this.categoriesService.create(dto, translations);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
-  @UseInterceptors(UploadFile('image', './uploads/categories', false))
   async update(
     @Param('id') id: number,
     @Body() dto: CreateCategoryDto,
-    @UploadedFile() image: Express.Multer.File,
   ) {
     let translations: CategoryTranslationDto[] = [];
 
     try {
       translations = JSON.parse(dto.translations);
     } catch (e) {
-      if (image) await unlink(image.path);
       throw new BadRequestException('Invalid translations format');
     }
 
-    return this.categoriesService.update(
-      id,
-      dto,
-      translations,
-      image?.filename,
-      image?.path,
-    );
+    return this.categoriesService.update(id, dto, translations);
   }
 
   @Post('/order')
