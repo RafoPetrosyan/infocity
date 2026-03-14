@@ -13,7 +13,6 @@ import { CategoryTranslation } from './models/category-translation.model';
 import { SubCategory } from './models/sub-category.model';
 import { SubCategoryTranslation } from './models/sub-category-translation.model';
 import { Sequelize } from 'sequelize-typescript';
-import { unlink } from 'fs/promises';
 import { Place } from '../places/models/places.model';
 
 @Injectable()
@@ -70,7 +69,7 @@ export class CategoriesService {
           attributes: [
             'id',
             'slug',
-            'image',
+            'icon',
             'order',
             [Sequelize.col('translation.name'), 'name'],
           ],
@@ -79,7 +78,7 @@ export class CategoriesService {
       attributes: [
         'id',
         'slug',
-        'image',
+        'icon',
         [
           this.sequelize.fn('COUNT', this.sequelize.col('places.id')),
           'places_count',
@@ -107,15 +106,12 @@ export class CategoriesService {
   async create(
     dto: CreateCategoryDto,
     translations: CategoryTranslationDto[],
-    image?: string,
-    pathname?: string,
   ) {
     const existSlug = await this.categoryModel.findOne({
       where: { slug: dto.slug },
     });
 
     if (existSlug) {
-      if (pathname) await unlink(pathname);
       throw new BadRequestException({
         message: `Category with slug ${dto.slug} already exists`,
       });
@@ -123,7 +119,7 @@ export class CategoriesService {
 
     const category = await this.categoryModel.create({
       slug: dto.slug,
-      image: image || null,
+      icon: dto.icon || null,
     });
 
     const translationsData = translations.map((t) => ({
@@ -140,25 +136,18 @@ export class CategoriesService {
     id: number,
     dto: CreateCategoryDto,
     translations: CategoryTranslationDto[],
-    image?: string,
-    pathname?: string,
   ) {
     const category = await this.categoryModel.findByPk(id, {
       include: [{ model: this.categoryTranslationModel, as: 'translations' }],
     });
 
     if (!category) {
-      if (pathname) await unlink(pathname);
       throw new NotFoundException(`Category with id ${id} not found`);
-    }
-
-    if (image && category.dataValues.image) {
-      await unlink(`uploads/categories/${category.dataValues.image}`);
     }
 
     await category.update({
       slug: dto.slug,
-      image: image || category.image,
+      icon: dto.icon !== undefined ? dto.icon : category.icon,
     });
 
     for (const t of translations) {
@@ -206,10 +195,6 @@ export class CategoriesService {
 
     if (!category) {
       throw new NotFoundException(`Category with id ${id} not found`);
-    }
-
-    if (category.dataValues.image) {
-      await unlink(`uploads/categories/${category.dataValues.image}`);
     }
 
     await category.destroy();
