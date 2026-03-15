@@ -220,6 +220,22 @@ export class EventsService {
     return event;
   }
 
+  /** Get Event by alias (slug) – same response as getById **/
+  async getByAlias(
+    alias: string,
+    lang: LanguageEnum,
+    userId: number = 0,
+  ) {
+    const event = await this.eventModel.findOne({
+      where: { slug: alias },
+      attributes: ['id'],
+    });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    return this.getById(event.id, lang, userId);
+  }
+
   /** Get Event by ID All Data **/
   async getEventByIdAllData(
     id: number,
