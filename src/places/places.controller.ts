@@ -58,6 +58,17 @@ export class PlacesController {
     return this.placesService.getAttractionsForAdmin(params);
   }
 
+  @Get('by-alias/:alias')
+  @UseGuards(OptionalJwtAuthGuard)
+  getByAlias(
+    @Param('alias') alias: string,
+    @I18nLang() lang: LanguageEnum,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.sub;
+    return this.placesService.getByAlias(alias, lang, userId);
+  }
+
   @Get('/:id')
   @UseGuards(OptionalJwtAuthGuard)
   getById(

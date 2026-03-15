@@ -179,6 +179,22 @@ export class PlacesService {
     return place;
   }
 
+  /** Get Place by alias (slug) – same response as getById **/
+  async getByAlias(
+    alias: string,
+    lang: LanguageEnum,
+    userId: number = 0,
+  ) {
+    const place = await this.placeModel.findOne({
+      where: { slug: alias },
+      attributes: ['id'],
+    });
+    if (!place) {
+      throw new NotFoundException('Place not found');
+    }
+    return this.getById(place.id, lang, userId);
+  }
+
   /** Get Place by ID All Data **/
   async getPlaceByIdAllData(
     id: number,
