@@ -251,14 +251,35 @@ export class PlacesService {
       cdn_url: `${DOMAIN_URL}/uploads/places/`,
     };
 
-    if (query.category_id) {
-      where.push(`p.category_id = :category_id`);
-      replacements.category_id = query.category_id;
+    let resolvedCategoryId: number | null = query.category_id ?? null;
+    let resolvedSubCategoryId: number | null = query.sub_category_id ?? null;
+
+    if (query.category_alias) {
+      const categoryBySlug = await this.categoryModel.findOne({
+        where: { slug: query.category_alias },
+        attributes: ['id'],
+      });
+      if (categoryBySlug) {
+        resolvedCategoryId = categoryBySlug.id;
+      }
+    }
+    if (query.sub_category_alias) {
+      const subCategoryBySlug = await this.subCategoryModel.findOne({
+        where: { slug: query.sub_category_alias },
+        attributes: ['id'],
+      });
+      if (subCategoryBySlug) {
+        resolvedSubCategoryId = subCategoryBySlug.id;
+      }
     }
 
-    if (query.sub_category_id) {
+    if (resolvedCategoryId != null) {
+      where.push(`p.category_id = :category_id`);
+      replacements.category_id = resolvedCategoryId;
+    }
+    if (resolvedSubCategoryId != null) {
       where.push(`p.sub_category_id = :sub_category_id`);
-      replacements.sub_category_id = query.sub_category_id;
+      replacements.sub_category_id = resolvedSubCategoryId;
     }
 
     if (query.search) {
@@ -312,6 +333,19 @@ export class PlacesService {
     // --- where clause ---
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
+    // Resolved ids for ordering: put matching category/subcategory first (used even when not filtering)
+    replacements.resolved_category_id = resolvedCategoryId;
+    replacements.resolved_sub_category_id = resolvedSubCategoryId;
+
+    const orderByCategoryFirst =
+      resolvedCategoryId != null
+        ? `(p.category_id = :resolved_category_id) DESC, `
+        : '';
+    const orderBySubCategoryFirst =
+      resolvedSubCategoryId != null
+        ? `(p.sub_category_id = :resolved_sub_category_id) DESC, `
+        : '';
+
     // --- main query ---
     const sql = `
       SELECT
@@ -346,7 +380,7 @@ export class PlacesService {
                        ON eec.entity_type = 'place' AND eec.entity_id = p.id
         ${whereClause}
       GROUP BY p.id, pt.name, pt.description, c.slug, sc.slug
-      ORDER BY has_user_emotion DESC, p.id DESC
+      ORDER BY ${orderByCategoryFirst}${orderBySubCategoryFirst}has_user_emotion DESC, p.id DESC
         LIMIT :limit OFFSET :offset
     `;
 

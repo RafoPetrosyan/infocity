@@ -38,6 +38,14 @@ export class QueryDto {
   sub_category_id?: number;
 
   @IsOptional()
+  @IsString()
+  category_alias?: string;
+
+  @IsOptional()
+  @IsString()
+  sub_category_alias?: string;
+
+  @IsOptional()
   @IsInt()
   section_id?: number;
 
