@@ -28,7 +28,9 @@ export class ItemImages extends Model {
     type: DataType.STRING,
     get() {
       const rawValue = this.getDataValue('original');
-      return rawValue ? `${DOMAIN_URL}/uploads/items/${rawValue}` : null;
+      if (!rawValue) return null;
+      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
+      return `${DOMAIN_URL}/uploads/items/${rawValue}`;
     },
   })
   declare original: string;
@@ -37,7 +39,9 @@ export class ItemImages extends Model {
     type: DataType.STRING,
     get() {
       const rawValue = this.getDataValue('thumbnail');
-      return rawValue ? `${DOMAIN_URL}/uploads/items/${rawValue}` : null;
+      if (!rawValue) return null;
+      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
+      return `${DOMAIN_URL}/uploads/items/${rawValue}`;
     },
   })
   declare thumbnail: string;
