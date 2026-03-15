@@ -316,7 +316,11 @@ export class PlacesService {
     const sql = `
       SELECT
         p.id,
-        (:cdn_url || p.image) AS image,
+        CASE
+          WHEN p.image IS NULL THEN NULL
+          WHEN p.image LIKE 'http://%' OR p.image LIKE 'https://%' THEN p.image
+          ELSE (:cdn_url || p.image)
+        END AS image,
         p.slug,
         pt.name,
         pt.description,
