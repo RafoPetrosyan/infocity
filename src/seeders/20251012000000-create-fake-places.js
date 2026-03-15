@@ -1,63 +1,36 @@
 const bcrypt = require('bcryptjs');
 
+// External image URLs — works in any environment (local/server). Replace with your own list if needed.
+const EXTERNAL_IMAGE_URLS = [
+  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+  'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800',
+  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+  'https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800',
+  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800',
+  'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=800',
+  'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=800',
+  'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800',
+  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800',
+  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+  'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
+  'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800',
+  'https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=800',
+  'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800',
+  'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800',
+  'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800',
+  'https://images.unsplash.com/photo-1559847844-5315695dadae?w=800',
+  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
+  'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400',
+  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
+  'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400',
+];
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     console.log('Starting to seed fake places...');
-
-    // Step 1: Get existing images from uploads/places
-    const existingImages = [
-      '1757751214221-e492f11a-89a8-4c7f-9166-ca43a5f06b3a.png',
-      '1757761681392-be5e04a3-a7fd-4816-a6a8-8423f0c03024.png',
-      '1757761743049-95c2259d-70a7-4d08-a1c9-d1da72fc0954.png',
-      '1757763402939-26f264e3-1e05-4ce6-99cc-c11a3636b4c6.png',
-      '1757789752930-d644f5d8-ec76-4131-a83f-8f43180ee37a.png',
-      '1757789798367-1cd0bf2a-2bb3-4352-87b1-9daf994c24b2.png',
-      '1757789800306-23a238a4-dc2b-4a64-98bd-81e2ea324b90.png',
-      '1757789860643-21932459-5340-405d-8166-ce261e36056c.png',
-      '1757790002380-04c0033a-fd66-4900-8c80-4e34e4b064fb.png',
-      '1757790003373-a4278b3e-989e-431d-89a9-181a8473160a.png',
-      '1757790004218-514dac93-899e-4636-92ed-0e43e8ad04c7.png',
-      '1757790005197-0f57aee6-eddf-4dfa-b23e-d4e046112032.png',
-      '1757790039232-9871106b-203c-4737-82b1-3b15c68c59c2.png',
-      '1757852373142-56f30ae1-f6f8-4a54-a558-a01f70d13fc5.png',
-      '1758382808415-5b73a73d-c90e-449a-9c8a-d7f7a66d647f.png',
-      '1758390487731-47d9a2a3-ed0a-44bc-a39d-22a627406eda.jpg',
-      '1758470773493-877f5c1f-97b7-4e83-a9c0-58fd491cfe56.webp',
-      '1758470806100-563ce29f-96d5-4b5c-a5b2-d29d6f86be6f.webp',
-      '1758470865951-31d3755f-73de-4b91-b37f-7284a7b93ca6.webp',
-      '1758958251327-e9eaa21e-1013-45c9-a423-cccf09943930.webp',
-      '1759074809567-ef61d313-59fe-48ec-92f5-56337b6982cb.webp',
-      '1759074913344-5362b926-57c9-4ee4-a22e-9483ec778e57.webp',
-      '1760112875449-dfe06d7d-0935-4f0c-b524-c6143f0e5717.png',
-      '1760212567745-84856038-abcd-46a0-97c9-2f9e916b9780.jpeg',
-    ];
-
-    const thumbImages = [
-      '1757751214221-e492f11a-89a8-4c7f-9166-ca43a5f06b3a-thumb.png',
-      '1757761681392-be5e04a3-a7fd-4816-a6a8-8423f0c03024-thumb.png',
-      '1757761743049-95c2259d-70a7-4d08-a1c9-d1da72fc0954-thumb.png',
-      '1757763402939-26f264e3-1e05-4ce6-99cc-c11a3636b4c6-thumb.png',
-      '1757789752930-d644f5d8-ec76-4131-a83f-8f43180ee37a-thumb.png',
-      '1757789798367-1cd0bf2a-2bb3-4352-87b1-9daf994c24b2-thumb.png',
-      '1757789800306-23a238a4-dc2b-4a64-98bd-81e2ea324b90-thumb.png',
-      '1757789860643-21932459-5340-405d-8166-ce261e36056c-thumb.png',
-      '1757790002380-04c0033a-fd66-4900-8c80-4e34e4b064fb-thumb.png',
-      '1757790003373-a4278b3e-989e-431d-89a9-181a8473160a-thumb.png',
-      '1757790004218-514dac93-899e-4636-92ed-0e43e8ad04c7-thumb.png',
-      '1757790005197-0f57aee6-eddf-4dfa-b23e-d4e046112032-thumb.png',
-      '1757790039232-9871106b-203c-4737-82b1-3b15c68c59c2-thumb.png',
-      '1757852373142-56f30ae1-f6f8-4a54-a558-a01f70d13fc5-thumb.png',
-      '1758382808415-5b73a73d-c90e-449a-9c8a-d7f7a66d647f-thumb.png',
-      '1758390487731-47d9a2a3-ed0a-44bc-a39d-22a627406eda-thumb.jpg',
-      '1758470773493-877f5c1f-97b7-4e83-a9c0-58fd491cfe56-thumb.webp',
-      '1758470806100-563ce29f-96d5-4b5c-a5b2-d29d6f86be6f-thumb.webp',
-      '1758470865951-31d3755f-73de-4b91-b37f-7284a7b93ca6-thumb.webp',
-      '1758958251327-e9eaa21e-1013-45c9-a423-cccf09943930-thumb.webp',
-      '1759074809567-ef61d313-59fe-48ec-92f5-56337b6982cb-thumb.webp',
-      '1759074913344-5362b926-57c9-4ee4-a22e-9483ec778e57-thumb.webp',
-      '1760112875449-dfe06d7d-0935-4f0c-b524-c6143f0e5717-thumb.png',
-      '1760212567745-84856038-abcd-46a0-97c9-2f9e916b9780-thumb.jpeg',
-    ];
 
     // Step 2: Create several fake users
     const password = await bcrypt.hash('password123', 10);
@@ -103,6 +76,30 @@ module.exports = {
     );
     const categoryIds = categories.map((c) => c.id);
     console.log(`Found ${categoryIds.length} categories`);
+
+    // Step 4b: Get sub_categories grouped by category_id (for dynamic sub_category_id)
+    const subCategories = await queryInterface.sequelize.query(
+      'SELECT id, category_id FROM sub_categories',
+      { type: Sequelize.QueryTypes.SELECT },
+    );
+    const subCategoriesByCategory = {};
+    for (const sc of subCategories) {
+      if (!subCategoriesByCategory[sc.category_id]) {
+        subCategoriesByCategory[sc.category_id] = [];
+      }
+      subCategoriesByCategory[sc.category_id].push(sc.id);
+    }
+    console.log(
+      `Found ${subCategories.length} sub_categories across ${Object.keys(subCategoriesByCategory).length} categories`,
+    );
+
+    // Step 4c: Get all emotions (for entity_emotion_counts)
+    const emotions = await queryInterface.sequelize.query(
+      'SELECT id FROM emotions',
+      { type: Sequelize.QueryTypes.SELECT },
+    );
+    const emotionIds = emotions.map((e) => e.id);
+    console.log(`Found ${emotionIds.length} emotions`);
 
     // Step 5: Get user IDs (including newly created ones)
     const users = await queryInterface.sequelize.query('SELECT id FROM users', {
@@ -273,16 +270,24 @@ module.exports = {
 
       for (let i = 0; i < placesInBatch; i++) {
         const coords = generateCoordinates();
-        const imageIndex = Math.floor(Math.random() * existingImages.length);
+        const imageIndex = Math.floor(Math.random() * EXTERNAL_IMAGE_URLS.length);
+        const imageUrl = EXTERNAL_IMAGE_URLS[imageIndex];
+        // Use same URL for both (app can resize client-side or use CDN params)
+        const thumbUrl = imageUrl;
         const allNames = Object.values(placeNames).flat();
         const baseName = getRandomElement(allNames);
         const uniqueName = `${baseName} ${placesCreated + i + 1}`;
         const slug = `${baseName.toLowerCase().replace(/\s+/g, '-')}-${placesCreated + i + 1}`;
 
+        const categoryId = getRandomElement(categoryIds);
+        const subIds = subCategoriesByCategory[categoryId];
+        const subCategoryId =
+          subIds && subIds.length > 0 ? getRandomElement(subIds) : null;
+
         const place = {
           slug: slug,
-          image: thumbImages[imageIndex],
-          image_original: existingImages[imageIndex],
+          image: thumbUrl,
+          image_original: imageUrl,
           latitude: coords.latitude,
           longitude: coords.longitude,
           location: Sequelize.fn(
@@ -292,7 +297,8 @@ module.exports = {
           ),
           address: `Street ${getRandomInt(1, 100)}, Building ${getRandomInt(1, 50)}`,
           city_id: getRandomElement(cityIds),
-          category_id: getRandomElement(categoryIds),
+          category_id: categoryId,
+          sub_category_id: subCategoryId,
           user_id: getRandomElement(userIds),
           email:
             Math.random() > 0.5
@@ -373,6 +379,32 @@ module.exports = {
         await queryInterface.bulkInsert('place_translations', translationBatch);
       }
 
+      // Create entity_emotion_counts for places (from existing emotions)
+      if (emotionIds.length > 0) {
+        const emotionCounts = [];
+        for (const place of insertedPlaces) {
+          // Each place gets 1–4 random emotions with a count
+          const numEmotions = getRandomInt(1, Math.min(4, emotionIds.length));
+          const used = new Set();
+          while (used.size < numEmotions) {
+            const emotionId = getRandomElement(emotionIds);
+            if (used.has(emotionId)) continue;
+            used.add(emotionId);
+            emotionCounts.push({
+              entity_type: 'place',
+              entity_id: place.id,
+              emotion_id: emotionId,
+              count: getRandomInt(1, 100),
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
+        }
+        if (emotionCounts.length > 0) {
+          await queryInterface.bulkInsert('entity_emotion_counts', emotionCounts);
+        }
+      }
+
       placesCreated += placesInBatch;
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
       const rate = ((placesCreated / (Date.now() - startTime)) * 1000).toFixed(
@@ -392,16 +424,27 @@ module.exports = {
   down: async (queryInterface) => {
     console.log('Removing fake places...');
 
+    // Match seeded place slugs (end with -number, e.g. bella-italia-1)
+    const slugMatch = "slug ~ '-[0-9]+$'";
+
+    // Delete entity_emotion_counts for seeded places first
+    await queryInterface.sequelize.query(
+      `DELETE FROM entity_emotion_counts
+       WHERE entity_type = 'place' AND entity_id IN (
+         SELECT id FROM places WHERE ${slugMatch}
+       )`,
+    );
+
     // Delete translations first
     await queryInterface.sequelize.query(
       `DELETE FROM place_translations WHERE place_id IN (
-        SELECT id FROM places WHERE slug LIKE '%-[0-9]%'
+        SELECT id FROM places WHERE ${slugMatch}
       )`,
     );
 
     // Delete places
     await queryInterface.sequelize.query(
-      `DELETE FROM places WHERE slug LIKE '%-[0-9]%'`,
+      `DELETE FROM places WHERE ${slugMatch}`,
     );
 
     // Delete fake users
