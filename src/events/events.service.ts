@@ -118,7 +118,7 @@ export class EventsService {
       [Sequelize.col('place->translation.name'), 'place_name'],
       [
         Sequelize.literal(
-          `CONCAT('${DOMAIN_URL}/uploads/places/', "place"."image")`,
+          `CASE WHEN "place"."image" IS NULL THEN NULL WHEN "place"."image" LIKE 'http://%' OR "place"."image" LIKE 'https://%' THEN "place"."image" ELSE CONCAT('${DOMAIN_URL}/uploads/places/', "place"."image") END`,
         ),
         'place_image',
       ],
@@ -360,7 +360,11 @@ export class EventsService {
     const sql = `
     SELECT
       e.id,
-      (:cdn_url || e.image) AS image,
+      CASE
+        WHEN e.image IS NULL THEN NULL
+        WHEN e.image LIKE 'http://%' OR e.image LIKE 'https://%' THEN e.image
+        ELSE (:cdn_url || e.image)
+      END AS image,
       e.slug,
       e.start_date,
       e.end_date,
@@ -928,10 +932,8 @@ export class EventsService {
         [Sequelize.col('event.slug'), 'slug'],
         [Sequelize.col('event.id'), 'event_id'],
         [
-          Sequelize.fn(
-            'concat',
-            `${DOMAIN_URL}/uploads/events/`,
-            Sequelize.col('event.image'),
+          Sequelize.literal(
+            `CASE WHEN "event"."image" IS NULL THEN NULL WHEN "event"."image" LIKE 'http://%' OR "event"."image" LIKE 'https://%' THEN "event"."image" ELSE CONCAT('${DOMAIN_URL}/uploads/events/', "event"."image") END`,
           ),
           'image',
         ],
