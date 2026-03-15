@@ -45,11 +45,10 @@ export class User extends Model {
     get() {
       const rawValue = this.getDataValue('avatar');
 
-      if (rawValue && !rawValue.startsWith('http')) {
-        return `${DOMAIN_URL}/uploads/avatars/${rawValue}`;
+      if (rawValue && (rawValue.startsWith('https://') || rawValue.startsWith('http://'))) {
+        return rawValue;
       }
-
-      return rawValue;
+      return rawValue ? `${DOMAIN_URL}/uploads/avatars/${rawValue}` : null;
     },
   })
   declare avatar: string;

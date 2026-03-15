@@ -31,7 +31,9 @@ export class Place extends Model {
     type: DataType.STRING,
     get() {
       const rawValue = this.getDataValue('logo');
-      return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
+      if (!rawValue) return null;
+      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
+      return `${DOMAIN_URL}/uploads/places/${rawValue}`;
     },
   })
   declare logo: string;
@@ -40,7 +42,9 @@ export class Place extends Model {
     type: DataType.STRING,
     get() {
       const rawValue = this.getDataValue('image');
-      return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
+      if (!rawValue) return null;
+      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
+      return `${DOMAIN_URL}/uploads/places/${rawValue}`;
     },
   })
   declare image: string;
@@ -49,7 +53,9 @@ export class Place extends Model {
     type: DataType.STRING,
     get() {
       const rawValue = this.getDataValue('image_original');
-      return rawValue ? `${DOMAIN_URL}/uploads/places/${rawValue}` : null;
+      if (!rawValue) return null;
+      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
+      return `${DOMAIN_URL}/uploads/places/${rawValue}`;
     },
   })
   declare image_original: string;

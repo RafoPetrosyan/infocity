@@ -1083,7 +1083,7 @@ export class EventsService {
     const data = rows.map((row: any) => {
       const invitation = row.toJSON();
       const event = invitation.event;
-      if (event?.image && !event.image.startsWith('http')) {
+      if (event?.image && !event.image.startsWith('https://') && !event.image.startsWith('http://')) {
         event.image = `${DOMAIN_URL}/uploads/events/${event.image}`;
       }
       return invitation;
