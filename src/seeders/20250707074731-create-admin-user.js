@@ -23,3 +23,5 @@ module.exports = {
     await queryInterface.bulkDelete('users', { email: 'admin@gmail.com' }, {});
   },
 };
+
+// yarn seed:run -- src/seeders/20250707074731-create-admin-user.js

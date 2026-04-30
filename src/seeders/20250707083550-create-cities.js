@@ -197,3 +197,5 @@ module.exports = {
     await queryInterface.bulkDelete('cities', null, {});
   },
 };
+
+// yarn seed:run -- src/seeders/20250707083550-create-cities.js
