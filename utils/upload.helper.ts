@@ -1,9 +1,8 @@
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync } from 'fs';
 import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
+import { uploadBufferToGcs } from './google-cloud-storage';
 
 export function UploadFile(
   field: string,
@@ -11,20 +10,32 @@ export function UploadFile(
   isStrictPath: boolean = true,
 ) {
   return FileInterceptor(field, {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
-        if (!existsSync(folder)) {
-          mkdirSync(folder, { recursive: true });
-        }
-        cb(null, folder);
-      },
-      filename: (req, file, cb) => {
+    storage: {
+      _handleFile(req, file, cb) {
         const uniqueSuffix = isStrictPath
           ? `${Date.now()}-${uuid()}`
           : `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-        cb(null, uniqueSuffix + extname(file.originalname));
+        const objectKey = `${folder.replace(/^\/+|\/+$/g, '')}/${uniqueSuffix}${extname(file.originalname)}`;
+
+        const chunks: Buffer[] = [];
+        file.stream.on('data', (chunk) => chunks.push(chunk));
+        file.stream.on('end', async () => {
+          try {
+            const buffer = Buffer.concat(chunks);
+            await uploadBufferToGcs(objectKey, buffer, file.mimetype);
+            cb(null, {
+              path: objectKey,
+              filename: objectKey,
+            });
+          } catch (error) {
+            cb(error, null);
+          }
+        });
       },
-    }),
+      _removeFile(req, file, cb) {
+        cb(null);
+      },
+    },
     fileFilter: (req, file, cb) => {
       if (file.mimetype.startsWith('image/')) {
         cb(null, true);

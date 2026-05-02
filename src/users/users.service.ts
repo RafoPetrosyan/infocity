@@ -21,9 +21,9 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { SocialSignInDto } from './dto/social-sign-in.dto';
 import { EmotionsModel } from '../emotions/models/emotions.model';
-import { unlink } from 'fs/promises';
 import * as process from 'node:process';
 import { trim } from 'lodash';
+import { unlinkFiles } from '../../utils/unlink-files';
 import {
   ACCESS_TOKEN_EXPIRATION,
   REFRESH_TOKEN_EXPIRATION,
@@ -838,12 +838,12 @@ export class UsersService {
 
     const user = await this.getUserEntityById(userId);
     if (!user) {
-      if (pathname) await unlink(pathname);
+      if (pathname) await unlinkFiles([pathname]);
       throw new BadRequestException({ message: 'User not found' });
     }
 
     if (user.dataValues.avatar && !user.dataValues.avatar.startsWith('http')) {
-      await unlink(`uploads/avatars/${user.dataValues.avatar}`);
+      await unlinkFiles([user.dataValues.avatar]);
     }
 
     await user.update({ avatar: image });

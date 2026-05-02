@@ -30,7 +30,11 @@ export class ItemImagesController {
   @UseInterceptors(
     UploadAndOptimizeImages(
       [{ name: 'images', maxCount: 10, withThumb: true }],
-      { folder: './uploads/items' },
+      {
+        folder: 'places/tmp/items/gallery',
+        folderResolver: (req) =>
+          `places/${req.params.placeId}/items/${req.params.itemId}/gallery`,
+      },
     ),
   )
   create(

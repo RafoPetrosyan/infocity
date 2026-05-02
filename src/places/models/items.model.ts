@@ -12,7 +12,7 @@ import { Place } from './places.model';
 import { PlaceSection } from './place-sections.model';
 import { ItemTranslation } from './items-translation.model';
 import { ItemImages } from './items-images.model';
-import { DOMAIN_URL } from '../../../constants';
+import { resolvePublicImageUrl } from '../../../utils/google-cloud-storage';
 
 @Table({ tableName: 'items' })
 export class Item extends Model {
@@ -36,7 +36,7 @@ export class Item extends Model {
       const rawValue = this.getDataValue('image');
       if (!rawValue) return null;
       if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/items/${rawValue}`;
+      return resolvePublicImageUrl(rawValue);
     },
   })
   declare image: string;
@@ -47,7 +47,7 @@ export class Item extends Model {
       const rawValue = this.getDataValue('image_original');
       if (!rawValue) return null;
       if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/items/${rawValue}`;
+      return resolvePublicImageUrl(rawValue);
     },
   })
   declare image_original: string;

@@ -7,7 +7,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import { Review } from './review.model';
-import { DOMAIN_URL } from '../../../constants';
+import { resolvePublicImageUrl } from '../../../utils/google-cloud-storage';
 
 @Table({ tableName: 'review_images' })
 export class ReviewImages extends Model {
@@ -25,7 +25,7 @@ export class ReviewImages extends Model {
       const rawValue = this.getDataValue('original');
       if (!rawValue) return null;
       if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/reviews/${rawValue}`;
+      return resolvePublicImageUrl(rawValue);
     },
   })
   original: string;
@@ -37,7 +37,7 @@ export class ReviewImages extends Model {
       const rawValue = this.getDataValue('thumbnail');
       if (!rawValue) return null;
       if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/reviews/${rawValue}`;
+      return resolvePublicImageUrl(rawValue);
     },
   })
   thumbnail: string;

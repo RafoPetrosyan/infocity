@@ -14,7 +14,7 @@ import * as bcrypt from 'bcryptjs';
 import { CityModel } from '../../cities/models/city.model';
 import { EmotionsModel } from '../../emotions/models/emotions.model';
 import { UserEmotions } from './user-emotions.model';
-import { DOMAIN_URL } from '../../../constants';
+import { resolvePublicImageUrl } from '../../../utils/google-cloud-storage';
 import { Place } from '../../places/models/places.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
 import { UserContact } from '../../contacts/models/user-contact.model';
@@ -48,7 +48,7 @@ export class User extends Model {
       if (rawValue && (rawValue.startsWith('https://') || rawValue.startsWith('http://'))) {
         return rawValue;
       }
-      return rawValue ? `${DOMAIN_URL}/uploads/avatars/${rawValue}` : null;
+      return resolvePublicImageUrl(rawValue);
     },
   })
   declare avatar: string;

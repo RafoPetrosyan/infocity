@@ -2,6 +2,10 @@ import { config as dotenvConfig } from 'dotenv';
 dotenvConfig({ path: '.env' });
 
 export const DOMAIN_URL = process.env.DOMAIN_URL;
+export const GOOGLE_CLOUD_BUCKET_NAME = process.env.GOOGLE_CLOUD_BUCKET_NAME;
+export const GOOGLE_CLOUD_BASE_URL = GOOGLE_CLOUD_BUCKET_NAME
+  ? `https://storage.googleapis.com/${GOOGLE_CLOUD_BUCKET_NAME}`
+  : '';
 
 // JWT token expiration times
 export const ACCESS_TOKEN_EXPIRATION = '3d';

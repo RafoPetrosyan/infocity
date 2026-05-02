@@ -10,7 +10,6 @@ import { ItemTranslation } from './models/items-translation.model';
 import { Place } from './models/places.model';
 import { PlaceSection } from './models/place-sections.model';
 import { CreateItemDto, UpdateItemDto } from './dto/create-item.dto';
-import { unlink } from 'fs/promises';
 import { ItemImages } from './models/items-images.model';
 import { unlinkFiles } from '../../utils/unlink-files';
 import { Op } from 'sequelize';
@@ -225,12 +224,12 @@ export class ItemsService {
       if (files?.image) {
         if (item.image_original) {
           try {
-            await unlink(`./uploads/items/${item.image_original}`);
+            await unlinkFiles([item.image_original]);
           } catch {}
         }
         if (item.image) {
           try {
-            await unlink(`./uploads/items/${item.image}`);
+            await unlinkFiles([item.image]);
           } catch {}
         }
         updateData.image_original = files.image.filename;
@@ -277,12 +276,12 @@ export class ItemsService {
 
     if (item.image_original) {
       try {
-        await unlink(`./uploads/items/${item.image_original}`);
+        await unlinkFiles([item.image_original]);
       } catch {}
     }
     if (item.image) {
       try {
-        await unlink(`./uploads/items/${item.image}`);
+        await unlinkFiles([item.image]);
       } catch {}
     }
 

@@ -350,8 +350,8 @@ export class ReviewsService {
       attributes: ['original', 'thumbnail'],
     });
     const imagePaths = reviewImages.flatMap((img) => [
-      `uploads/reviews/${(img as any).getDataValue('original')}`,
-      `uploads/reviews/${(img as any).getDataValue('thumbnail')}`,
+      (img as any).getDataValue('original'),
+      (img as any).getDataValue('thumbnail'),
     ]);
     await unlinkFiles(imagePaths);
     await this.reviewImagesModel.destroy({ where: { review_id: id } });
@@ -496,8 +496,8 @@ export class ReviewsService {
     }
 
     const imagePaths = [
-      `uploads/reviews/${(image as any).getDataValue('original')}`,
-      `uploads/reviews/${(image as any).getDataValue('thumbnail')}`,
+      (image as any).getDataValue('original'),
+      (image as any).getDataValue('thumbnail'),
     ];
     await unlinkFiles(imagePaths);
     await image.destroy();
