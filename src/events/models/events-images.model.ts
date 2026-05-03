@@ -27,10 +27,7 @@ export class EventImages extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('original');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return resolvePublicImageUrl(rawValue);
+      return resolvePublicImageUrl(this.getDataValue('original'));
     },
   })
   original: string;
@@ -38,10 +35,7 @@ export class EventImages extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('thumbnail');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('http://') || rawValue.startsWith('https://')) return rawValue;
-      return resolvePublicImageUrl(rawValue);
+      return resolvePublicImageUrl(this.getDataValue('thumbnail'));
     },
   })
   thumbnail: string;

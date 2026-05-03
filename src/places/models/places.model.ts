@@ -30,10 +30,7 @@ export class Place extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('logo');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return resolvePublicImageUrl(rawValue);
+      return resolvePublicImageUrl(this.getDataValue('logo'));
     },
   })
   declare logo: string;
@@ -41,10 +38,7 @@ export class Place extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('image');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return resolvePublicImageUrl(rawValue);
+      return resolvePublicImageUrl(this.getDataValue('image'));
     },
   })
   declare image: string;
@@ -52,10 +46,7 @@ export class Place extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('image_original');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return resolvePublicImageUrl(rawValue);
+      return resolvePublicImageUrl(this.getDataValue('image_original'));
     },
   })
   declare image_original: string;

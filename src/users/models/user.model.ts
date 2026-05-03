@@ -43,12 +43,7 @@ export class User extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('avatar');
-
-      if (rawValue && (rawValue.startsWith('https://') || rawValue.startsWith('http://'))) {
-        return rawValue;
-      }
-      return resolvePublicImageUrl(rawValue);
+      return resolvePublicImageUrl(this.getDataValue('avatar'));
     },
   })
   declare avatar: string;
