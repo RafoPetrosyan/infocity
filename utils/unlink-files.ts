@@ -1,7 +1,5 @@
-import { unlink } from 'fs/promises';
+import { deleteManyFromGcs } from './google-cloud-storage';
 
 export async function unlinkFiles(files: any[] = []) {
-  for (const path of files) {
-    if (path) await unlink(path);
-  }
+  await deleteManyFromGcs(files.filter(Boolean));
 }

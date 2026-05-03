@@ -19,6 +19,7 @@
     "seed:run": "npx sequelize-cli db:seed --seed"
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.19.0",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.1.13",
     "@nestjs/config": "^4.0.3",

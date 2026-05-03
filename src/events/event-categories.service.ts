@@ -9,8 +9,8 @@ import { EventCategoryTranslation } from './models/event-category-translation.mo
 import { CreateEventCategoryDto } from './dto/create-event-category.dto';
 import { UpdateEventCategoryDto } from './dto/update-event-category.dto';
 import { Sequelize } from 'sequelize-typescript';
-import { unlink } from 'fs/promises';
 import { LanguageEnum } from '../../types';
+import { unlinkFiles } from '../../utils/unlink-files';
 
 @Injectable()
 export class EventCategoriesService {
@@ -205,7 +205,7 @@ export class EventCategoriesService {
     }
 
     if (category.dataValues.image) {
-      await unlink(`uploads/event-categories/${category.dataValues.image}`);
+      await unlinkFiles([category.dataValues.image]);
     }
 
     await category.destroy();

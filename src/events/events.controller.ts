@@ -103,7 +103,11 @@ export class EventsController {
   @Roles('user')
   @UseInterceptors(
     UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
-      folder: './uploads/events',
+      folder: 'events/tmp',
+      folderResolver: (req) =>
+        req.body?.place_id
+          ? `places/${req.body.place_id}/events`
+          : 'events/tmp',
     }),
   )
   async create(
@@ -131,7 +135,11 @@ export class EventsController {
   @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
     UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
-      folder: './uploads/events',
+      folder: 'events/tmp',
+      folderResolver: (req) =>
+        req.body?.place_id
+          ? `places/${req.body.place_id}/events`
+          : `events/${req.params.id}`,
     }),
   )
   async update(
@@ -161,7 +169,7 @@ export class EventsController {
   @UseInterceptors(
     UploadAndOptimizeImages(
       [{ name: 'images', maxCount: 15, withThumb: true }],
-      { folder: './uploads/events' },
+      { folder: 'events/gallery', folderResolver: (req) => `events/${req.params.id}/gallery` },
     ),
   )
   async uploadImages(

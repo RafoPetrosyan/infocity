@@ -7,7 +7,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import { Event } from './events.model';
-import { DOMAIN_URL } from '../../../constants';
+import { resolvePublicImageUrl } from '../../../utils/google-cloud-storage';
 
 @Table({ tableName: 'event_images', timestamps: false })
 export class EventImages extends Model {
@@ -27,10 +27,7 @@ export class EventImages extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('original');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/events/${rawValue}`;
+      return resolvePublicImageUrl(this.getDataValue('original'));
     },
   })
   original: string;
@@ -38,10 +35,7 @@ export class EventImages extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('thumbnail');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('http://') || rawValue.startsWith('https://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/events/${rawValue}`;
+      return resolvePublicImageUrl(this.getDataValue('thumbnail'));
     },
   })
   thumbnail: string;

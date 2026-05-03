@@ -10,7 +10,6 @@ import { Event } from './models/events.model';
 import { EventTranslation } from './models/events-translation.model';
 import { EventCategory } from './models/event-category.model';
 import { EventCategoryTranslation } from './models/event-category-translation.model';
-import { unlink } from 'fs/promises';
 import { CreateEventDto } from './dto/create-event.dto';
 import slugify from 'slugify';
 import { Place } from '../places/models/places.model';
@@ -23,7 +22,7 @@ import { CityTranslation } from '../cities/models/city-translation.model';
 import { LanguageEnum } from '../../types';
 import { QueryDto } from '../../types/query.dto';
 import { unlinkFiles } from '../../utils/unlink-files';
-import { DOMAIN_URL } from '../../constants';
+import { GOOGLE_CLOUD_BASE_URL } from '../../constants';
 import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.model';
 import { User } from '../users/models/user.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
@@ -118,7 +117,7 @@ export class EventsService {
       [Sequelize.col('place->translation.name'), 'place_name'],
       [
         Sequelize.literal(
-          `CASE WHEN "place"."image" IS NULL THEN NULL WHEN "place"."image" LIKE 'http://%' OR "place"."image" LIKE 'https://%' THEN "place"."image" ELSE CONCAT('${DOMAIN_URL}/uploads/places/', "place"."image") END`,
+          `CASE WHEN "place"."image" IS NULL THEN NULL WHEN "place"."image" LIKE 'http://%' OR "place"."image" LIKE 'https://%' THEN "place"."image" ELSE CONCAT('${GOOGLE_CLOUD_BASE_URL}/', "place"."image") END`,
         ),
         'place_image',
       ],
@@ -288,7 +287,7 @@ export class EventsService {
       lang,
       limit,
       offset,
-      cdn_url: `${DOMAIN_URL}/uploads/events/`,
+      cdn_url: `${GOOGLE_CLOUD_BASE_URL}/`,
     };
 
     // --- filters ---
@@ -454,7 +453,7 @@ export class EventsService {
     },
   ) {
     if (!files.coverOriginalName) {
-      if (files.coverThumbPath) await unlink(files.coverThumbPath);
+      if (files.coverThumbPath) await unlinkFiles([files.coverThumbPath]);
       throw new NotFoundException(`Cover image is required`);
     }
 
@@ -611,13 +610,13 @@ export class EventsService {
     if (files.coverThumbName) {
       updateData.image = files.coverThumbName;
       if (event.dataValues.image) {
-        await unlink(`uploads/events/${event.dataValues.image}`);
+        await unlinkFiles([event.dataValues.image]);
       }
     }
     if (files.coverOriginalName) {
       updateData.image_original = files.coverOriginalName;
       if (event.dataValues.image_original) {
-        await unlink(`uploads/events/${event.dataValues.image_original}`);
+        await unlinkFiles([event.dataValues.image_original]);
       }
     }
 
@@ -750,8 +749,8 @@ export class EventsService {
       throw new NotFoundException(`Image with id ${image_id} not found`);
     }
     const imagePaths = [
-      `uploads/events/${image.dataValues.original}`,
-      `uploads/events/${image.dataValues.thumbnail}`,
+      image.dataValues.original,
+      image.dataValues.thumbnail,
     ];
     await unlinkFiles(imagePaths);
     await image.destroy();
@@ -803,16 +802,16 @@ export class EventsService {
     const imagePaths: string[] = [];
 
     if (event.dataValues.image) {
-      imagePaths.push(`uploads/events/${event.dataValues.image}`);
+      imagePaths.push(event.dataValues.image);
     }
     if (event.dataValues.image_original) {
-      imagePaths.push(`uploads/events/${event.dataValues.image_original}`);
+      imagePaths.push(event.dataValues.image_original);
     }
 
     if (images && images.length > 0) {
       images.forEach((image: any) => {
-        imagePaths.push(`uploads/events/${image.dataValues.original}`);
-        imagePaths.push(`uploads/events/${image.dataValues.thumbnail}`);
+        imagePaths.push(image.dataValues.original);
+        imagePaths.push(image.dataValues.thumbnail);
       });
     }
 
@@ -949,7 +948,7 @@ export class EventsService {
         [Sequelize.col('event.id'), 'event_id'],
         [
           Sequelize.literal(
-            `CASE WHEN "event"."image" IS NULL THEN NULL WHEN "event"."image" LIKE 'http://%' OR "event"."image" LIKE 'https://%' THEN "event"."image" ELSE CONCAT('${DOMAIN_URL}/uploads/events/', "event"."image") END`,
+            `CASE WHEN "event"."image" IS NULL THEN NULL WHEN "event"."image" LIKE 'http://%' OR "event"."image" LIKE 'https://%' THEN "event"."image" ELSE CONCAT('${GOOGLE_CLOUD_BASE_URL}/', "event"."image") END`,
           ),
           'image',
         ],
@@ -1102,7 +1101,7 @@ export class EventsService {
       const invitation = row.toJSON();
       const event = invitation.event;
       if (event?.image && !event.image.startsWith('https://') && !event.image.startsWith('http://')) {
-        event.image = `${DOMAIN_URL}/uploads/events/${event.image}`;
+        event.image = `${GOOGLE_CLOUD_BASE_URL}/${event.image}`;
       }
       return invitation;
     });

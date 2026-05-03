@@ -101,7 +101,7 @@ export class PlacesController {
         { name: 'image', maxCount: 1, withThumb: true },
         { name: 'logo', maxCount: 1, withThumb: false, qualityValue: 80 },
       ],
-      { folder: './uploads/places' },
+      { folder: 'places/tmp' },
     ),
   )
   async create(
@@ -114,11 +114,12 @@ export class PlacesController {
     },
   ) {
     const userId = req.user.sub;
+    const useRole = req.user.role;
 
     const cover: any = files?.image?.[0];
     const logo: any = files?.logo?.[0];
 
-    return this.placesService.create(userId, body, {
+    return this.placesService.create(userId, useRole, body, {
       coverOriginalName: cover?.filename,
       coverOriginalPath: cover?.path,
       coverThumbName: cover?.thumbFilename,
@@ -133,7 +134,7 @@ export class PlacesController {
   @Roles('super-admin', 'admin')
   @UseInterceptors(
     UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
-      folder: './uploads/places',
+      folder: 'places/tmp',
     }),
   )
   async createAttraction(
@@ -145,10 +146,11 @@ export class PlacesController {
     },
   ) {
     const userId = req.user.sub;
+    const userRole = req.user.role;
 
     const cover: any = files?.image?.[0];
 
-    return this.placesService.createAttraction(userId, body, {
+    return this.placesService.createAttraction(userId, userRole, body, {
       coverOriginalName: cover?.filename,
       coverOriginalPath: cover?.path,
       coverThumbName: cover?.thumbFilename,
@@ -165,7 +167,10 @@ export class PlacesController {
         { name: 'image', maxCount: 1, withThumb: true },
         { name: 'logo', maxCount: 1, withThumb: false, qualityValue: 80 },
       ],
-      { folder: './uploads/places' },
+      {
+        folder: 'places/tmp',
+        folderResolver: (req) => `places/${req.params.id}`,
+      },
     ),
   )
   async update(
@@ -233,7 +238,10 @@ export class PlacesController {
   @UseInterceptors(
     UploadAndOptimizeImages(
       [{ name: 'images', maxCount: 15, withThumb: true }],
-      { folder: './uploads/places' },
+      {
+        folder: 'places/tmp',
+        folderResolver: (req) => `places/${req.params.id}/gallery`,
+      },
     ),
   )
   async uploadImages(

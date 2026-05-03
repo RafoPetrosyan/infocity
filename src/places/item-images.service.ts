@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Item } from './models/items.model';
 import { ItemImages } from './models/items-images.model';
 import { Place } from './models/places.model';
-import { unlink } from 'fs/promises';
 import { unlinkFiles } from '../../utils/unlink-files';
 
 @Injectable()
@@ -114,16 +113,12 @@ export class ItemImagesService {
 
     if (image.original) {
       try {
-        await unlink(
-          `./uploads/items/${(image as any).getDataValue('original')}`,
-        );
+        await unlinkFiles([(image as any).getDataValue('original')]);
       } catch {}
     }
     if (image.thumbnail) {
       try {
-        await unlink(
-          `./uploads/items/${(image as any).getDataValue('thumbnail')}`,
-        );
+        await unlinkFiles([(image as any).getDataValue('thumbnail')]);
       } catch {}
     }
 
