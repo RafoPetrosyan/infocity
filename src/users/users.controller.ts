@@ -132,7 +132,7 @@ export class UsersController {
   @Roles('user')
   @UseInterceptors(
     UploadAndOptimizeImages([{ name: 'image', maxCount: 1 }], {
-      folder: './uploads/avatars',
+      folder: 'avatars',
     }),
   )
   updateAvatar(

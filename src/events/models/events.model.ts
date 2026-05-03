@@ -11,7 +11,7 @@ import {
 import { EventTranslation } from './events-translation.model';
 import { EventImages } from './events-images.model';
 import { EventCategory } from './event-category.model';
-import { DOMAIN_URL } from '../../../constants';
+import { resolvePublicImageUrl } from '../../../utils/google-cloud-storage';
 import { Place } from '../../places/models/places.model';
 import { User } from '../../users/models/user.model';
 import { UserFollow } from '../../follows/models/user-follow.model';
@@ -28,10 +28,7 @@ export class Event extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('image');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/events/${rawValue}`;
+      return resolvePublicImageUrl(this.getDataValue('image'));
     },
   })
   declare image: string;
@@ -39,10 +36,7 @@ export class Event extends Model {
   @Column({
     type: DataType.STRING,
     get() {
-      const rawValue = this.getDataValue('image_original');
-      if (!rawValue) return null;
-      if (rawValue.startsWith('https://') || rawValue.startsWith('http://')) return rawValue;
-      return `${DOMAIN_URL}/uploads/events/${rawValue}`;
+      return resolvePublicImageUrl(this.getDataValue('image_original'));
     },
   })
   declare image_original: string;

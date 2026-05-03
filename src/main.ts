@@ -5,7 +5,6 @@ import { I18nValidationExceptionFilter } from '../utils/i18n-validation-exceptio
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -20,6 +19,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3002',
+      'http://localhost:3004',
       'http://62.169.31.67:3001',
       'http://62.169.31.67:3002',
     ],
@@ -43,10 +43,6 @@ async function bootstrap() {
   );
   // @ts-ignore
   app.useGlobalFilters(new I18nValidationExceptionFilter(i18n));
-
-  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -49,7 +49,8 @@ export class ItemsController {
   @Roles('user')
   @UseInterceptors(
     UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
-      folder: './uploads/items',
+      folder: 'places/tmp/items',
+      folderResolver: (req) => `places/${req.params.placeId}/items`,
     }),
   )
   create(
@@ -73,7 +74,8 @@ export class ItemsController {
   @Roles('user')
   @UseInterceptors(
     UploadAndOptimizeImages([{ name: 'image', maxCount: 1, withThumb: true }], {
-      folder: './uploads/items',
+      folder: 'places/tmp/items',
+      folderResolver: (req) => `places/${req.params.placeId}/items`,
     }),
   )
   update(

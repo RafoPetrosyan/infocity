@@ -38,7 +38,7 @@ export class ReviewsController {
   @UseInterceptors(
     UploadAndOptimizeImages(
       [{ name: 'images', maxCount: 3, withThumb: true }],
-      { folder: './uploads/reviews' },
+      { folder: 'reviews' },
     ),
   )
   create(
@@ -128,7 +128,7 @@ export class ReviewsController {
   @UseInterceptors(
     UploadAndOptimizeImages(
       [{ name: 'images', maxCount: 3, withThumb: true }],
-      { folder: './uploads/reviews' },
+      { folder: 'reviews' },
     ),
   )
   update(

@@ -7,7 +7,6 @@ import {
 import { InjectModel, InjectConnection } from '@nestjs/sequelize';
 import { Place } from './models/places.model';
 import { PlaceTranslation } from './models/places-translation.model';
-import { unlink } from 'fs/promises';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import slugify from 'slugify';
 import { CityModel } from '../cities/models/city.model';
@@ -32,7 +31,8 @@ import { EntityEmotionCounts } from '../reviews/models/entity-emotion-counts.mod
 import { User } from '../users/models/user.model';
 import { EmotionsModel } from '../emotions/models/emotions.model';
 import { UserFollow } from '../follows/models/user-follow.model';
-import { DOMAIN_URL } from '../../constants';
+import { GOOGLE_CLOUD_BASE_URL } from '../../constants';
+import { moveObjectInGcs } from '../../utils/google-cloud-storage';
 
 @Injectable()
 export class PlacesService {
@@ -180,11 +180,7 @@ export class PlacesService {
   }
 
   /** Get Place by alias (slug) – same response as getById **/
-  async getByAlias(
-    alias: string,
-    lang: LanguageEnum,
-    userId: number = 0,
-  ) {
+  async getByAlias(alias: string, lang: LanguageEnum, userId: number = 0) {
     const place = await this.placeModel.findOne({
       where: { slug: alias },
       attributes: ['id'],
@@ -264,7 +260,7 @@ export class PlacesService {
       lang,
       limit,
       offset,
-      cdn_url: `${DOMAIN_URL}/uploads/places/`,
+      cdn_url: `${GOOGLE_CLOUD_BASE_URL}/`,
     };
 
     let resolvedCategoryId: number | null = query.category_id ?? null;
@@ -558,6 +554,7 @@ export class PlacesService {
   /** Create place **/
   async create(
     userId: number,
+    userRole: string,
     dto: CreatePlaceDto,
     files: {
       coverOriginalName: string | undefined;
@@ -572,7 +569,10 @@ export class PlacesService {
     const userPlacesCount = await this.placeModel.count({
       where: { user_id: userId },
     });
-    if (userPlacesCount >= MAX_COMPANIES_PER_USER) {
+    if (
+      userRole !== 'super-admin' &&
+      userPlacesCount >= MAX_COMPANIES_PER_USER
+    ) {
       await unlinkFiles([
         files.logoFilePath,
         files.coverOriginalPath,
@@ -585,7 +585,7 @@ export class PlacesService {
     }
 
     if (!files.coverOriginalName) {
-      if (files.logoFilePath) await unlink(files.logoFilePath);
+      if (files.logoFilePath) await unlinkFiles([files.logoFilePath]);
       throw new NotFoundException(`Cover image is required`);
     }
 
@@ -662,6 +662,28 @@ export class PlacesService {
     }
 
     const place = await this.placeModel.create(placeData);
+    const placeImageBasePath = `places/${place.id}`;
+    const movedAssets: Record<string, string> = {};
+
+    if (files.coverThumbName) {
+      const target = `${placeImageBasePath}/${files.coverThumbName.split('/').pop()}`;
+      await moveObjectInGcs(files.coverThumbName, target);
+      movedAssets.image = target;
+    }
+    if (files.coverOriginalName) {
+      const target = `${placeImageBasePath}/${files.coverOriginalName.split('/').pop()}`;
+      await moveObjectInGcs(files.coverOriginalName, target);
+      movedAssets.image_original = target;
+    }
+    if (files.logoFileName) {
+      const target = `${placeImageBasePath}/${files.logoFileName.split('/').pop()}`;
+      await moveObjectInGcs(files.logoFileName, target);
+      movedAssets.logo = target;
+    }
+    if (Object.keys(movedAssets).length > 0) {
+      await place.update(movedAssets);
+    }
+
     if (existBaseSlug) {
       const finalSlug = `${baseSlug}-${place.id}`;
       await place.update({ slug: finalSlug });
@@ -699,6 +721,7 @@ export class PlacesService {
   /** Create attraction **/
   async createAttraction(
     userId: number,
+    userRole: string,
     dto: CreateAttractionDto,
     files: {
       coverOriginalName: string | undefined;
@@ -716,9 +739,11 @@ export class PlacesService {
       await unlinkFiles([files.coverOriginalPath, files.coverThumbPath]);
       throw new NotFoundException(`Attraction category is not exist`);
     }
+    console.log(userRole, 'userRole');
 
     return await this.create(
       userId,
+      userRole,
       { ...dto, category_id: attractionCategory.id },
       files,
     );
@@ -814,20 +839,20 @@ export class PlacesService {
     if (files.logoFileName) {
       updateData.logo = files.logoFileName;
       if (place.dataValues.logo) {
-        await unlink(`uploads/places/${place.dataValues.logo}`);
+        await unlinkFiles([place.dataValues.logo]);
       }
     }
 
     if (files.coverThumbName) {
       updateData.image = files.coverThumbName;
       if (place.dataValues.image) {
-        await unlink(`uploads/places/${place.dataValues.image}`);
+        await unlinkFiles([place.dataValues.image]);
       }
     }
     if (files.coverOriginalName) {
       updateData.image_original = files.coverOriginalName;
       if (place.dataValues.image_original) {
-        await unlink(`uploads/places/${place.dataValues.image_original}`);
+        await unlinkFiles([place.dataValues.image_original]);
       }
     }
 
@@ -1066,10 +1091,7 @@ export class PlacesService {
     if (!image) {
       throw new NotFoundException(`Place with id ${image_id} not found`);
     }
-    const imagePaths = [
-      `uploads/places/${image.dataValues.original}`,
-      `uploads/places/${image.dataValues.thumbnail}`,
-    ];
+    const imagePaths = [image.dataValues.original, image.dataValues.thumbnail];
     await unlinkFiles(imagePaths);
     await image.destroy();
 
@@ -1123,19 +1145,19 @@ export class PlacesService {
     const imagePaths: string[] = [];
 
     if (place.dataValues.logo) {
-      imagePaths.push(`uploads/places/${place.dataValues.logo}`);
+      imagePaths.push(place.dataValues.logo);
     }
     if (place.dataValues.image) {
-      imagePaths.push(`uploads/places/${place.dataValues.image}`);
+      imagePaths.push(place.dataValues.image);
     }
     if (place.dataValues.image_original) {
-      imagePaths.push(`uploads/places/${place.dataValues.image_original}`);
+      imagePaths.push(place.dataValues.image_original);
     }
 
     if (images && images.length > 0) {
       images.forEach((image: any) => {
-        imagePaths.push(`uploads/places/${image.dataValues.original}`);
-        imagePaths.push(`uploads/places/${image.dataValues.thumbnail}`);
+        imagePaths.push(image.dataValues.original);
+        imagePaths.push(image.dataValues.thumbnail);
       });
     }
 

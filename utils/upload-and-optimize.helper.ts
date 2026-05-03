@@ -2,8 +2,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { BadRequestException } from '@nestjs/common';
 import * as sharp from 'sharp';
 import { v4 as uuid } from 'uuid';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join, extname } from 'path';
+import { uploadBufferToGcs } from './google-cloud-storage';
 
 interface FieldOption {
   name: string;
@@ -16,25 +15,25 @@ interface FieldOption {
 
 interface UploadOptions {
   folder: string;
+  folderResolver?: (req: any) => string;
 }
 
 export function UploadAndOptimizeImages(
   fields: FieldOption[],
   options: UploadOptions,
 ) {
-  const { folder } = options;
+  const { folder, folderResolver } = options;
 
   return FileFieldsInterceptor(fields, {
     storage: {
       _handleFile(req, file, cb) {
-        if (!existsSync(folder)) {
-          mkdirSync(folder, { recursive: true });
-        }
-
         const uniqueSuffix = `${Date.now()}-${uuid()}`;
-        const ext = extname(file.originalname);
-        const fileName = uniqueSuffix + ext;
-        const fullPath = join(folder, fileName);
+        const resolvedFolder = (folderResolver?.(req) || folder).replace(
+          /^\/+|\/+$/g,
+          '',
+        );
+        const fileName = `${uniqueSuffix}.jpg`;
+        const objectKey = `${resolvedFolder}/${fileName}`;
 
         // Find field-specific config
         const fieldConfig = fields.find((f) => f.name === file.fieldname);
@@ -43,8 +42,10 @@ export function UploadAndOptimizeImages(
         const qualityValue = fieldConfig?.qualityValue ?? 85;
         const thumbQualityValue = fieldConfig?.thumbQualityValue ?? 70;
 
-        const thumbName = withThumb ? uniqueSuffix + '-thumb' + ext : null;
-        const thumbPath = withThumb ? join(folder, thumbName!) : null;
+        const thumbName = withThumb ? `${uniqueSuffix}-thumb.jpg` : null;
+        const thumbObjectKey = withThumb
+          ? `${resolvedFolder}/${thumbName}`
+          : null;
 
         const chunks: Buffer[] = [];
         file.stream.on('data', (chunk) => chunks.push(chunk));
@@ -57,14 +58,14 @@ export function UploadAndOptimizeImages(
               .jpeg({ quality: qualityValue })
               .toBuffer();
 
-            writeFileSync(fullPath, optimizedOriginal);
+            await uploadBufferToGcs(objectKey, optimizedOriginal, 'image/jpeg');
 
             let fileObj: any = {
-              path: fullPath,
-              filename: fileName,
+              path: objectKey,
+              filename: objectKey,
             };
 
-            if (withThumb && thumbPath) {
+            if (withThumb && thumbObjectKey && thumbName) {
               const optimizedThumb = await sharp(buffer)
                 .resize(thumbSize, thumbSize, {
                   fit: 'inside',
@@ -73,10 +74,14 @@ export function UploadAndOptimizeImages(
                 .jpeg({ quality: thumbQualityValue })
                 .toBuffer();
 
-              writeFileSync(thumbPath, optimizedThumb);
+              await uploadBufferToGcs(
+                thumbObjectKey,
+                optimizedThumb,
+                'image/jpeg',
+              );
 
-              fileObj.thumbPath = thumbPath;
-              fileObj.thumbFilename = thumbName;
+              fileObj.thumbPath = thumbObjectKey;
+              fileObj.thumbFilename = thumbObjectKey;
             }
 
             cb(null, fileObj);
