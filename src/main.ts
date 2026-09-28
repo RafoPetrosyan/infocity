@@ -22,6 +22,8 @@ async function bootstrap() {
       'http://localhost:3004',
       'http://80.241.210.91:3001',
       'http://80.241.210.91:3002',
+      'https://imcity.am',
+      'https://admin.imcity.am',
     ],
     credentials: true,
   });
