@@ -15,42 +15,42 @@ import { Transform, Type } from 'class-transformer';
 export class UpdateProfileDto {
   @IsOptional()
   @IsNotEmpty({ message: 'validation.first_name_is_required' })
-  first_name: string;
+  first_name?: string;
 
   @IsOptional()
   @IsNotEmpty({ message: 'validation.last_name_is_required' })
-  last_name: string;
+  last_name?: string;
 
   @IsOptional()
   @IsString()
-  fcm_token: string;
+  fcm_token?: string;
 
   @IsOptional()
   @IsEnum(SupportedLocales)
-  locale: SupportedLocales;
+  locale?: SupportedLocales;
 
   @IsOptional()
   @IsString()
-  phone_number: string;
+  phone_number?: string;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitude?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitude?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  city_id: number;
+  city_id?: number;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -66,5 +66,5 @@ export class UpdateProfileDto {
   })
   @IsArray()
   @IsInt({ each: true })
-  emotion_ids: number[];
+  emotion_ids?: number[];
 }

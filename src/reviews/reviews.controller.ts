@@ -27,12 +27,21 @@ import { Roles } from '../auth/roles.decorator';
 import { I18nLang } from 'nestjs-i18n';
 import { LanguageEnum } from '../../types';
 import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint, ApiMultipart } from '../swagger/api-docs';
+import {
+  CreateReviewMultipartDto,
+  UpdateReviewMultipartDto,
+} from '../swagger/multipart-bodies.dto';
 
+@ApiTags('Reviews')
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
+  @ApiEndpoint('Create a review', { auth: 'required', roles: ['user'] })
+  @ApiMultipart(CreateReviewMultipartDto)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
@@ -51,6 +60,10 @@ export class ReviewsController {
   }
 
   @Get('my')
+  @ApiEndpoint('List the current user reviews', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getMyReviews(
@@ -63,6 +76,10 @@ export class ReviewsController {
   }
 
   @Get('/:reviewId/replies')
+  @ApiEndpoint('List replies for a review', { auth: 'optional' })
+  @ApiParam({ name: 'reviewId', type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getRepliesByReview(
     @Param('reviewId', ParseIntPipe) reviewId: number,
@@ -80,12 +97,17 @@ export class ReviewsController {
   }
 
   @Get(':id/images')
+  @ApiEndpoint('List images for a review', { auth: 'optional' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getReviewImages(@Param('id', ParseIntPipe) id: number) {
     return this.reviewsService.getReviewImages(id);
   }
 
   @Delete(':id/images/:imageId')
+  @ApiEndpoint('Delete a review image', { auth: 'required' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'imageId', type: Number })
   @UseGuards(JwtAuthGuard)
   deleteReviewImage(
     @Param('id', ParseIntPipe) id: number,
@@ -96,6 +118,11 @@ export class ReviewsController {
   }
 
   @Get('/:entityId/:entityType')
+  @ApiEndpoint('List reviews for a place or event', { auth: 'optional' })
+  @ApiParam({ name: 'entityId', type: Number })
+  @ApiParam({ name: 'entityType', enum: ['place', 'event'] })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getReviewsByEntity(
     @Param('entityId', ParseIntPipe) entityId: number,
@@ -115,6 +142,9 @@ export class ReviewsController {
   }
 
   @Get('/:entityId/:entityType/emotion-counts')
+  @ApiEndpoint('Get emotion counts for a place or event')
+  @ApiParam({ name: 'entityId', type: Number })
+  @ApiParam({ name: 'entityType', enum: ['place', 'event'] })
   getEmotionCounts(
     @Param('entityId', ParseIntPipe) entityId: number,
     @Param('entityType') entityType: 'place' | 'event',
@@ -123,6 +153,9 @@ export class ReviewsController {
   }
 
   @Put(':id')
+  @ApiEndpoint('Update a review', { auth: 'required', roles: ['user'] })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiMultipart(UpdateReviewMultipartDto)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
@@ -147,12 +180,19 @@ export class ReviewsController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Delete a review', { auth: 'required' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard)
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.reviewsService.remove(id, req.user.sub);
   }
 
   @Delete(':id/remove-as-owner')
+  @ApiEndpoint('Delete a review as the place or event owner', {
+    auth: 'required',
+    roles: ['user'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   removeAsOwner(
@@ -165,6 +205,7 @@ export class ReviewsController {
   // Review Reply Endpoints
 
   @Post('replies')
+  @ApiEndpoint('Reply to a review', { auth: 'required', roles: ['user'] })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   createReply(@Body() createReplyDto: CreateReviewReplyDto, @Req() req: any) {
@@ -172,6 +213,8 @@ export class ReviewsController {
   }
 
   @Put('replies/:id')
+  @ApiEndpoint('Update a review reply', { auth: 'required', roles: ['user'] })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   updateReply(
@@ -183,6 +226,8 @@ export class ReviewsController {
   }
 
   @Delete('replies/:id')
+  @ApiEndpoint('Delete a review reply', { auth: 'required' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard)
   removeReply(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.reviewsService.removeReply(id, req.user.sub);
@@ -191,6 +236,10 @@ export class ReviewsController {
   // Like Endpoints
 
   @Post('like')
+  @ApiEndpoint('Like or unlike a review or reply', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   toggleLike(@Body() toggleLikeDto: ToggleLikeDto, @Req() req: any) {

@@ -16,8 +16,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { BulkUpdateOrderDto } from '../emotions/dto/update-order.dto';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint } from '../swagger/api-docs';
+
 import { LanguageEnum } from '../../types';
 
+@ApiTags('Event categories')
 @Controller('event-categories')
 export class EventCategoriesController {
   constructor(
@@ -25,11 +29,16 @@ export class EventCategoriesController {
   ) {}
 
   @Get('/')
+  @ApiEndpoint('List event categories')
   getAll(@I18nLang() lang: LanguageEnum) {
     return this.eventCategoriesService.getAll(lang);
   }
 
   @Get('/admin')
+  @ApiEndpoint('List event categories for admin', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   getAllForAdmin() {
@@ -37,11 +46,17 @@ export class EventCategoriesController {
   }
 
   @Get(':id')
+  @ApiEndpoint('Get an event category')
+  @ApiParam({ name: 'id', type: Number })
   getById(@Param('id') id: number, @I18nLang() lang: LanguageEnum) {
     return this.eventCategoriesService.getById(id, lang);
   }
 
   @Post()
+  @ApiEndpoint('Create an event category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async create(@Body() dto: CreateEventCategoryDto) {
@@ -49,6 +64,11 @@ export class EventCategoriesController {
   }
 
   @Put(':id')
+  @ApiEndpoint('Update an event category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async update(@Param('id') id: number, @Body() dto: UpdateEventCategoryDto) {
@@ -56,6 +76,10 @@ export class EventCategoriesController {
   }
 
   @Post('/order')
+  @ApiEndpoint('Reorder event categories', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async updateOrder(@Body() dto: BulkUpdateOrderDto) {
@@ -63,6 +87,11 @@ export class EventCategoriesController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Delete an event category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async delete(@Param('id') id: number) {

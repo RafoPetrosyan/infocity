@@ -16,12 +16,16 @@ import { QueryContactsDto } from './dto/query-contacts.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint } from '../swagger/api-docs';
 
+@ApiTags('Contacts')
 @Controller('contacts')
 export class ContactsController {
   constructor(private readonly contactsService: ContactsService) {}
 
   @Post('request')
+  @ApiEndpoint('Send a contact request', { auth: 'required', roles: ['user'] })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async sendContactRequest(
@@ -33,6 +37,7 @@ export class ContactsController {
   }
 
   @Post('accept')
+  @ApiEndpoint('Accept a contact request', { auth: 'required', roles: ['user'] })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async acceptContactRequest(
@@ -44,6 +49,7 @@ export class ContactsController {
   }
 
   @Post('reject')
+  @ApiEndpoint('Reject a contact request', { auth: 'required', roles: ['user'] })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async rejectContactRequest(
@@ -55,6 +61,8 @@ export class ContactsController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Remove a contact', { auth: 'required', roles: ['user'] })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async removeContact(@Req() req: any, @Param('id') contactId: string) {
@@ -63,6 +71,7 @@ export class ContactsController {
   }
 
   @Get()
+  @ApiEndpoint('List accepted contacts', { auth: 'required', roles: ['user'] })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getMyContacts(@Req() req: any, @Query() query: QueryContactsDto) {
@@ -71,6 +80,10 @@ export class ContactsController {
   }
 
   @Get('pending')
+  @ApiEndpoint('List incoming contact requests', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getPendingRequests(@Req() req: any, @Query() query: QueryContactsDto) {
@@ -79,6 +92,7 @@ export class ContactsController {
   }
 
   @Get('sent')
+  @ApiEndpoint('List sent contact requests', { auth: 'required', roles: ['user'] })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getSentRequests(@Req() req: any, @Query() query: QueryContactsDto) {

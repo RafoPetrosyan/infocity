@@ -12,20 +12,22 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { plainToInstance, Transform, Type } from 'class-transformer';
+import { ApiSchema } from '@nestjs/swagger';
 
+@ApiSchema({ name: 'UpdateEventTranslationDto' })
 export class EventTranslationDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsString()
-  about: string;
+  about?: string;
 }
 
 export class UpdateEventDto {
@@ -44,7 +46,7 @@ export class UpdateEventDto {
     }
     return plainToInstance(EventTranslationDto, value);
   })
-  en: EventTranslationDto;
+  en?: EventTranslationDto;
 
   @IsOptional()
   @IsNotEmpty()
@@ -61,7 +63,7 @@ export class UpdateEventDto {
     }
     return plainToInstance(EventTranslationDto, value);
   })
-  hy: EventTranslationDto;
+  hy?: EventTranslationDto;
 
   @IsOptional()
   @IsNotEmpty()
@@ -78,70 +80,70 @@ export class UpdateEventDto {
     }
     return plainToInstance(EventTranslationDto, value);
   })
-  ru: EventTranslationDto;
+  ru?: EventTranslationDto;
 
   @IsOptional()
   @IsDateString()
-  start_date: string;
+  start_date?: string;
 
   @IsOptional()
   @IsDateString()
-  end_date: string;
+  end_date?: string;
 
   @IsOptional()
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
-  place_id: number;
+  place_id?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  event_category_id: number;
+  event_category_id?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitude?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitude?: number;
 
   @IsOptional()
   @IsEmail({}, { message: 'validation.invalid_email_format' })
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
-  phone_number: string;
+  phone_number?: string;
 
   @IsOptional()
   @IsString()
-  address: string;
+  address?: string;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  price: number;
+  price?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  max_attendees: number;
+  max_attendees?: number;
 
   @IsOptional()
   @IsBoolean()
-  is_active: boolean;
+  is_active?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  is_featured: boolean;
+  is_featured?: boolean;
 }

@@ -13,6 +13,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { plainToInstance, Transform, Type } from 'class-transformer';
+import { ApiSchema } from '@nestjs/swagger';
 
 enum Platforms {
   FACEBOOK = 'facebook',
@@ -21,21 +22,23 @@ enum Platforms {
   WEBSITE = 'website',
 }
 
+@ApiSchema({ name: 'UpdatePlaceTranslationDto' })
 export class PlaceTranslationDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsString()
-  about: string;
+  about?: string;
 }
 
+@ApiSchema({ name: 'UpdatePlaceSocialLinkDto' })
 export class PlaceSocialLinksDto {
   @IsNotEmpty()
   @IsEnum(Platforms)
@@ -62,7 +65,7 @@ export class UpdatePlaceDto {
     }
     return plainToInstance(PlaceTranslationDto, value);
   })
-  en: PlaceTranslationDto;
+  en?: PlaceTranslationDto;
 
   @IsOptional()
   @IsNotEmpty()
@@ -79,7 +82,7 @@ export class UpdatePlaceDto {
     }
     return plainToInstance(PlaceTranslationDto, value);
   })
-  hy: PlaceTranslationDto;
+  hy?: PlaceTranslationDto;
 
   @IsOptional()
   @IsNotEmpty()
@@ -96,7 +99,7 @@ export class UpdatePlaceDto {
     }
     return plainToInstance(PlaceTranslationDto, value);
   })
-  ru: PlaceTranslationDto;
+  ru?: PlaceTranslationDto;
 
   @IsOptional()
   @IsArray()
@@ -115,33 +118,33 @@ export class UpdatePlaceDto {
     }
     return plainToInstance(PlaceSocialLinksDto, value);
   })
-  social_links: PlaceSocialLinksDto[];
+  social_links?: PlaceSocialLinksDto[];
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitude?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitude?: number;
 
   @IsOptional()
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
-  city_id: number;
+  city_id?: number;
 
   @IsOptional()
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
-  category_id: number;
+  category_id?: number;
 
   @IsOptional()
   @Type(() => Number)
@@ -150,13 +153,13 @@ export class UpdatePlaceDto {
 
   @IsOptional()
   @IsEmail({}, { message: 'validation.invalid_email_format' })
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
-  phone_number: string;
+  phone_number?: string;
 
   @IsOptional()
   @IsString()
-  address: string;
+  address?: string;
 }

@@ -29,9 +29,9 @@ export class SignUpDto {
 
   @IsOptional()
   @IsString()
-  fcm_token: string;
+  fcm_token?: string;
 
   @IsOptional()
   @IsEnum(SupportedLocales)
-  locale: SupportedLocales;
+  locale?: SupportedLocales;
 }

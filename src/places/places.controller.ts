@@ -28,12 +28,22 @@ import { QueryDto } from '../../types/query.dto';
 import { LanguageEnum } from '../../types';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { CreateAttractionDto } from './dto/create-attraction.dto';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint, ApiFileBody, ApiMultipart } from '../swagger/api-docs';
+import {
+  CreateAttractionMultipartDto,
+  CreatePlaceMultipartDto,
+  multipartObjectDescription,
+  UpdatePlaceMultipartDto,
+} from '../swagger/multipart-bodies.dto';
 
+@ApiTags('Places')
 @Controller('places')
 export class PlacesController {
   constructor(private readonly placesService: PlacesService) {}
 
   @Get()
+  @ApiEndpoint('List places', { auth: 'optional' })
   @UseGuards(OptionalJwtAuthGuard)
   getAll(
     @Query() params: QueryDto,
@@ -45,6 +55,10 @@ export class PlacesController {
   }
 
   @Get('/admin')
+  @ApiEndpoint('List places for admin', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   getAllForAdmin(@Query() params: QueryDto) {
@@ -52,6 +66,10 @@ export class PlacesController {
   }
 
   @Get('/attractions')
+  @ApiEndpoint('List attractions for admin', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   getAllAttractions(@Query() params: QueryDto) {
@@ -59,6 +77,8 @@ export class PlacesController {
   }
 
   @Get('by-alias/:alias')
+  @ApiEndpoint('Get a place by alias', { auth: 'optional' })
+  @ApiParam({ name: 'alias', type: String })
   @UseGuards(OptionalJwtAuthGuard)
   getByAlias(
     @Param('alias') alias: string,
@@ -70,6 +90,8 @@ export class PlacesController {
   }
 
   @Get('/:id')
+  @ApiEndpoint('Get a place by id', { auth: 'optional' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getById(
     @Param('id') id: number,
@@ -81,6 +103,8 @@ export class PlacesController {
   }
 
   @Get('/:id/detail')
+  @ApiEndpoint('Get full place details', { auth: 'optional' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getByIdDetail(
     @Param('id') id: number,
@@ -93,6 +117,12 @@ export class PlacesController {
   }
 
   @Post()
+  @ApiEndpoint('Create a place', {
+    auth: 'required',
+    roles: ['user'],
+    description: multipartObjectDescription,
+  })
+  @ApiMultipart(CreatePlaceMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
@@ -130,6 +160,12 @@ export class PlacesController {
   }
 
   @Post('/attraction')
+  @ApiEndpoint('Create an attraction', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+    description: multipartObjectDescription,
+  })
+  @ApiMultipart(CreateAttractionMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   @UseInterceptors(
@@ -159,6 +195,13 @@ export class PlacesController {
   }
 
   @Put(':id')
+  @ApiEndpoint('Update a place', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+    description: multipartObjectDescription,
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiMultipart(UpdatePlaceMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
@@ -206,6 +249,11 @@ export class PlacesController {
   }
 
   @Put(':id/working-times')
+  @ApiEndpoint('Replace place working times', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   async createOrUpdateWorkingTimes(
@@ -219,6 +267,12 @@ export class PlacesController {
   }
 
   @Put(':id/working-times/:timeId')
+  @ApiEndpoint('Update one place working time', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'timeId', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   async updateWorkingTime(
@@ -233,6 +287,15 @@ export class PlacesController {
   }
 
   @Post(':id/gallery')
+  @ApiEndpoint('Upload place gallery images', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiFileBody(
+    { images: { multiple: true, required: true } },
+    'Up to 15 gallery images.',
+  )
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
@@ -260,6 +323,12 @@ export class PlacesController {
   }
 
   @Delete(':id/gallery/:imageId')
+  @ApiEndpoint('Delete a place gallery image', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'imageId', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   async deleteImage(
@@ -274,6 +343,11 @@ export class PlacesController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Delete a place', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   async delete(@Req() req: any, @Param('id') id: number) {
@@ -284,6 +358,8 @@ export class PlacesController {
   }
 
   @Get(':id/gallery')
+  @ApiEndpoint('List place gallery images')
+  @ApiParam({ name: 'id', type: Number })
   async getGallery(@Param('id') id: number) {
     return this.placesService.getImages(id);
   }

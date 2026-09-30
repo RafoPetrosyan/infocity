@@ -19,17 +19,25 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { BulkUpdateOrderDto } from '../emotions/dto/update-order.dto';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint } from '../swagger/api-docs';
 
+@ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get('/')
+  @ApiEndpoint('List categories')
   getAll(@I18nLang() lang: string) {
     return this.categoriesService.getAll(lang);
   }
 
   @Get('/admin')
+  @ApiEndpoint('List categories for admin', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   getAllForAdmin() {
@@ -37,6 +45,10 @@ export class CategoriesController {
   }
 
   @Post()
+  @ApiEndpoint('Create a category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async create(@Body() dto: CreateCategoryDto) {
@@ -52,6 +64,11 @@ export class CategoriesController {
   }
 
   @Put(':id')
+  @ApiEndpoint('Update a category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async update(
@@ -70,6 +87,10 @@ export class CategoriesController {
   }
 
   @Post('/order')
+  @ApiEndpoint('Reorder categories', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async updateOrder(@Body() dto: BulkUpdateOrderDto) {
@@ -77,6 +98,11 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Delete a category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async delete(@Param('id') id: number) {

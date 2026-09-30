@@ -13,6 +13,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { plainToInstance, Transform, Type } from 'class-transformer';
+import { ApiSchema } from '@nestjs/swagger';
 
 enum Platforms {
   FACEBOOK = 'facebook',
@@ -21,6 +22,7 @@ enum Platforms {
   WEBSITE = 'website',
 }
 
+@ApiSchema({ name: 'CreatePlaceTranslationDto' })
 export class PlaceTranslationDto {
   @IsString()
   @IsNotEmpty()
@@ -28,13 +30,14 @@ export class PlaceTranslationDto {
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsString()
-  about: string;
+  about?: string;
 }
 
+@ApiSchema({ name: 'CreatePlaceSocialLinkDto' })
 export class PlaceSocialLinksDto {
   @IsNotEmpty()
   @IsEnum(Platforms)
@@ -111,21 +114,21 @@ export class CreatePlaceDto {
     }
     return plainToInstance(PlaceSocialLinksDto, value);
   })
-  social_links: PlaceSocialLinksDto[];
+  social_links?: PlaceSocialLinksDto[];
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitude?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitude?: number;
 
   @IsNotEmpty()
   @Type(() => Number)
@@ -144,13 +147,13 @@ export class CreatePlaceDto {
 
   @IsOptional()
   @IsEmail({}, { message: 'validation.invalid_email_format' })
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
-  phone_number: string;
+  phone_number?: string;
 
   @IsOptional()
   @IsString()
-  address: string;
+  address?: string;
 }

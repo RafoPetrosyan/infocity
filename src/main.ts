@@ -5,6 +5,7 @@ import { I18nValidationExceptionFilter } from '../utils/i18n-validation-exceptio
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -45,6 +46,42 @@ async function bootstrap() {
   );
   // @ts-ignore
   app.useGlobalFilters(new I18nValidationExceptionFilter(i18n));
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Infocity API')
+    .setDescription(
+      'HTTP API for Infocity. Authenticated routes use a JWT access token (Authorization: Bearer). Pass lang, locale, or x-language-code to select en, hy, or ru. The Accept-Language header is used when no language query is present.',
+    )
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'JWT access token',
+      },
+      'bearer',
+    )
+    .addGlobalParameters({
+      name: 'lang',
+      in: 'query',
+      required: false,
+      description:
+        'Response language. Aliases: locale, x-language-code. Falls back to the Accept-Language header, then en.',
+      schema: {
+        type: 'string',
+        enum: ['en', 'hy', 'ru'],
+      },
+    })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    operationIdFactory: (controllerKey, methodKey) =>
+      `${controllerKey}_${methodKey}`,
+  });
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: { persistAuthorization: true },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

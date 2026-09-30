@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -25,6 +26,12 @@ export class CreateSubCategoryDto {
   @Type(() => Number)
   category_id?: number;
 
+  @ApiProperty({
+    description:
+      'JSON string of translation objects. Each object has language and name.',
+    example:
+      '[{"language":"en","name":"Coffee"},{"language":"hy","name":"Սուրճ"},{"language":"ru","name":"Кофе"}]',
+  })
   @IsString()
   translations: string;
 }

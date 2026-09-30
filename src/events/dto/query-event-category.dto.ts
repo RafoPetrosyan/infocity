@@ -6,13 +6,13 @@ export class QueryEventCategoryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page: number;
+  page?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit: number;
+  limit?: number;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -21,7 +21,7 @@ export class QueryEventCategoryDto {
     return value;
   })
   @IsBoolean()
-  is_active: boolean;
+  is_active?: boolean;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -30,6 +30,6 @@ export class QueryEventCategoryDto {
     return value;
   })
   @IsBoolean()
-  is_featured: boolean;
+  is_featured?: boolean;
 }
 

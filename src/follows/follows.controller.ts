@@ -14,12 +14,19 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { I18nLang } from 'nestjs-i18n';
 import { LanguageEnum } from '../../types';
+import { ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint } from '../swagger/api-docs';
 
+@ApiTags('Follows')
 @Controller('follows')
 export class FollowsController {
   constructor(private readonly followsService: FollowsService) {}
 
   @Post()
+  @ApiEndpoint('Follow or unfollow a place or event', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async follow(@Req() req: any, @Body() followDto: FollowDto) {
@@ -28,6 +35,10 @@ export class FollowsController {
   }
 
   @Get()
+  @ApiEndpoint('List places and events followed by the current user', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getMyFollows(

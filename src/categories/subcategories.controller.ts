@@ -20,17 +20,26 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { BulkUpdateOrderDto } from '../emotions/dto/update-order.dto';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint } from '../swagger/api-docs';
 
+@ApiTags('Sub-categories')
 @Controller('sub-categories')
 export class SubcategoriesController {
   constructor(private readonly subcategoriesService: SubcategoriesService) {}
 
   @Get('/')
+  @ApiEndpoint('List sub-categories')
   getAll(@I18nLang() lang: string) {
     return this.subcategoriesService.getAll(lang);
   }
 
   @Get('/admin')
+  @ApiEndpoint('List sub-categories for admin', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiQuery({ name: 'category_id', required: false, type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   getAllForAdmin(@Query('category_id') categoryId?: string) {
@@ -40,6 +49,10 @@ export class SubcategoriesController {
   }
 
   @Post()
+  @ApiEndpoint('Create a sub-category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async create(@Body() dto: CreateSubCategoryDto) {
@@ -55,6 +68,11 @@ export class SubcategoriesController {
   }
 
   @Put(':id')
+  @ApiEndpoint('Update a sub-category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async update(
@@ -73,6 +91,10 @@ export class SubcategoriesController {
   }
 
   @Post('/order')
+  @ApiEndpoint('Reorder sub-categories', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async updateOrder(@Body() dto: BulkUpdateOrderDto) {
@@ -80,6 +102,11 @@ export class SubcategoriesController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Delete a sub-category', {
+    auth: 'required',
+    roles: ['super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super-admin', 'admin')
   async delete(@Param('id') id: number) {

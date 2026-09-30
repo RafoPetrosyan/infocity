@@ -24,12 +24,21 @@ import { QueryDto } from '../../types/query.dto';
 import { LanguageEnum } from '../../types';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { InviteToEventDto } from './dto/invite-to-event.dto';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint, ApiFileBody, ApiMultipart } from '../swagger/api-docs';
+import {
+  CreateEventMultipartDto,
+  multipartObjectDescription,
+  UpdateEventMultipartDto,
+} from '../swagger/multipart-bodies.dto';
 
+@ApiTags('Events')
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Get()
+  @ApiEndpoint('List events', { auth: 'optional' })
   @UseGuards(OptionalJwtAuthGuard)
   getAll(
     @Query() params: QueryDto,
@@ -42,6 +51,10 @@ export class EventsController {
   }
 
   @Get('goings')
+  @ApiEndpoint('List events the current user is going to', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getMyGoings(
@@ -54,6 +67,10 @@ export class EventsController {
   }
 
   @Get('invitations')
+  @ApiEndpoint('List event invitations for the current user', {
+    auth: 'required',
+    roles: ['user'],
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getMyInvitations(
@@ -66,6 +83,8 @@ export class EventsController {
   }
 
   @Get('by-alias/:alias')
+  @ApiEndpoint('Get an event by alias', { auth: 'optional' })
+  @ApiParam({ name: 'alias', type: String })
   @UseGuards(OptionalJwtAuthGuard)
   getByAlias(
     @Param('alias') alias: string,
@@ -77,6 +96,8 @@ export class EventsController {
   }
 
   @Get('/:id')
+  @ApiEndpoint('Get an event by id', { auth: 'optional' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getById(
     @Param('id') id: number,
@@ -88,6 +109,8 @@ export class EventsController {
   }
 
   @Get('/:id/detail')
+  @ApiEndpoint('Get full event details', { auth: 'optional' })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(OptionalJwtAuthGuard)
   getByIdDetail(
     @Param('id') id: number,
@@ -99,6 +122,12 @@ export class EventsController {
   }
 
   @Post()
+  @ApiEndpoint('Create an event', {
+    auth: 'required',
+    roles: ['user'],
+    description: multipartObjectDescription,
+  })
+  @ApiMultipart(CreateEventMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
@@ -131,6 +160,13 @@ export class EventsController {
   }
 
   @Put(':id')
+  @ApiEndpoint('Update an event', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+    description: multipartObjectDescription,
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiMultipart(UpdateEventMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
@@ -164,6 +200,15 @@ export class EventsController {
   }
 
   @Post(':id/gallery')
+  @ApiEndpoint('Upload event gallery images', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiFileBody(
+    { images: { multiple: true, required: true } },
+    'Up to 15 gallery images.',
+  )
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   @UseInterceptors(
@@ -188,6 +233,12 @@ export class EventsController {
   }
 
   @Delete(':id/gallery/:imageId')
+  @ApiEndpoint('Delete an event gallery image', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'imageId', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   async deleteImage(
@@ -201,6 +252,11 @@ export class EventsController {
   }
 
   @Delete(':id')
+  @ApiEndpoint('Delete an event', {
+    auth: 'required',
+    roles: ['user', 'super-admin', 'admin'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user', 'super-admin', 'admin')
   async delete(@Req() req: any, @Param('id') id: number) {
@@ -210,11 +266,18 @@ export class EventsController {
   }
 
   @Get(':id/gallery')
+  @ApiEndpoint('List event gallery images')
+  @ApiParam({ name: 'id', type: Number })
   async getGallery(@Param('id') id: number) {
     return this.eventsService.getImages(id);
   }
 
   @Post(':id/invite')
+  @ApiEndpoint('Invite a user to an event', {
+    auth: 'required',
+    roles: ['user'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async inviteToEvent(
@@ -227,6 +290,11 @@ export class EventsController {
   }
 
   @Post(':id/going')
+  @ApiEndpoint('Toggle going to an event', {
+    auth: 'required',
+    roles: ['user'],
+  })
+  @ApiParam({ name: 'id', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async toggleGoing(@Req() req: any, @Param('id') eventId: number) {
@@ -235,6 +303,11 @@ export class EventsController {
   }
 
   @Post('invitations/:invitationId/accept')
+  @ApiEndpoint('Accept an event invitation', {
+    auth: 'required',
+    roles: ['user'],
+  })
+  @ApiParam({ name: 'invitationId', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async acceptInvitation(
@@ -246,6 +319,11 @@ export class EventsController {
   }
 
   @Post('invitations/:invitationId/reject')
+  @ApiEndpoint('Reject an event invitation', {
+    auth: 'required',
+    roles: ['user'],
+  })
+  @ApiParam({ name: 'invitationId', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async rejectInvitation(
@@ -257,6 +335,8 @@ export class EventsController {
   }
 
   @Get(':id/goings')
+  @ApiEndpoint('List users going to an event')
+  @ApiParam({ name: 'id', type: Number })
   async getEventGoings(@Param('id') eventId: number, @Query() query: QueryDto) {
     return this.eventsService.getEventGoings(eventId, query);
   }

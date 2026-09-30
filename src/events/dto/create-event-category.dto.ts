@@ -16,7 +16,7 @@ export class EventCategoryTranslationDto {
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 }
 
 export class CreateEventCategoryDto {
@@ -72,9 +72,9 @@ export class CreateEventCategoryDto {
   @Type(() => Number)
   @IsInt()
   @Min(0)
-  order: number;
+  order?: number;
 
   @IsOptional()
   @IsBoolean()
-  is_active: boolean;
+  is_active?: boolean;
 }

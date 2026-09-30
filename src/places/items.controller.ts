@@ -21,12 +21,22 @@ import { CreateItemDto, UpdateItemDto } from './dto/create-item.dto';
 import { UploadAndOptimizeImages } from '../../utils/upload-and-optimize.helper';
 import { I18nLang } from 'nestjs-i18n';
 import { LanguageEnum } from '../../types';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiEndpoint, ApiMultipart } from '../swagger/api-docs';
+import {
+  CreateItemMultipartDto,
+  multipartObjectDescription,
+  UpdateItemMultipartDto,
+} from '../swagger/multipart-bodies.dto';
 
+@ApiTags('Place items')
 @Controller('places/:placeId/items')
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get('/')
+  @ApiEndpoint('List items in a place')
+  @ApiParam({ name: 'placeId', type: Number })
   list(
     @Param('placeId') placeId: number,
     @I18nLang() lang: LanguageEnum,
@@ -36,6 +46,9 @@ export class ItemsController {
   }
 
   @Get('/:itemId')
+  @ApiEndpoint('Get a place item')
+  @ApiParam({ name: 'placeId', type: Number })
+  @ApiParam({ name: 'itemId', type: Number })
   getById(
     @Param('placeId') placeId: number,
     @Param('itemId') itemId: number,
@@ -45,6 +58,13 @@ export class ItemsController {
   }
 
   @Post('/')
+  @ApiEndpoint('Create a place item', {
+    auth: 'required',
+    roles: ['user'],
+    description: multipartObjectDescription,
+  })
+  @ApiParam({ name: 'placeId', type: Number })
+  @ApiMultipart(CreateItemMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
@@ -70,6 +90,14 @@ export class ItemsController {
   }
 
   @Put('/:itemId')
+  @ApiEndpoint('Update a place item', {
+    auth: 'required',
+    roles: ['user'],
+    description: multipartObjectDescription,
+  })
+  @ApiParam({ name: 'placeId', type: Number })
+  @ApiParam({ name: 'itemId', type: Number })
+  @ApiMultipart(UpdateItemMultipartDto, multipartObjectDescription)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   @UseInterceptors(
@@ -97,6 +125,9 @@ export class ItemsController {
   }
 
   @Delete('/:itemId')
+  @ApiEndpoint('Delete a place item', { auth: 'required', roles: ['user'] })
+  @ApiParam({ name: 'placeId', type: Number })
+  @ApiParam({ name: 'itemId', type: Number })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   remove(
